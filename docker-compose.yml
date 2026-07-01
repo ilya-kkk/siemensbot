@@ -1,0 +1,36 @@
+services:
+  api:
+    container_name: siemensbot_api
+    build: .
+    env_file: .env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "${API_HOST_PORT:-8001}:8000"
+    restart: unless-stopped
+
+  admin_bot:
+    container_name: siemensbot_admin_bot
+    build: .
+    env_file: .env
+    command: python -m app.bots.admin_bot
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  user_bot:
+    container_name: siemensbot_user_bot
+    build: .
+    env_file: .env
+    command: python -m app.bots.user_bot
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  campaign_worker:
+    container_name: siemensbot_campaign_worker
+    build: .
+    env_file: .env
+    command: python -m app.workers.campaign_worker
+    restart: unless-stopped
+    depends_on:
+      - api

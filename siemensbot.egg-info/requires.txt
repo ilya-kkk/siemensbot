@@ -1,0 +1,14 @@
+aiogram<4.0,>=3.8
+asyncpg<1.0,>=0.29
+fastapi<1.0,>=0.111
+httpx<1.0,>=0.27
+pydantic-settings<3.0,>=2.3
+python-dotenv<2.0,>=1.0
+python-multipart<1.0,>=0.0.9
+sqlalchemy[asyncio]<3.0,>=2.0
+uvicorn[standard]<1.0,>=0.30
+
+[dev]
+pytest<9.0,>=8.2
+pytest-asyncio<1.0,>=0.23
+ruff<1.0,>=0.5

@@ -1,0 +1,52 @@
+{
+  "name": "dialogue_business_analysis",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "niche",
+      "revenue_estimate",
+      "average_check",
+      "sales_volume",
+      "main_problem",
+      "lead_temperature",
+      "summary",
+      "confidence"
+    ],
+    "properties": {
+      "niche": {
+        "type": "string",
+        "description": "Business niche or audience segment."
+      },
+      "revenue_estimate": {
+        "type": "string",
+        "description": "Revenue or income estimate mentioned or inferred from the dialogue."
+      },
+      "average_check": {
+        "type": "string",
+        "description": "Average order value/check if known or inferred."
+      },
+      "sales_volume": {
+        "type": "string",
+        "description": "Sales count or sales volume if known or inferred."
+      },
+      "main_problem": {
+        "type": "string",
+        "description": "Main business problem or growth bottleneck."
+      },
+      "lead_temperature": {
+        "type": "string",
+        "enum": ["cold", "warm", "hot", "unknown"]
+      },
+      "summary": {
+        "type": "string"
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    }
+  }
+}

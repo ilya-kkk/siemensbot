@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: siemensbot
+Version: 0.1.0
+Summary: Telegram follow-up microservice with admin/user bots and Supabase Postgres.
+Requires-Python: >=3.12
+Requires-Dist: aiogram<4.0,>=3.8
+Requires-Dist: asyncpg<1.0,>=0.29
+Requires-Dist: fastapi<1.0,>=0.111
+Requires-Dist: httpx<1.0,>=0.27
+Requires-Dist: pydantic-settings<3.0,>=2.3
+Requires-Dist: python-dotenv<2.0,>=1.0
+Requires-Dist: python-multipart<1.0,>=0.0.9
+Requires-Dist: sqlalchemy[asyncio]<3.0,>=2.0
+Requires-Dist: uvicorn[standard]<1.0,>=0.30
+Provides-Extra: dev
+Requires-Dist: pytest<9.0,>=8.2; extra == "dev"
+Requires-Dist: pytest-asyncio<1.0,>=0.23; extra == "dev"
+Requires-Dist: ruff<1.0,>=0.5; extra == "dev"
