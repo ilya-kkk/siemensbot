@@ -511,7 +511,11 @@ class AppRepository:
             text(
                 """
                 select id from app.dialogues
-                where telegram_user_id = :telegram_user_id and status in ('active', 'offer_sent')
+                where telegram_user_id = :telegram_user_id
+                  and (
+                    status in ('active', 'offer_sent')
+                    or (status = 'analyzed' and offer_sent_at is not null)
+                  )
                 order by id desc
                 limit 1
                 """
@@ -527,6 +531,19 @@ class AppRepository:
         )
         await self.session.commit()
         return int(result.scalar_one())
+
+    async def dialogue_has_offer(self, dialogue_id: int) -> bool:
+        result = await self.session.execute(
+            text(
+                """
+                select offer_sent_at is not null
+                from app.dialogues
+                where id = :dialogue_id
+                """
+            ),
+            {"dialogue_id": dialogue_id},
+        )
+        return bool(result.scalar_one_or_none())
 
     async def log_message(
         self,
@@ -575,7 +592,12 @@ class AppRepository:
         result = await self.session.execute(
             text(
                 f"""
-                select m.created_at, m.direction, m.text
+                select
+                  m.created_at,
+                  m.direction,
+                  m.text,
+                  u.username,
+                  nullif(btrim(concat_ws(' ', u.first_name, u.last_name)), '') as telegram_name
                 from app.messages m
                 join app.telegram_users u on u.id = m.telegram_user_id
                 where {where}
@@ -727,6 +749,25 @@ class AppRepository:
         await self.session.commit()
         return int(result.scalar_one())
 
+    async def _lead_contact_name(self, telegram_user_id: int) -> str:
+        result = await self.session.execute(
+            text(
+                """
+                select coalesce(
+                  nullif(btrim(concat_ws(' ', first_name, last_name)), ''),
+                  nullif(username, ''),
+                  telegram_user_id::text,
+                  chat_id::text,
+                  'Без имени'
+                )
+                from app.telegram_users
+                where id = :telegram_user_id
+                """
+            ),
+            {"telegram_user_id": telegram_user_id},
+        )
+        return str(result.scalar_one())
+
     async def get_leads_for_export(self) -> list[dict[str, Any]]:
         result = await self.session.execute(
             text(
@@ -820,6 +861,27 @@ class AppRepository:
             ),
             {"dialogue_id": dialogue_id},
         )
+        await self.session.execute(
+            text(
+                """
+                update app.leads l
+                set niche = da.niche,
+                    revenue_estimate = da.revenue_estimate,
+                    average_check = da.average_check,
+                    sales_volume = da.sales_volume,
+                    main_problem = da.main_problem,
+                    lead_temperature = da.structured_output ->> 'lead_temperature',
+                    summary = da.structured_output ->> 'summary',
+                    confidence = da.confidence,
+                    structured_output = da.structured_output,
+                    updated_at = now()
+                from app.dialogue_analyses da
+                where l.dialogue_id = da.dialogue_id
+                  and l.dialogue_id = :dialogue_id
+                """
+            ),
+            {"dialogue_id": dialogue_id},
+        )
         await self.session.commit()
 
     async def create_tracked_link(self, telegram_user_id: int, dialogue_id: int | None, destination_url: str) -> str:
@@ -851,7 +913,7 @@ class AppRepository:
         result = await self.session.execute(
             text(
                 """
-                select id, telegram_user_id, destination_url
+                select id, telegram_user_id, dialogue_id, destination_url
                 from app.tracked_links
                 where token = :token
                 """
@@ -875,6 +937,11 @@ class AppRepository:
                 "user_agent": user_agent,
             },
         )
+        if row.dialogue_id is not None:
+            contact_name = await self._lead_contact_name(int(row.telegram_user_id))
+            await self.create_lead(int(row.telegram_user_id), int(row.dialogue_id), contact_name)
+            return str(row.destination_url)
+
         await self.session.commit()
         return str(row.destination_url)
 

@@ -3,11 +3,9 @@ import logging
 
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.exceptions import TelegramAPIError
-from aiogram.filters import CommandStart
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, User
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
 
 from app.ai.openrouter import OpenRouterClient, OpenRouterError
 from app.alerts import send_critical_alert
@@ -20,27 +18,34 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 settings = get_settings()
+test_sessions: dict[int, list[str]] = {}
+test_offer_sent: set[int] = set()
 
 
-class LeadStates(StatesGroup):
-    waiting_name = State()
-
-
-def _offer_markup(dialogue_id: int) -> InlineKeyboardMarkup:
-    button = InlineKeyboardButton(text="Записаться", callback_data=f"book_test_drive:{dialogue_id}")
+def _offer_markup(url: str) -> InlineKeyboardMarkup:
+    button = InlineKeyboardButton(text="Записаться", url=url)
     return InlineKeyboardMarkup(inline_keyboard=[[button]])
 
 
-def _dialogue_id_from_callback(data: str | None) -> int | None:
-    if not data or not data.startswith("book_test_drive:"):
-        return None
-    value = data.removeprefix("book_test_drive:")
-    return int(value) if value.isdigit() else None
+async def _build_offer_markup(repo: AppRepository, telegram_user_id: int, dialogue_id: int) -> InlineKeyboardMarkup:
+    offer_url = settings.test_drive_url
+    if settings.public_base_url:
+        token = await repo.create_tracked_link(telegram_user_id, dialogue_id, settings.test_drive_url)
+        offer_url = f"{settings.public_base_url.rstrip('/')}/r/{token}"
+    return _offer_markup(offer_url)
 
 
 async def _client_bot_stopped() -> bool:
     async with SessionLocal() as session:
         return await AppRepository(session).is_client_bot_stopped()
+
+
+def _is_test_admin(user: User | None) -> bool:
+    return bool(user and settings.admin_role_for_username(user.username))
+
+
+def _render_test_transcript(chat_id: int) -> str:
+    return "\n".join(test_sessions.get(chat_id, []))
 
 
 async def _upsert_user(chat_id: int, user: User | None) -> int:
@@ -96,6 +101,8 @@ async def _ensure_dialogue_analysis(telegram_user_id: int, dialogue_id: int, cli
 
 @router.message(CommandStart())
 async def start(message: Message) -> None:
+    test_sessions.pop(message.chat.id, None)
+    test_offer_sent.discard(message.chat.id)
     if await _client_bot_stopped():
         return
     telegram_user_id, dialogue_id = await _register_user(message)
@@ -110,76 +117,45 @@ async def start(message: Message) -> None:
         )
     if await _client_bot_stopped():
         return
-    await message.answer("Привет. Напиши, что сейчас хочешь разобрать по росту проекта.")
+    await message.answer("Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?")
 
 
-@router.callback_query(F.data == "offer_intent")
-@router.callback_query(F.data.startswith("book_test_drive:"))
-async def book_test_drive(callback: CallbackQuery, state: FSMContext) -> None:
-    if await _client_bot_stopped():
-        return
-    if not isinstance(callback.message, Message):
-        await callback.answer("Напишите в чат, и мы вас запишем.")
+@router.message(Command("test"))
+async def test_start(message: Message) -> None:
+    if not _is_test_admin(message.from_user):
+        await message.answer("Команда недоступна.")
         return
 
-    telegram_user_id = await _upsert_user(callback.message.chat.id, callback.from_user)
-    dialogue_id = _dialogue_id_from_callback(callback.data)
-    if dialogue_id is None:
-        async with SessionLocal() as session:
-            dialogue_id = await AppRepository(session).get_or_create_dialogue(telegram_user_id)
-
-    async with SessionLocal() as session:
-        await AppRepository(session).log_message(
-            telegram_user_id,
-            dialogue_id,
-            "incoming",
-            "Нажал кнопку «Записаться»",
-            None,
-            callback.model_dump(mode="json"),
-            message_type="button",
-        )
-
-    if await _client_bot_stopped():
-        return
-    await state.update_data(telegram_user_id=telegram_user_id, dialogue_id=dialogue_id)
-    await state.set_state(LeadStates.waiting_name)
-    await callback.message.answer("Как к вам обращаться?")
-    await callback.answer()
+    test_sessions[message.chat.id] = [f"outgoing: {settings.followup_text}"]
+    test_offer_sent.discard(message.chat.id)
+    await message.answer(settings.followup_text)
 
 
-@router.message(LeadStates.waiting_name, F.text)
-async def lead_name_received(message: Message, state: FSMContext) -> None:
-    if await _client_bot_stopped():
-        return
-    contact_name = (message.text or "").strip()
-    if not contact_name:
-        await message.answer("Напишите, пожалуйста, имя текстом.")
+@router.message(lambda message: message.chat.id in test_sessions, F.text)
+async def test_text_message(message: Message) -> None:
+    if not _is_test_admin(message.from_user):
+        test_sessions.pop(message.chat.id, None)
+        test_offer_sent.discard(message.chat.id)
         return
 
-    data = await state.get_data()
-    telegram_user_id = int(data["telegram_user_id"])
-    dialogue_id = int(data["dialogue_id"])
-
-    async with SessionLocal() as session:
-        await AppRepository(session).log_message(
-            telegram_user_id,
-            dialogue_id,
-            "incoming",
-            contact_name,
-            message.message_id,
-            message.model_dump(mode="json"),
-        )
-
+    transcript = _render_test_transcript(message.chat.id)
     client = OpenRouterClient(settings)
-    await _ensure_dialogue_analysis(telegram_user_id, dialogue_id, client)
-
-    async with SessionLocal() as session:
-        await AppRepository(session).create_lead(telegram_user_id, dialogue_id, contact_name)
-
-    await state.clear()
-    if await _client_bot_stopped():
+    try:
+        decision = await client.chat_reply(transcript, message.text or "")
+    except OpenRouterError:
+        await message.answer("Сейчас не могу ответить.")
         return
-    await message.answer("Отлично, вы записаны, скоро с вами свяжется наша команда. Спасибо.")
+
+    test_sessions[message.chat.id].append(f"incoming: {message.text or ''}")
+    test_sessions[message.chat.id].append(f"outgoing: {decision.reply_text}")
+
+    offer_already_sent = message.chat.id in test_offer_sent
+    reply_markup = (
+        _offer_markup(settings.test_drive_url) if decision.should_send_offer or offer_already_sent else None
+    )
+    if decision.should_send_offer:
+        test_offer_sent.add(message.chat.id)
+    await message.answer(decision.reply_text, reply_markup=reply_markup)
 
 
 @router.message(F.text)
@@ -236,35 +212,38 @@ async def text_message(message: Message) -> None:
         )
     if await _client_bot_stopped():
         return
-    sent = await message.answer(decision.reply_text)
+
+    reply_markup = None
+    message_type = "text"
+    should_mark_offer_sent = False
+    if decision.should_send_offer:
+        should_mark_offer_sent = True
     async with SessionLocal() as session:
-        await AppRepository(session).log_message(
+        repo = AppRepository(session)
+        if await repo.is_client_bot_stopped():
+            return
+        offer_already_sent = await repo.dialogue_has_offer(dialogue_id)
+        if decision.should_send_offer or offer_already_sent:
+            reply_markup = await _build_offer_markup(repo, telegram_user_id, dialogue_id)
+            message_type = "button"
+            should_mark_offer_sent = decision.should_send_offer and not offer_already_sent
+
+    sent = await message.answer(decision.reply_text, reply_markup=reply_markup)
+    async with SessionLocal() as session:
+        repo = AppRepository(session)
+        await repo.log_message(
             telegram_user_id,
             dialogue_id,
             "outgoing",
             decision.reply_text,
             sent.message_id,
             sent.model_dump(mode="json"),
+            message_type=message_type,
         )
-
-    if decision.should_send_offer:
-        async with SessionLocal() as session:
-            repo = AppRepository(session)
-            offer_text = "Можем записать вас на тест-драйв."
-            if await repo.is_client_bot_stopped():
-                return
-            offer = await message.answer(offer_text, reply_markup=_offer_markup(dialogue_id))
-            await repo.log_message(
-                telegram_user_id,
-                dialogue_id,
-                "outgoing",
-                offer_text,
-                offer.message_id,
-                offer.model_dump(mode="json"),
-                message_type="button",
-            )
+        if should_mark_offer_sent:
             await repo.mark_offer_sent(dialogue_id)
 
+    if decision.should_send_offer:
         await _ensure_dialogue_analysis(telegram_user_id, dialogue_id, client)
 
 

@@ -39,9 +39,9 @@ settings = get_settings()
 
 MENU = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="/leads"), KeyboardButton(text="/stats")],
-        [KeyboardButton(text="/campaign"), KeyboardButton(text="/dialog")],
-        [KeyboardButton(text="/stop")],
+        [KeyboardButton(text="Скачать таблицу"), KeyboardButton(text="Статистика")],
+        [KeyboardButton(text="Кампания"), KeyboardButton(text="Диалог")],
+        [KeyboardButton(text="Стоп")],
     ],
     resize_keyboard=True,
 )
@@ -116,6 +116,7 @@ async def start(message: Message) -> None:
 
 
 @router.message(Command("leads"))
+@router.message(F.text == "Скачать таблицу")
 async def download_leads(message: Message) -> None:
     if not await _ensure_admin(message):
         return
@@ -132,6 +133,7 @@ async def download_leads(message: Message) -> None:
 
 
 @router.message(Command("stats"))
+@router.message(F.text == "Статистика")
 async def stats(message: Message) -> None:
     if not await _ensure_admin(message):
         return
@@ -141,6 +143,7 @@ async def stats(message: Message) -> None:
 
 
 @router.message(Command("import"))
+@router.message(F.text == "Импорт")
 async def import_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return
@@ -168,6 +171,7 @@ async def import_receive(message: Message, state: FSMContext, bot: Bot) -> None:
 
 
 @router.message(Command("campaign"))
+@router.message(F.text == "Кампания")
 async def campaign_start(message: Message) -> None:
     if not await _ensure_admin(message):
         return
@@ -196,7 +200,7 @@ async def campaign_settings_receive(message: Message, state: FSMContext) -> None
         return
 
     async with SessionLocal() as session:
-        campaign_id, action = await AppRepository(session).configure_current_campaign(
+        _campaign_id, action = await AppRepository(session).configure_current_campaign(
             batch_size=batch_size,
             interval_minutes=interval_minutes,
             created_by_admin_id=admin[0],
@@ -205,7 +209,7 @@ async def campaign_settings_receive(message: Message, state: FSMContext) -> None
     await state.clear()
     action_text = "создана" if action == "created" else "обновлена"
     await message.answer(
-        f"Кампания #{campaign_id} {action_text}: {batch_size} юзеров раз в {interval_minutes} минут.",
+        f"Кампания {action_text}: {batch_size} юзеров раз в {interval_minutes} минут.",
         reply_markup=MENU,
     )
     await _send_campaign_status(message)
@@ -218,7 +222,7 @@ async def campaign_pause(callback: CallbackQuery) -> None:
     async with SessionLocal() as session:
         campaign_id = await AppRepository(session).pause_current_campaign()
     if isinstance(callback.message, Message):
-        text = f"Кампания #{campaign_id} поставлена на паузу." if campaign_id else "Работающей кампании нет."
+        text = "Кампания поставлена на паузу." if campaign_id else "Работающей кампании нет."
         await callback.message.answer(text, reply_markup=MENU)
         await _send_campaign_status(callback.message)
     await callback.answer()
@@ -231,13 +235,14 @@ async def campaign_resume(callback: CallbackQuery) -> None:
     async with SessionLocal() as session:
         campaign_id = await AppRepository(session).resume_current_campaign()
     if isinstance(callback.message, Message):
-        text = f"Кампания #{campaign_id} возобновлена." if campaign_id else "Кампании на паузе нет."
+        text = "Кампания возобновлена." if campaign_id else "Кампании на паузе нет."
         await callback.message.answer(text, reply_markup=MENU)
         await _send_campaign_status(callback.message)
     await callback.answer()
 
 
 @router.message(Command("stop"))
+@router.message(F.text == "Стоп")
 async def stop_campaigns(message: Message) -> None:
     if not await _ensure_admin(message):
         return
@@ -247,7 +252,7 @@ async def stop_campaigns(message: Message) -> None:
         (
             "<b>Аварийная остановка включена.</b>\n"
             "Клиентский бот больше не будет отправлять сообщения пользователям.\n"
-            f"Поставлено на паузу кампаний: {paused}."
+            + ("Активная кампания поставлена на паузу." if paused else "Активной кампании не было.")
         ),
         reply_markup=MENU,
         parse_mode="HTML",
@@ -255,6 +260,7 @@ async def stop_campaigns(message: Message) -> None:
 
 
 @router.message(Command("dialog"))
+@router.message(F.text == "Диалог")
 async def dialogue_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return
