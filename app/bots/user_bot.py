@@ -117,7 +117,16 @@ async def start(message: Message) -> None:
         )
     if await _client_bot_stopped():
         return
-    await message.answer("Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?")
+    sent = await message.answer(settings.followup_text)
+    async with SessionLocal() as session:
+        await AppRepository(session).log_message(
+            telegram_user_id,
+            dialogue_id,
+            "outgoing",
+            settings.followup_text,
+            sent.message_id,
+            sent.model_dump(mode="json"),
+        )
 
 
 @router.message(Command("test"))
@@ -165,6 +174,7 @@ async def text_message(message: Message) -> None:
     telegram_user_id, dialogue_id = await _register_user(message)
     async with SessionLocal() as session:
         repo = AppRepository(session)
+        transcript = await repo.get_transcript_for_analysis(dialogue_id)
         await repo.log_message(
             telegram_user_id,
             dialogue_id,
@@ -173,7 +183,6 @@ async def text_message(message: Message) -> None:
             message.message_id,
             message.model_dump(mode="json"),
         )
-        transcript = await repo.get_transcript_for_analysis(dialogue_id)
 
     client = OpenRouterClient(settings)
     try:

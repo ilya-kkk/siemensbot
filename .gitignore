@@ -12,3 +12,5 @@ dist/
 build/
 .coverage
 htmlcov/
+.deepeval/
+evals/results/

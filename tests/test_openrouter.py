@@ -16,8 +16,10 @@ class FakeOpenRouterClient(OpenRouterClient):
         super().__init__(settings=SimpleNamespace(openrouter_model="test-model"))
         self.reply_text = reply_text
         self.model_should_send_offer = should_send_offer
+        self.last_payload: dict | None = None
 
     async def _chat_completion(self, payload: dict) -> dict:
+        self.last_payload = payload
         return {
             "choices": [
                 {
@@ -155,3 +157,13 @@ async def test_chat_reply_uses_model_false_offer_decision_for_uncertainty() -> N
 
     assert decision.should_send_offer is False
     assert decision.raw_output["should_send_offer"] is False
+
+
+@pytest.mark.asyncio
+async def test_chat_reply_accepts_eval_only_system_prompt_override() -> None:
+    client = FakeOpenRouterClient("Что сейчас продаешь?", should_send_offer=False)
+
+    await client.chat_reply("outgoing: В какой нише работаешь?", "фитнес", system_prompt="EVAL PROMPT")
+
+    assert client.last_payload is not None
+    assert client.last_payload["messages"][0] == {"role": "system", "content": "EVAL PROMPT"}

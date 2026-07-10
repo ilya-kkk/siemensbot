@@ -242,7 +242,13 @@ class OpenRouterClient:
             raise OpenRouterError(f"OpenRouter error {response.status_code}: {response.text[:500]}")
         return response.json()
 
-    async def chat_reply(self, transcript: str, user_message: str) -> ChatDecision:
+    async def chat_reply(
+        self,
+        transcript: str,
+        user_message: str,
+        *,
+        system_prompt: str | None = None,
+    ) -> ChatDecision:
         followup_text = getattr(self.settings, "followup_text", None)
         if _is_affirming_initial_followup(transcript, user_message, followup_text):
             reply_text = _sanitize_reply_text(
@@ -298,7 +304,8 @@ class OpenRouterClient:
                 response_payload=parsed,
             )
 
-        system_prompt = load_prompt("user_chat.system.md")
+        if system_prompt is None:
+            system_prompt = load_prompt("user_chat.system.md")
         payload = {
             "model": self.settings.openrouter_model,
             "messages": [

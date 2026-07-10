@@ -21,13 +21,16 @@ dev = [
   "pytest-asyncio>=0.23,<1.0",
   "ruff>=0.5,<1.0",
 ]
+eval = [
+  "deepeval==4.0.8",
+]
 
 [build-system]
 requires = ["setuptools>=70", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["app*"]
+include = ["app*", "evals*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

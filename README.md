@@ -19,6 +19,9 @@ python3 -m venv .venv
 pip install -e ".[dev]"
 ```
 
+Для локальной оценки sales-диалогов через DeepEval, двух HTML-отчётов и цикла
+экспертной разметки см. [evals/README.md](evals/README.md).
+
 Apply the SQL migration:
 
 ```bash
