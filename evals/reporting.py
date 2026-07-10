@@ -654,11 +654,11 @@ def render_technical_report_html(
     h1 {{ margin:0; font-size:36px; letter-spacing:-.03em; }} h2 {{ margin:0 0 14px; }} h3 {{ margin:22px 0 8px; font-size:14px; color:#47534f; }}
     .subtitle {{ margin:5px 0 22px; color:var(--muted); }} .panel,.case {{ background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 7px 25px rgba(31,45,40,.04); }}
     .panel {{ padding:22px; margin:16px 0; }} .columns {{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }} .columns.compact {{ align-items:start; }}
-    table {{ width:100%; border-collapse:collapse; }} th,td {{ padding:9px 10px; border-bottom:1px solid #e7ebe9; text-align:left; vertical-align:top; overflow-wrap:anywhere; }} th {{ color:#53605b; font-size:12px; }} .kv th {{ width:220px; }}
+    table {{ width:100%; border-collapse:collapse; }} th,td {{ padding:9px 10px; border-bottom:1px solid #e7ebe9; text-align:left; vertical-align:top; overflow-wrap:break-word; word-break:normal; white-space:normal; }} th {{ color:#53605b; font-size:12px; }} .kv th {{ width:220px; }}
     .case {{ margin:14px 0; overflow:hidden; }} summary {{ cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:16px 20px; }} summary small {{ display:block; margin-top:2px; color:var(--muted); font-weight:400; }}
     .case-body {{ padding:0 20px 22px; border-top:1px solid var(--line); }} .status,.pill {{ display:inline-block; padding:4px 9px; border-radius:99px; font-size:12px; font-weight:700; }} .status.good,.pill.pass {{ color:#0b6448; background:#e4f4ed; }} .status.bad,.pill.fail {{ color:#91352f; background:#fae9e7; }}
-    .message {{ margin:0; padding:12px; border:1px solid var(--line); border-radius:9px; background:#fafbfa; white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; }} .table-scroll {{ overflow-x:auto; }} .empty {{ color:var(--muted); }}
-    @media (max-width:760px) {{ main {{ width:min(100% - 16px,1280px); margin-top:14px; }} .columns {{ grid-template-columns:1fr; }} .panel {{ padding:15px; }} summary,.case-body {{ padding-left:14px; padding-right:14px; }} }}
+    .message {{ margin:0; padding:12px; border:1px solid var(--line); border-radius:9px; background:#fafbfa; white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; }} .table-scroll {{ overflow-x:auto; }} .table-scroll table {{ min-width: 880px; }} .empty {{ color:var(--muted); }}
+    @media (max-width:760px) {{ main {{ width:min(100% - 16px,1280px); margin-top:14px; }} .columns {{ grid-template-columns:1fr; }} .panel {{ padding:15px; }} summary,.case-body {{ padding-left:14px; padding-right:14px; }} .table-scroll table {{ min-width: 760px; }} }}
     @media print {{ body {{ background:#fff; }} main {{ width:100%; margin:0; }} .panel,.case {{ box-shadow:none; break-inside:avoid; }} details {{ display:block; }} }}
   </style>
 </head>
