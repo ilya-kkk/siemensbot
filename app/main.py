@@ -1,5 +1,5 @@
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -10,9 +10,13 @@ app = FastAPI(title="Siemensbot API")
 
 
 @app.get("/health")
-async def health() -> dict:
+async def health() -> JSONResponse:
     db = await check_database()
-    return {"status": "ok", "db": db}
+    is_ready = bool(db["app_schema_ready"])
+    return JSONResponse(
+        {"status": "ok" if is_ready else "degraded", "db": db},
+        status_code=200 if is_ready else 503,
+    )
 
 
 @app.get("/r/{token}")

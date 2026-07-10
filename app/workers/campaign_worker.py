@@ -36,11 +36,16 @@ def _error_payload(exc: Exception) -> tuple[int | None, str, dict]:
 async def _process_once(bot: Bot) -> int:
     async with SessionLocal() as session:
         repo = AppRepository(session)
+        if await repo.is_client_bot_stopped():
+            return 0
         recipients = await repo.claim_due_recipients(settings.worker_claim_limit)
 
     for recipient in recipients:
         async with SessionLocal() as session:
             repo = AppRepository(session)
+            if await repo.is_client_bot_stopped():
+                await repo.release_recipient(recipient["recipient_id"])
+                continue
             try:
                 sent = await bot.send_message(recipient["chat_id"], recipient["followup_text"])
                 dialogue_id = await repo.get_or_create_dialogue(recipient["telegram_user_id"])

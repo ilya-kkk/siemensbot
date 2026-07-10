@@ -1,18 +1,33 @@
 import asyncio
 import logging
-from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import KeyboardButton, Message, ReplyKeyboardMarkup
+from aiogram.types import (
+    BufferedInputFile,
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    Message,
+    ReplyKeyboardMarkup,
+)
 
 from app.core.config import get_settings
 from app.core.db import SessionLocal
 from app.repositories import AppRepository
+from app.services.admin_views import (
+    parse_campaign_settings,
+    render_campaign_html,
+    render_start_html,
+    render_stats_html,
+)
 from app.services.importer import parse_import_text
+from app.services.leads import render_leads_csv
 from app.services.transcript import render_dialogue_html, split_telegram_html
 
 logging.basicConfig(level=logging.INFO)
@@ -24,77 +39,108 @@ settings = get_settings()
 
 MENU = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Импорт"), KeyboardButton(text="Кампания")],
-        [KeyboardButton(text="Статистика"), KeyboardButton(text="Диалог")],
-        [KeyboardButton(text="Стоп"), KeyboardButton(text="Реконфиг")],
+        [KeyboardButton(text="/leads"), KeyboardButton(text="/stats")],
+        [KeyboardButton(text="/campaign"), KeyboardButton(text="/dialog")],
+        [KeyboardButton(text="/stop")],
     ],
     resize_keyboard=True,
 )
 
 
+def _campaign_markup(campaign: dict | None) -> InlineKeyboardMarkup:
+    status = campaign["status"] if campaign else None
+    control = (
+        InlineKeyboardButton(text="Возобновить", callback_data="campaign_resume")
+        if status == "paused"
+        else InlineKeyboardButton(text="Приостановить", callback_data="campaign_pause")
+    )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Настройка", callback_data="campaign_settings"),
+                control,
+            ]
+        ]
+    )
+
+
 class AdminStates(StatesGroup):
     waiting_import = State()
-    waiting_campaign_text = State()
-    waiting_batch_size = State()
-    waiting_interval = State()
+    waiting_campaign_settings = State()
     waiting_dialog_query = State()
-    waiting_reconfigure = State()
 
 
-@dataclass
-class CampaignDraft:
-    text: str
-    batch_size: int | None = None
-
-
-drafts: dict[int, CampaignDraft] = {}
+async def _admin_for_identity(username: str | None, chat_id: int) -> tuple[int, str] | None:
+    role = settings.admin_role_for_username(username)
+    if not role:
+        return None
+    async with SessionLocal() as session:
+        admin_id = await AppRepository(session).ensure_admin_user(username or "", role, chat_id)
+    return admin_id, role
 
 
 async def _ensure_admin(message: Message) -> tuple[int, str] | None:
     username = message.from_user.username if message.from_user else None
-    role = settings.admin_role_for_username(username)
-    if not role:
+    admin = await _admin_for_identity(username, message.chat.id)
+    if not admin:
         await message.answer("Нет доступа. Укажи TECH_ADMIN_USERNAME/BUSINESS_ADMIN_USERNAME в .env.")
-        return None
+    return admin
+
+
+async def _ensure_admin_callback(callback: CallbackQuery) -> tuple[int, str] | None:
+    username = callback.from_user.username if callback.from_user else None
+    chat_id = callback.message.chat.id if callback.message else callback.from_user.id
+    admin = await _admin_for_identity(username, chat_id)
+    if not admin:
+        await callback.answer("Нет доступа.", show_alert=True)
+    return admin
+
+
+async def _send_campaign_status(message: Message) -> None:
     async with SessionLocal() as session:
         repo = AppRepository(session)
-        admin_id = await repo.ensure_admin_user(username or "", role, message.chat.id)
-    return admin_id, role
+        campaign = await repo.get_current_campaign()
+        stopped = await repo.is_client_bot_stopped()
+    await message.answer(
+        render_campaign_html(campaign, stopped),
+        reply_markup=_campaign_markup(campaign),
+        parse_mode="HTML",
+    )
 
 
 @router.message(CommandStart())
 async def start(message: Message) -> None:
     if not await _ensure_admin(message):
         return
-    await message.answer("Админка готова.", reply_markup=MENU)
+    await message.answer(render_start_html(), reply_markup=MENU, parse_mode="HTML")
+
+
+@router.message(Command("leads"))
+async def download_leads(message: Message) -> None:
+    if not await _ensure_admin(message):
+        return
+    async with SessionLocal() as session:
+        rows = await AppRepository(session).get_leads_for_export()
+
+    csv_bytes = render_leads_csv(rows)
+    filename = f"leads_{datetime.now(UTC).strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+    await message.answer_document(
+        BufferedInputFile(csv_bytes, filename=filename),
+        caption=f"Лидов: {len(rows)}",
+        reply_markup=MENU,
+    )
 
 
 @router.message(Command("stats"))
-@router.message(F.text == "Статистика")
 async def stats(message: Message) -> None:
     if not await _ensure_admin(message):
         return
     async with SessionLocal() as session:
         data = await AppRepository(session).get_stats()
-    await message.answer(
-        "\n".join(
-            [
-                f"Всего юзеров: {data['total_users']}",
-                f"Старых юзеров: {data['old_users']}",
-                f"Follow-up отправлено: {data['sent']} / {data['total_recipients']} ({data['sent_percent']}%)",
-                f"В очереди: {data['pending']}",
-                f"Ошибки отправки: {data['failed']}",
-                f"Blocked 403: {data['blocked_users']}",
-                f"Invalid chat_id: {data['invalid_users']}",
-                f"Unresolved username-only: {data['unresolved_users']}",
-                f"Клики по кнопке: {data['button_clicks']}",
-                f"AI cost USD: {data['ai_cost_usd']}",
-            ]
-        )
-    )
+    await message.answer(render_stats_html(data), reply_markup=MENU, parse_mode="HTML")
 
 
-@router.message(F.text == "Импорт")
+@router.message(Command("import"))
 async def import_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return
@@ -121,94 +167,99 @@ async def import_receive(message: Message, state: FSMContext, bot: Bot) -> None:
     )
 
 
-@router.message(F.text == "Кампания")
-async def campaign_start(message: Message, state: FSMContext) -> None:
+@router.message(Command("campaign"))
+async def campaign_start(message: Message) -> None:
     if not await _ensure_admin(message):
         return
-    await state.set_state(AdminStates.waiting_campaign_text)
-    await message.answer("Пришли текст follow-up сообщения.")
+    await _send_campaign_status(message)
 
 
-@router.message(AdminStates.waiting_campaign_text)
-async def campaign_text(message: Message, state: FSMContext) -> None:
-    if not await _ensure_admin(message):
+@router.callback_query(F.data == "campaign_settings")
+async def campaign_settings(callback: CallbackQuery, state: FSMContext) -> None:
+    if not await _ensure_admin_callback(callback):
         return
-    drafts[message.chat.id] = CampaignDraft(text=message.text or "")
-    await state.set_state(AdminStates.waiting_batch_size)
-    await message.answer("Размер батча? Например: 100")
+    await state.set_state(AdminStates.waiting_campaign_settings)
+    if isinstance(callback.message, Message):
+        await callback.message.answer("Пришлите размер батча и интервал одним сообщением. Например: 100, 30")
+    await callback.answer()
 
 
-@router.message(AdminStates.waiting_batch_size)
-async def campaign_batch(message: Message, state: FSMContext) -> None:
-    if not await _ensure_admin(message):
-        return
-    if not message.text or not message.text.isdigit() or int(message.text) <= 0:
-        await message.answer("Нужно положительное число.")
-        return
-    drafts[message.chat.id].batch_size = int(message.text)
-    await state.set_state(AdminStates.waiting_interval)
-    await message.answer("Интервал между батчами в минутах? Например: 30")
-
-
-@router.message(AdminStates.waiting_interval)
-async def campaign_interval(message: Message, state: FSMContext) -> None:
+@router.message(AdminStates.waiting_campaign_settings)
+async def campaign_settings_receive(message: Message, state: FSMContext) -> None:
     admin = await _ensure_admin(message)
     if not admin:
         return
-    if not message.text or not message.text.isdigit() or int(message.text) <= 0:
-        await message.answer("Нужно положительное число минут.")
+    try:
+        batch_size, interval_minutes = parse_campaign_settings(message.text)
+    except ValueError:
+        await message.answer("Формат: 100, 30")
         return
-    draft = drafts.pop(message.chat.id)
+
     async with SessionLocal() as session:
-        campaign_id = await AppRepository(session).create_campaign(
-            name="follow-up",
-            followup_text=draft.text,
-            batch_size=draft.batch_size or 100,
-            interval_minutes=int(message.text),
+        campaign_id, action = await AppRepository(session).configure_current_campaign(
+            batch_size=batch_size,
+            interval_minutes=interval_minutes,
             created_by_admin_id=admin[0],
+            followup_text=settings.followup_text,
         )
     await state.clear()
-    await message.answer(f"Кампания #{campaign_id} создана и запущена.", reply_markup=MENU)
+    action_text = "создана" if action == "created" else "обновлена"
+    await message.answer(
+        f"Кампания #{campaign_id} {action_text}: {batch_size} юзеров раз в {interval_minutes} минут.",
+        reply_markup=MENU,
+    )
+    await _send_campaign_status(message)
 
 
-@router.message(F.text == "Стоп")
+@router.callback_query(F.data == "campaign_pause")
+async def campaign_pause(callback: CallbackQuery) -> None:
+    if not await _ensure_admin_callback(callback):
+        return
+    async with SessionLocal() as session:
+        campaign_id = await AppRepository(session).pause_current_campaign()
+    if isinstance(callback.message, Message):
+        text = f"Кампания #{campaign_id} поставлена на паузу." if campaign_id else "Работающей кампании нет."
+        await callback.message.answer(text, reply_markup=MENU)
+        await _send_campaign_status(callback.message)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "campaign_resume")
+async def campaign_resume(callback: CallbackQuery) -> None:
+    if not await _ensure_admin_callback(callback):
+        return
+    async with SessionLocal() as session:
+        campaign_id = await AppRepository(session).resume_current_campaign()
+    if isinstance(callback.message, Message):
+        text = f"Кампания #{campaign_id} возобновлена." if campaign_id else "Кампании на паузе нет."
+        await callback.message.answer(text, reply_markup=MENU)
+        await _send_campaign_status(callback.message)
+    await callback.answer()
+
+
+@router.message(Command("stop"))
 async def stop_campaigns(message: Message) -> None:
     if not await _ensure_admin(message):
         return
     async with SessionLocal() as session:
-        count = await AppRepository(session).pause_running_campaigns()
-    await message.answer(f"Остановлено кампаний: {count}", reply_markup=MENU)
+        paused = await AppRepository(session).emergency_stop_client_bot()
+    await message.answer(
+        (
+            "<b>Аварийная остановка включена.</b>\n"
+            "Клиентский бот больше не будет отправлять сообщения пользователям.\n"
+            f"Поставлено на паузу кампаний: {paused}."
+        ),
+        reply_markup=MENU,
+        parse_mode="HTML",
+    )
 
 
-@router.message(F.text == "Реконфиг")
-async def reconfigure_start(message: Message, state: FSMContext) -> None:
-    if not await _ensure_admin(message):
-        return
-    await state.set_state(AdminStates.waiting_reconfigure)
-    await message.answer("Формат: campaign_id batch_size interval_minutes. Например: 1 200 30")
-
-
-@router.message(AdminStates.waiting_reconfigure)
-async def reconfigure_receive(message: Message, state: FSMContext) -> None:
-    if not await _ensure_admin(message):
-        return
-    parts = (message.text or "").split()
-    if len(parts) != 3 or not all(part.isdigit() for part in parts):
-        await message.answer("Формат: campaign_id batch_size interval_minutes")
-        return
-    campaign_id, batch_size, interval = map(int, parts)
-    async with SessionLocal() as session:
-        updated = await AppRepository(session).reconfigure_campaign(campaign_id, batch_size, interval)
-    await state.clear()
-    await message.answer(f"Перенастроено pending/rescheduled получателей: {updated}", reply_markup=MENU)
-
-
-@router.message(F.text == "Диалог")
+@router.message(Command("dialog"))
 async def dialogue_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return
     await state.set_state(AdminStates.waiting_dialog_query)
-    await message.answer("Пришли chat_id или username.")
+    await message.answer("Пришли username или chat_id.")
 
 
 @router.message(AdminStates.waiting_dialog_query)

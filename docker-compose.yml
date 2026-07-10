@@ -6,6 +6,18 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "${API_HOST_PORT:-8001}:8000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8000;
+          printf "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n" >&3;
+          IFS= read -r status <&3;
+          [[ "$$status" == *" 200 "* ]]'
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
   admin_bot:
@@ -15,7 +27,21 @@ services:
     command: python -m app.bots.admin_bot
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          bash -ec 'tr "\0" " " < /proc/1/cmdline | grep -Fq "python -m app.bots.admin_bot";
+          exec 3<>/dev/tcp/api/8000;
+          printf "GET /health HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
+          IFS= read -r status <&3;
+          [[ "$$status" == *" 200 "* ]]'
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
 
   user_bot:
     container_name: siemensbot_user_bot
@@ -24,7 +50,21 @@ services:
     command: python -m app.bots.user_bot
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          bash -ec 'tr "\0" " " < /proc/1/cmdline | grep -Fq "python -m app.bots.user_bot";
+          exec 3<>/dev/tcp/api/8000;
+          printf "GET /health HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
+          IFS= read -r status <&3;
+          [[ "$$status" == *" 200 "* ]]'
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
 
   campaign_worker:
     container_name: siemensbot_campaign_worker
@@ -33,4 +73,18 @@ services:
     command: python -m app.workers.campaign_worker
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          bash -ec 'tr "\0" " " < /proc/1/cmdline | grep -Fq "python -m app.workers.campaign_worker";
+          exec 3<>/dev/tcp/api/8000;
+          printf "GET /health HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
+          IFS= read -r status <&3;
+          [[ "$$status" == *" 200 "* ]]'
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 30s

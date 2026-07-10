@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
     openrouter_model: str = Field(default="openai/gpt-4.1-mini", alias="OPENROUTER_MODEL")
     test_drive_url: str = Field(default="https://example.com/test-drive", alias="TEST_DRIVE_URL")
+    followup_text: str = Field(
+        default="Привет! Хотел уточнить, актуален ли разбор роста проекта?",
+        alias="FOLLOWUP_TEXT",
+    )
     public_base_url: str | None = Field(default=None, alias="PUBLIC_BASE_URL")
     tech_admin_username: str | None = Field(default=None, alias="TECH_ADMIN_USERNAME")
     business_admin_username: str | None = Field(default=None, alias="BUSINESS_ADMIN_USERNAME")

@@ -16,5 +16,8 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-PGCONNECT_TIMEOUT="${PGCONNECT_TIMEOUT:-10}" \
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/supabase/202607010001_initial_schema.sql
+for migration in migrations/supabase/*.sql; do
+  echo "Applying $migration"
+  PGCONNECT_TIMEOUT="${PGCONNECT_TIMEOUT:-10}" \
+    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"
+done

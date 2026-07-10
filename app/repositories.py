@@ -198,6 +198,57 @@ class AppRepository:
         await self.session.commit()
         return campaign_id
 
+    async def get_current_campaign(self) -> dict[str, Any] | None:
+        result = await self.session.execute(
+            text(
+                """
+                select
+                  c.id,
+                  c.name,
+                  c.status,
+                  c.batch_size,
+                  c.interval_minutes,
+                  c.started_at,
+                  c.paused_at,
+                  c.created_at,
+                  count(cr.id) as total_recipients,
+                  count(cr.id) filter (where cr.status = 'sent') as sent,
+                  count(cr.id) filter (where cr.status in ('pending', 'processing', 'rescheduled')) as pending,
+                  count(cr.id) filter (where cr.status = 'failed') as failed
+                from app.campaigns c
+                left join app.campaign_recipients cr on cr.campaign_id = c.id
+                where c.status in ('running', 'paused')
+                group by c.id
+                order by c.id desc
+                limit 1
+                """
+            )
+        )
+        row = result.one_or_none()
+        return dict(row._mapping) if row else None
+
+    async def configure_current_campaign(
+        self,
+        batch_size: int,
+        interval_minutes: int,
+        created_by_admin_id: int | None,
+        followup_text: str,
+    ) -> tuple[int, str]:
+        campaign = await self.get_current_campaign()
+        if campaign:
+            updated = await self.reconfigure_campaign(int(campaign["id"]), batch_size, interval_minutes)
+            return int(campaign["id"]), f"updated:{updated}"
+
+        campaign_id = await self.create_campaign(
+            name="follow-up",
+            followup_text=followup_text,
+            batch_size=batch_size,
+            interval_minutes=interval_minutes,
+            created_by_admin_id=created_by_admin_id,
+        )
+        await self.set_client_bot_stopped(False)
+        return campaign_id, "created"
+
     async def _insert_recipients(self, campaign_id: int, assignments: Sequence[RecipientAssignment]) -> None:
         for assignment in assignments:
             await self.session.execute(
@@ -237,6 +288,49 @@ class AppRepository:
         await self.session.commit()
         return len(rows)
 
+    async def pause_current_campaign(self) -> int | None:
+        result = await self.session.execute(
+            text(
+                """
+                update app.campaigns
+                set status = 'paused', paused_at = now(), updated_at = now()
+                where id = (
+                  select id
+                  from app.campaigns
+                  where status = 'running'
+                  order by id desc
+                  limit 1
+                )
+                returning id
+                """
+            )
+        )
+        value = result.scalar_one_or_none()
+        await self.session.commit()
+        return int(value) if value is not None else None
+
+    async def resume_current_campaign(self) -> int | None:
+        await self.set_client_bot_stopped(False)
+        result = await self.session.execute(
+            text(
+                """
+                update app.campaigns
+                set status = 'running', paused_at = null, updated_at = now()
+                where id = (
+                  select id
+                  from app.campaigns
+                  where status = 'paused'
+                  order by id desc
+                  limit 1
+                )
+                returning id
+                """
+            )
+        )
+        value = result.scalar_one_or_none()
+        await self.session.commit()
+        return int(value) if value is not None else None
+
     async def resume_campaign(self, campaign_id: int) -> None:
         await self.session.execute(
             text(
@@ -247,6 +341,21 @@ class AppRepository:
                 """
             ),
             {"campaign_id": campaign_id},
+        )
+        await self.session.commit()
+
+    async def release_recipient(self, recipient_id: int) -> None:
+        await self.session.execute(
+            text(
+                """
+                update app.campaign_recipients
+                set status = 'pending',
+                    locked_at = null,
+                    updated_at = now()
+                where id = :recipient_id and status = 'processing'
+                """
+            ),
+            {"recipient_id": recipient_id},
         )
         await self.session.commit()
 
@@ -494,6 +603,21 @@ class AppRepository:
         )
         return "\n".join(f"{row.direction}: {row.text}" for row in result.all())
 
+    async def has_dialogue_analysis(self, dialogue_id: int) -> bool:
+        result = await self.session.execute(
+            text(
+                """
+                select exists (
+                  select 1
+                  from app.dialogue_analyses
+                  where dialogue_id = :dialogue_id
+                )
+                """
+            ),
+            {"dialogue_id": dialogue_id},
+        )
+        return bool(result.scalar_one())
+
     async def save_ai_request(
         self,
         telegram_user_id: int | None,
@@ -539,6 +663,96 @@ class AppRepository:
         )
         await self.session.commit()
         return int(result.scalar_one())
+
+    async def create_lead(self, telegram_user_id: int, dialogue_id: int, contact_name: str) -> int:
+        result = await self.session.execute(
+            text(
+                """
+                insert into app.leads (
+                  telegram_user_id, dialogue_id, telegram_id, chat_id, username, first_name, last_name,
+                  contact_name, niche, revenue_estimate, average_check, sales_volume, main_problem,
+                  lead_temperature, summary, confidence, structured_output
+                )
+                select
+                  u.id,
+                  :dialogue_id,
+                  u.telegram_user_id,
+                  u.chat_id,
+                  u.username,
+                  u.first_name,
+                  u.last_name,
+                  :contact_name,
+                  da.niche,
+                  da.revenue_estimate,
+                  da.average_check,
+                  da.sales_volume,
+                  da.main_problem,
+                  da.structured_output ->> 'lead_temperature',
+                  da.structured_output ->> 'summary',
+                  da.confidence,
+                  coalesce(da.structured_output, '{}'::jsonb)
+                from app.telegram_users u
+                left join app.dialogue_analyses da on da.dialogue_id = :dialogue_id
+                where u.id = :telegram_user_id
+                on conflict (dialogue_id) do update set
+                  telegram_user_id = excluded.telegram_user_id,
+                  telegram_id = coalesce(excluded.telegram_id, app.leads.telegram_id),
+                  chat_id = coalesce(excluded.chat_id, app.leads.chat_id),
+                  username = coalesce(excluded.username, app.leads.username),
+                  first_name = coalesce(excluded.first_name, app.leads.first_name),
+                  last_name = coalesce(excluded.last_name, app.leads.last_name),
+                  contact_name = excluded.contact_name,
+                  niche = coalesce(excluded.niche, app.leads.niche),
+                  revenue_estimate = coalesce(excluded.revenue_estimate, app.leads.revenue_estimate),
+                  average_check = coalesce(excluded.average_check, app.leads.average_check),
+                  sales_volume = coalesce(excluded.sales_volume, app.leads.sales_volume),
+                  main_problem = coalesce(excluded.main_problem, app.leads.main_problem),
+                  lead_temperature = coalesce(excluded.lead_temperature, app.leads.lead_temperature),
+                  summary = coalesce(excluded.summary, app.leads.summary),
+                  confidence = coalesce(excluded.confidence, app.leads.confidence),
+                  structured_output = case
+                    when excluded.structured_output = '{}'::jsonb then app.leads.structured_output
+                    else excluded.structured_output
+                  end,
+                  updated_at = now()
+                returning id
+                """
+            ),
+            {
+                "telegram_user_id": telegram_user_id,
+                "dialogue_id": dialogue_id,
+                "contact_name": contact_name,
+            },
+        )
+        await self.session.commit()
+        return int(result.scalar_one())
+
+    async def get_leads_for_export(self) -> list[dict[str, Any]]:
+        result = await self.session.execute(
+            text(
+                """
+                select
+                  id,
+                  created_at,
+                  telegram_id,
+                  chat_id,
+                  username,
+                  contact_name as name,
+                  nullif(btrim(concat_ws(' ', first_name, last_name)), '') as telegram_name,
+                  niche,
+                  main_problem,
+                  average_check,
+                  revenue_estimate,
+                  sales_volume,
+                  lead_temperature,
+                  confidence,
+                  summary
+                from app.leads
+                order by created_at desc, id desc
+                """
+            )
+        )
+        return [dict(row._mapping) for row in result.all()]
 
     async def mark_offer_sent(self, dialogue_id: int) -> None:
         await self.session.execute(
@@ -678,6 +892,60 @@ class AppRepository:
         await self.session.commit()
         return int(result.scalar_one())
 
+    async def is_client_bot_stopped(self) -> bool:
+        result = await self.session.execute(
+            text(
+                """
+                select coalesce(
+                  (select bool_value from app.runtime_flags where key = 'client_bot_stopped'),
+                  false
+                )
+                """
+            )
+        )
+        return bool(result.scalar_one())
+
+    async def set_client_bot_stopped(self, stopped: bool) -> None:
+        await self.session.execute(
+            text(
+                """
+                insert into app.runtime_flags (key, bool_value, updated_at)
+                values ('client_bot_stopped', :stopped, now())
+                on conflict (key) do update set
+                  bool_value = excluded.bool_value,
+                  updated_at = now()
+                """
+            ),
+            {"stopped": stopped},
+        )
+        await self.session.commit()
+
+    async def emergency_stop_client_bot(self) -> int:
+        await self.session.execute(
+            text(
+                """
+                insert into app.runtime_flags (key, bool_value, updated_at)
+                values ('client_bot_stopped', true, now())
+                on conflict (key) do update set
+                  bool_value = true,
+                  updated_at = now()
+                """
+            )
+        )
+        result = await self.session.execute(
+            text(
+                """
+                update app.campaigns
+                set status = 'paused', paused_at = now(), updated_at = now()
+                where status = 'running'
+                returning id
+                """
+            )
+        )
+        rows = result.all()
+        await self.session.commit()
+        return len(rows)
+
     async def mark_alert_delivered(self, alert_id: int, chat_id: int) -> None:
         await self.session.execute(
             text(
@@ -698,6 +966,7 @@ class AppRepository:
                 select
                   count(*) as total_users,
                   count(*) filter (where source = 'old_import') as old_users,
+                  count(*) filter (where source = 'old_import' and status = 'active' and chat_id is not null) as active_old_users,
                   count(*) filter (where status = 'blocked') as blocked_users,
                   count(*) filter (where status = 'invalid') as invalid_users,
                   count(*) filter (where status = 'unresolved') as unresolved_users
@@ -717,6 +986,65 @@ class AppRepository:
                 """
             )
         )
+        funnel = await self.session.execute(
+            text(
+                """
+                with sent as (
+                  select telegram_user_id, min(sent_at) as sent_at
+                  from app.campaign_recipients
+                  where status = 'sent' and sent_at is not null
+                  group by telegram_user_id
+                ),
+                states as (
+                  select
+                    s.telegram_user_id,
+                    exists (
+                      select 1
+                      from app.messages m
+                      where m.telegram_user_id = s.telegram_user_id
+                        and m.direction = 'incoming'
+                        and m.message_type = 'text'
+                        and m.created_at > s.sent_at
+                    ) as replied,
+                    exists (
+                      select 1
+                      from app.dialogues d
+                      where d.telegram_user_id = s.telegram_user_id
+                        and d.offer_sent_at is not null
+                        and d.offer_sent_at > s.sent_at
+                    ) as offer_sent,
+                    exists (
+                      select 1
+                      from app.leads l
+                      where l.telegram_user_id = s.telegram_user_id
+                        and l.created_at > s.sent_at
+                    ) as became_lead
+                  from sent s
+                )
+                select
+                  count(*) filter (where not replied) as sent_no_reply,
+                  count(*) filter (where replied) as replied_users,
+                  count(*) filter (where replied and not became_lead) as replied_no_lead,
+                  count(*) filter (where offer_sent and not became_lead) as offer_no_lead,
+                  count(*) filter (where became_lead) as leads_from_followup
+                from states
+                """
+            )
+        )
+        leads = await self.session.execute(text("select count(*) from app.leads"))
+        delivery_errors = await self.session.execute(
+            text(
+                """
+                select
+                  coalesce(telegram_error_code::text, 'unknown') as telegram_error_code,
+                  count(*) as count
+                from app.campaign_recipients
+                where status = 'failed' or telegram_error_code is not null
+                group by coalesce(telegram_error_code::text, 'unknown')
+                order by count(*) desc
+                """
+            )
+        )
         clicks = await self.session.execute(text("select count(*) from app.link_clicks"))
         ai = await self.session.execute(
             text("select coalesce(sum(usage_cost), 0)::text as ai_cost from app.ai_requests")
@@ -724,12 +1052,16 @@ class AppRepository:
 
         user_stats = dict(users.one()._mapping)
         campaign_stats = dict(campaigns.one()._mapping)
+        funnel_stats = dict(funnel.one()._mapping)
         total_recipients = int(campaign_stats["total_recipients"] or 0)
         sent = int(campaign_stats["sent"] or 0)
         return {
             **user_stats,
             **campaign_stats,
+            **funnel_stats,
             "sent_percent": round(sent / total_recipients * 100, 2) if total_recipients else 0.0,
+            "total_leads": int(leads.scalar_one() or 0),
+            "delivery_errors": [dict(row._mapping) for row in delivery_errors.all()],
             "button_clicks": int(clicks.scalar_one() or 0),
             "ai_cost_usd": ai.scalar_one(),
         }
