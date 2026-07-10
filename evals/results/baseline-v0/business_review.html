@@ -1340,15 +1340,11 @@ outgoing: Откуда сейчас приходят заявки?</pre>
         const data = snapshot();
         cards.forEach((card) => card.classList.remove("incomplete"));
         if (!data.reviewer_id) { status.textContent = "Укажите имя или идентификатор эксперта."; reviewer.focus(); return; }
-        const firstIncompleteIndex = data.reviews.findIndex((item) => !isComplete(item));
-        if (firstIncompleteIndex !== -1) {
-          const card = cards[firstIncompleteIndex];
-          card.classList.add("incomplete");
-          card.scrollIntoView({ behavior:"smooth", block:"start" });
-          status.textContent = `Заполните три обязательных ответа в примере ${firstIncompleteIndex + 1}.`;
-          return;
-        }
+        const incompleteCount = data.reviews.filter((item) => !isComplete(item)).length;
         const artifact = { schema_version:schemaVersion, run_id:runId, reviewer_id:data.reviewer_id, reviews:data.reviews };
+        if (incompleteCount) {
+          status.textContent = `Внимание: скачан частично заполненный JSON. Не заполнено: ${incompleteCount} из ${cards.length} кейсов.`;
+        }
         const blob = new Blob([JSON.stringify(artifact, null, 2) + "\n"], { type:"application/json;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -1358,7 +1354,11 @@ outgoing: Откуда сейчас приходят заявки?</pre>
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
-        status.textContent = "JSON скачан. Отправьте этот файл команде проекта.";
+        if (!incompleteCount) {
+          status.textContent = "JSON скачан. Отправьте этот файл команде проекта.";
+        } else {
+          status.textContent += " Отправьте как есть — мы учтём только заполненные кейсы.";
+        }
       });
 
       restore();

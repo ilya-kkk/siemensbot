@@ -212,6 +212,22 @@ def test_merge_feedback_builds_alignment_by_stable_case_id(
     assert alignment["lead_status"]["agreement_rate"] == 1.0
 
 
+def test_merge_allows_partial_reviews(eval_run: dict, human_review: dict) -> None:
+    human_review["reviews"][0]["lead_status"] = ""
+    human_review["reviews"][0]["response_acceptable"] = ""
+    human_review["reviews"][0]["button_should_be_shown_now"] = ""
+
+    merged = merge_human_feedback(eval_run, human_review)
+    alignment = merged["alignment"]
+
+    assert merged["cases"][0]["human_review"]["response_acceptable"] == ""
+    assert merged["cases"][1]["human_review"]["response_acceptable"] == "no"
+    assert alignment["response"]["compared"] == 1
+    assert alignment["response"]["agreement_rate"] == 1.0
+    assert alignment["button"]["compared"] == 1
+    assert alignment["lead_status"]["compared"] == 1
+
+
 def test_alignment_exposes_too_lenient_judge(eval_run: dict, human_review: dict) -> None:
     eval_run["cases"][1]["judge_metrics"][0]["passed"] = True
     merged = merge_human_feedback(eval_run, human_review)

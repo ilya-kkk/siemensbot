@@ -391,15 +391,11 @@ def render_business_review_html(
         const data = snapshot();
         cards.forEach((card) => card.classList.remove("incomplete"));
         if (!data.reviewer_id) {{ status.textContent = "Укажите имя или идентификатор эксперта."; reviewer.focus(); return; }}
-        const firstIncompleteIndex = data.reviews.findIndex((item) => !isComplete(item));
-        if (firstIncompleteIndex !== -1) {{
-          const card = cards[firstIncompleteIndex];
-          card.classList.add("incomplete");
-          card.scrollIntoView({{ behavior:"smooth", block:"start" }});
-          status.textContent = `Заполните три обязательных ответа в примере ${{firstIncompleteIndex + 1}}.`;
-          return;
-        }}
+        const incompleteCount = data.reviews.filter((item) => !isComplete(item)).length;
         const artifact = {{ schema_version:schemaVersion, run_id:runId, reviewer_id:data.reviewer_id, reviews:data.reviews }};
+        if (incompleteCount) {{
+          status.textContent = `Внимание: скачан частично заполненный JSON. Не заполнено: ${{incompleteCount}} из ${{cards.length}} кейсов.`;
+        }}
         const blob = new Blob([JSON.stringify(artifact, null, 2) + "\\n"], {{ type:"application/json;charset=utf-8" }});
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -409,7 +405,11 @@ def render_business_review_html(
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
-        status.textContent = "JSON скачан. Отправьте этот файл команде проекта.";
+        if (!incompleteCount) {{
+          status.textContent = "JSON скачан. Отправьте этот файл команде проекта.";
+        }} else {{
+          status.textContent += " Отправьте как есть — мы учтём только заполненные кейсы.";
+        }}
       }});
 
       restore();
@@ -709,13 +709,22 @@ def _validate_review(review: Mapping[str, Any]) -> list[dict[str, Any]]:
         if case_id in seen:
             raise ValueError(f"duplicate case_id in review: {case_id!r}")
         seen.add(case_id)
-        if item.get("lead_status") not in LEAD_STATUSES:
+        lead_status = item.get("lead_status")
+        if lead_status not in LEAD_STATUSES and lead_status not in ("", None):
             raise ValueError(f"{prefix}.lead_status has an unsupported value")
-        if item.get("response_acceptable") not in RESPONSE_VERDICTS:
+        response = item.get("response_acceptable")
+        if response not in RESPONSE_VERDICTS and response not in ("", None):
             raise ValueError(f"{prefix}.response_acceptable has an unsupported value")
-        if item.get("button_should_be_shown_now") not in BUTTON_VERDICTS:
+        button = item.get("button_should_be_shown_now")
+        if button not in BUTTON_VERDICTS and button not in ("", None):
             raise ValueError(f"{prefix}.button_should_be_shown_now has an unsupported value")
+        item["lead_status"] = lead_status or ""
+        item["response_acceptable"] = response or ""
+        item["button_should_be_shown_now"] = button or ""
         tags = item.get("failure_tags")
+        if tags is None:
+            item["failure_tags"] = []
+            tags = []
         if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
             raise ValueError(f"{prefix}.failure_tags must be a list of strings")
         unsupported_tags = sorted(set(tags) - FAILURE_TAG_VALUES)
