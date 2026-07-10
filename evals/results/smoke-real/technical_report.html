@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Технический отчёт DeepEval</title>
+  <style>
+    :root { color-scheme:light; --ink:#17211f; --muted:#68736f; --line:#dce2df; --paper:#fff; --wash:#f3f5f4; --good:#147453; --bad:#ad3f38; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--wash); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(1280px,calc(100% - 32px)); margin:30px auto 80px; }
+    h1 { margin:0; font-size:36px; letter-spacing:-.03em; } h2 { margin:0 0 14px; } h3 { margin:22px 0 8px; font-size:14px; color:#47534f; }
+    .subtitle { margin:5px 0 22px; color:var(--muted); } .panel,.case { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 7px 25px rgba(31,45,40,.04); }
+    .panel { padding:22px; margin:16px 0; } .columns { display:grid; grid-template-columns:1fr 1fr; gap:16px; } .columns.compact { align-items:start; }
+    table { width:100%; border-collapse:collapse; } th,td { padding:9px 10px; border-bottom:1px solid #e7ebe9; text-align:left; vertical-align:top; overflow-wrap:anywhere; } th { color:#53605b; font-size:12px; } .kv th { width:220px; }
+    .case { margin:14px 0; overflow:hidden; } summary { cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:16px 20px; } summary small { display:block; margin-top:2px; color:var(--muted); font-weight:400; }
+    .case-body { padding:0 20px 22px; border-top:1px solid var(--line); } .status,.pill { display:inline-block; padding:4px 9px; border-radius:99px; font-size:12px; font-weight:700; } .status.good,.pill.pass { color:#0b6448; background:#e4f4ed; } .status.bad,.pill.fail { color:#91352f; background:#fae9e7; }
+    .message { margin:0; padding:12px; border:1px solid var(--line); border-radius:9px; background:#fafbfa; white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; } .table-scroll { overflow-x:auto; } .empty { color:var(--muted); }
+    @media (max-width:760px) { main { width:min(100% - 16px,1280px); margin-top:14px; } .columns { grid-template-columns:1fr; } .panel { padding:15px; } summary,.case-body { padding-left:14px; padding-right:14px; } }
+    @media print { body { background:#fff; } main { width:100%; margin:0; } .panel,.case { box-shadow:none; break-inside:avoid; } details { display:block; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Технический отчёт DeepEval</h1>
+    <p class="subtitle">Полный внутренний отчёт: результаты генерации, точные проверки, оценки judge и человеческая разметка.</p>
+    <section class="panel"><h2>Эксперимент</h2><table class="kv"><tbody><tr><th>Run ID</th><td>smoke-real</td></tr><tr><th>Создан</th><td>2026-07-10T13:11:40.462188+00:00</td></tr><tr><th>Dataset</th><td>sales_v1</td></tr><tr><th>Target model</th><td>openai/gpt-4.1-mini</td></tr><tr><th>Judge model</th><td>openai/gpt-4.1</td></tr><tr><th>Prompt path</th><td>/root/siemensbot/prompts/user_chat.system.md</td></tr><tr><th>Prompt SHA-256</th><td>99ab4763d8a547478ae931a3fee487146135809845351bc390f10d2d736c522b</td></tr></tbody></table></section>
+    <section class="panel"><h2>Сводка</h2><table class="kv"><tbody><tr><th>Сценариев</th><td>2</td></tr><tr><th>Сценариев с показанной кнопкой</th><td>0</td></tr><tr><th>Hard checks: ошибок</th><td>0</td></tr><tr><th>Judge metrics: ошибок</th><td>0</td></tr><tr><th>Средний judge score</th><td>0.974</td></tr><tr><th>run.summary.total_cases</th><td>2</td></tr><tr><th>run.summary.hard_passed_cases</th><td>2</td></tr><tr><th>run.summary.hard_failed_cases</th><td>0</td></tr><tr><th>run.summary.generation_errors</th><td>0</td></tr><tr><th>run.summary.buttons_rendered</th><td>0</td></tr><tr><th>run.summary.non_target_buttons</th><td>0</td></tr><tr><th>run.summary.judge_metrics</th><td>{&#x27;Sales Next-Step Quality [GEval]&#x27;: {&#x27;average_score&#x27;: 0.947, &#x27;passed&#x27;: 2, &#x27;total&#x27;: 2}, &#x27;Prompt Alignment&#x27;: {&#x27;average_score&#x27;: 1.0, &#x27;passed&#x27;: 2, &#x27;total&#x27;: 2}}</td></tr></tbody></table></section>
+    
+    <section><h2>Сценарии</h2>
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_qualification_valid_niche_001</strong><small>qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Фитнес</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Фитнес. Что сейчас продаешь?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Принять «фитнес» как понятную нишу без шаблонного комплимента и одним коротким вопросом уточнить, что человек продает. Не предлагать тест-драйв и не показывать кнопку.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Фитнес. Что сейчас продаешь?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Фитнес. Что сейчас продаешь?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Фитнес. Что сейчас продаешь?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td>Sales Next-Step Quality [GEval]</td><td>0.999</td><td>0.7</td><td><span class="pill pass">Да</span></td><td>Ответ принимает нишу &#x27;фитнес&#x27; без лишних комплиментов и задает короткий уточняющий вопрос о продукте, не делая преждевременных выводов или предложений. Соответствует ожидаемому поведению на данном этапе диалога.</td><td>—</td></tr><tr><td>Prompt Alignment</td><td>1</td><td>0.8</td><td><span class="pill pass">Да</span></td><td>Great job! The score is 1.00 because there are no unalignments—the output follows all prompt instructions perfectly.</td><td>—</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_qualification_broad_niche_002</strong><small>qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Инфобизнес</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Не принимать «инфобизнес» за достаточно конкретную нишу. Коротко отметить, что это слишком широко, и одним вопросом уточнить конкретную тему, сферу или результат для клиентов.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td>Sales Next-Step Quality [GEval]</td><td>0.895</td><td>0.7</td><td><span class="pill pass">Да</span></td><td>Ответ не принимает &#x27;инфобизнес&#x27; за конкретную нишу, корректно указывает, что это формат, и уточняет, в какой теме пользователь помогает людям получить результат. Ответ не повторяет известное и не делает преждевременных выводов или офферов. Единственное небольшое отличие — можно было чуть яснее обозначить, что &#x27;инфобизнес&#x27; слишком широко, но суть шага полностью соблюдена.</td><td>—</td></tr><tr><td>Prompt Alignment</td><td>1</td><td>0.8</td><td><span class="pill pass">Да</span></td><td>Great job! The score is 1.00 because there are no unalignments—the output follows all prompt instructions perfectly.</td><td>—</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            </section>
+  </main>
+</body>
+</html>

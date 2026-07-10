@@ -1,0 +1,27 @@
+{
+  "schema_version": "human-review-v1",
+  "run_id": "smoke-real",
+  "reviewer_id": "smoke-reviewer",
+  "reviews": [
+    {
+      "case_id": "sv1_qualification_valid_niche_001",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "Уточнить, что человек продаёт.",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_qualification_broad_niche_002",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "Уточнить конкретную тему или результат.",
+      "suggested_response": "",
+      "expert_note": ""
+    }
+  ]
+}

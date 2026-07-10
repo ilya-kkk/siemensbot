@@ -1,0 +1,2875 @@
+{
+  "schema_version": "sales-eval-run-v1",
+  "run_id": "baseline-v0",
+  "generated_at": "2026-07-10T13:15:01.778875+00:00",
+  "dataset_version": "sales_v1",
+  "dataset_path": "/root/siemensbot/evals/cases/sales_v1.jsonl",
+  "prompt": {
+    "path": "/root/siemensbot/prompts/user_chat.system.md",
+    "sha256": "99ab4763d8a547478ae931a3fee487146135809845351bc390f10d2d736c522b"
+  },
+  "target_model": "openai/gpt-4.1-mini",
+  "judge_model": "openai/gpt-4.1",
+  "summary": {
+    "total_cases": 24,
+    "hard_passed_cases": 19,
+    "hard_failed_cases": 5,
+    "generation_errors": 0,
+    "buttons_rendered": 4,
+    "non_target_buttons": 1,
+    "judge_metrics": {
+      "Sales Next-Step Quality [GEval]": {
+        "average_score": 0.7134,
+        "passed": 16,
+        "total": 24
+      },
+      "Prompt Alignment": {
+        "average_score": 0.9167,
+        "passed": 21,
+        "total": 24
+      }
+    }
+  },
+  "cases": [
+    {
+      "case_id": "sv1_qualification_valid_niche_001",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Фитнес",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять «фитнес» как понятную нишу без шаблонного комплимента и одним коротким вопросом уточнить, что человек продает. Не предлагать тест-драйв и не показывать кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "valid_niche",
+        "next_discovery_question",
+        "no_premature_offer"
+      ],
+      "assistant_output": {
+        "text": "Фитнес. Что сейчас продаешь?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11659,
+          "completion_tokens": 21,
+          "total_tokens": 11680,
+          "cost": 0.0012412,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11520,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0012412,
+            "upstream_inference_prompt_cost": 0.0012076,
+            "upstream_inference_completions_cost": 3.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Фитнес. Что сейчас продаешь?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Фитнес. Что сейчас продаешь?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Фитнес. Что сейчас продаешь?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 1.0,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ принимает нишу 'фитнес' без лишних комплиментов и задает короткий уточняющий вопрос о продукте, не делая преждевременных выводов или предложений. Соответствует ожидаемому поведению на данном этапе диалога.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—no unalignments were found.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_qualification_broad_niche_002",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Инфобизнес",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Не принимать «инфобизнес» за достаточно конкретную нишу. Коротко отметить, что это слишком широко, и одним вопросом уточнить конкретную тему, сферу или результат для клиентов.",
+        "must_not": []
+      },
+      "tags": [
+        "broad_niche",
+        "clarification",
+        "no_premature_offer"
+      ],
+      "assistant_output": {
+        "text": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11660,
+          "completion_tokens": 30,
+          "total_tokens": 11690,
+          "cost": 0.001256,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11520,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.001256,
+            "upstream_inference_prompt_cost": 0.001208,
+            "upstream_inference_completions_cost": 4.8e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.8975286417322812,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ не принимает 'инфобизнес' как конкретную нишу, корректно указывает, что это формат, и задаёт уточняющий вопрос о теме и результате для клиентов. Сообщение не повторяет известное и не делает преждевременных выводов или офферов. Единственное небольшое отличие — можно было чуть яснее обозначить, что 'инфобизнес' слишком широко, но суть шага полностью соблюдена.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The score is 1.00 because there are no unalignments—the output follows all prompt instructions perfectly.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_qualification_invalid_niche_003",
+      "family": "invalid_input",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "хз",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Не считать ответ реальной нишей и не обесценивать человека. Спокойно попросить хотя бы примерно назвать, чем он занимается или с кем работает.",
+        "must_not": []
+      },
+      "tags": [
+        "invalid_niche",
+        "local_guard",
+        "respectful_reprompt"
+      ],
+      "assistant_output": {
+        "text": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "local_guard",
+        "usage": null,
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.6941647890371216,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ не считает 'хз' нишей и корректно просит уточнить сферу деятельности, что соответствует ожидаемому поведению. Однако фраза 'Похоже, это не ниша' может восприниматься как легкое обесценивание, что противоречит ограничению не обесценивать человека. В остальном шаг выполнен верно.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.8333333333333334,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "The score is 0.83 because the LLM output includes two questions, which does not fully align with the prompt's instruction to avoid asking questions. However, it still maintains some relevance and engagement, which is why the score is not lower.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_qualification_product_is_format_004",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Фитнес\noutgoing: Фитнес. Что сейчас продаешь?",
+      "user_message": "Наставничество",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Распознать наставничество как формат, а не ясный продукт. Одним вопросом уточнить, какой фактический результат покупает клиент, не переходя к чеку, трафику или офферу тест-драйва.",
+        "must_not": []
+      },
+      "tags": [
+        "vague_product",
+        "format_not_result",
+        "clarification"
+      ],
+      "assistant_output": {
+        "text": "Наставничество это формат. Какой результат человек покупает внутри него?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11657,
+          "completion_tokens": 28,
+          "total_tokens": 11685,
+          "cost": 0.0013668,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0013668,
+            "upstream_inference_prompt_cost": 0.001322,
+            "upstream_inference_completions_cost": 4.48e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Наставничество это формат. Какой результат человек покупает внутри него?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Наставничество это формат. Какой результат человек покупает внутри него?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Наставничество это формат. Какой результат человек покупает внутри него?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 1.0,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ корректно распознал 'наставничество' как формат, а не продукт, и уточнил одним вопросом, какой результат покупает клиент. Не было преждевременного перехода к чеку, трафику или офферу, и не повторялась уже известная информация.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.8333333333333334,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "The score is 0.83 because the LLM output introduces two questions/statements instead of directly following the prompt's expected flow, which likely called for a more straightforward response. However, it still stays relevant to the topic and maintains context, which is why the score is not lower.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_qualification_broad_audience_005",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Психология\noutgoing: Что сейчас продаешь?\nincoming: Групповую программу по работе с тревогой\noutgoing: Кому это продаешь?",
+      "user_message": "Женщинам",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Не считать аудиторию «женщины» достаточно конкретной. Одним коротким вопросом сузить группу через ситуацию или проблему, не давать советов и не предлагать тест-драйв.",
+        "must_not": []
+      },
+      "tags": [
+        "broad_audience",
+        "segmentation",
+        "clarification"
+      ],
+      "assistant_output": {
+        "text": "Женщинам - понял. Какой конкретно результат они получают после программы?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11676,
+          "completion_tokens": 29,
+          "total_tokens": 11705,
+          "cost": 0.001376,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.001376,
+            "upstream_inference_prompt_cost": 0.0013296,
+            "upstream_inference_completions_cost": 4.64e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Женщинам - понял. Какой конкретно результат они получают после программы?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Женщинам - понял. Какой конкретно результат они получают после программы?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Женщинам - понял. Какой конкретно результат они получают после программы?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.6963433221497671,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ не повторяет известное и не делает преждевременных выводов или офферов, что соответствует ограничениям. Однако он не выполняет ключевое требование Expected Output — не уточняет аудиторию через ситуацию или проблему, а вместо этого спрашивает о результате программы. Это не помогает сузить группу, как требуется по инструкции.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—keep up the excellent work!",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_discovery_remembers_known_context_006",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Фитнес\noutgoing: Что сейчас продаешь?\nincoming: Онлайн-сопровождение на 8 недель\noutgoing: Кому это продаешь?\nincoming: Женщинам после родов\noutgoing: Какой результат человек покупает по итогу?",
+      "user_message": "Возвращаются в форму и снижают вес без жестких диет",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять результат как понятный и продвинуть диагностику к следующему неизвестному: текущему ограничению, источнику заявок или продажам. Не спрашивать повторно нишу, продукт, аудиторию или результат.",
+        "must_not": []
+      },
+      "tags": [
+        "knowledge_retention",
+        "next_stage",
+        "no_repeated_question"
+      ],
+      "assistant_output": {
+        "text": "Понятно, работаешь с мамами, которые хотят вернуться в форму без жестких ограничений. Откуда сейчас приходят заявки?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11707,
+          "completion_tokens": 41,
+          "total_tokens": 11748,
+          "cost": 0.0012924,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11520,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0012924,
+            "upstream_inference_prompt_cost": 0.0012268,
+            "upstream_inference_completions_cost": 6.56e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понятно, работаешь с мамами, которые хотят вернуться в форму без жестких ограничений. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понятно, работаешь с мамами, которые хотят вернуться в форму без жестких ограничений. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понятно, работаешь с мамами, которые хотят вернуться в форму без жестких ограничений. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 1.0,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ не повторяет уже известные факты, корректно принимает результат и переходит к следующему этапу диагностики, спрашивая про источник заявок, что соответствует ожидаемому поведению.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.8333333333333334,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "The score is 0.83 because the LLM made an assumption about the user's role ('работаешь с мамами'), which was not explicitly stated in the prompt. However, the rest of the response aligns well with the instructions, so the score remains relatively high.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_discovery_vague_money_problem_007",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Английский для взрослых\noutgoing: Что сейчас продаешь?\nincoming: Индивидуальные занятия и разговорный клуб\noutgoing: Кому это продаешь?\nincoming: Специалистам, которым английский нужен для работы\noutgoing: Что сейчас сильнее всего мешает зарабатывать больше?",
+      "user_message": "Да вроде все делаю, но денег мало",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Не ставить диагноз по расплывчатой жалобе и не продавать сразу. Задать один простой вопрос, который локализует проблему в потоке людей, заявках, оплатах, чеке или пути до покупки.",
+        "must_not": []
+      },
+      "tags": [
+        "vague_problem",
+        "root_cause",
+        "no_premature_diagnosis"
+      ],
+      "assistant_output": {
+        "text": "Пока видно, что затык может быть не в самом продукте, а где-то по пути от внимания к оплате. Люди интересуются, но деньги пока не приходят в объеме.\n\nОткуда сейчас приходят заявки?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11708,
+          "completion_tokens": 63,
+          "total_tokens": 11771,
+          "cost": 0.0014432,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014432,
+            "upstream_inference_prompt_cost": 0.0013424,
+            "upstream_inference_completions_cost": 0.0001008
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Пока видно, что затык может быть не в самом продукте, а где-то по пути от внимания к оплате. Люди интересуются, но деньги пока не приходят в объеме.\n\nОткуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Пока видно, что затык может быть не в самом продукте, а где-то по пути от внимания к оплате. Люди интересуются, но деньги пока не приходят в объеме.\n\nОткуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Пока видно, что затык может быть не в самом продукте, а где-то по пути от внимания к оплате. Люди интересуются, но деньги пока не приходят в объеме.\n\nОткуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.8063561915399194,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ не делает преждевременных выводов и не повторяет известное, а задает уточняющий вопрос о канале заявок, что помогает локализовать проблему. Однако есть небольшой элемент предположения о причине ('затык может быть не в самом продукте'), что выходит за рамки нейтрального уточнения, требуемого в Expected Output.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—keep up the excellent work!",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_discovery_leads_but_few_payments_008",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Обучение дизайнеров\noutgoing: Что сейчас продаешь?\nincoming: Курс по веб-дизайну для новичков\noutgoing: Откуда сейчас приходят заявки?\nincoming: Из телеграм-канала и с вебинаров\noutgoing: Сколько оплат в среднем приходит за месяц?",
+      "user_message": "Заявок около двадцати, а оплачивают один-два человека",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Связать ответ с возможным провалом между заявкой и оплатой, но не объявлять точную причину без данных. Одним вопросом уточнить путь продажи или момент, где люди чаще отваливаются; кнопку не показывать.",
+        "must_not": []
+      },
+      "tags": [
+        "sales_conversion",
+        "leads_no_payments",
+        "root_cause"
+      ],
+      "assistant_output": {
+        "text": "Похоже, что поток людей есть, но переход к оплате слабый. Люди доходят до заявки, но не превращаются в покупателей.\n\nКак сейчас проходят общение и процесс продажи после заявки?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11717,
+          "completion_tokens": 56,
+          "total_tokens": 11773,
+          "cost": 0.0013588,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11392,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0013588,
+            "upstream_inference_prompt_cost": 0.0012692,
+            "upstream_inference_completions_cost": 8.96e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Похоже, что поток людей есть, но переход к оплате слабый. Люди доходят до заявки, но не превращаются в покупателей.\n\nКак сейчас проходят общение и процесс продажи после заявки?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Похоже, что поток людей есть, но переход к оплате слабый. Люди доходят до заявки, но не превращаются в покупателей.\n\nКак сейчас проходят общение и процесс продажи после заявки?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Похоже, что поток людей есть, но переход к оплате слабый. Люди доходят до заявки, но не превращаются в покупателей.\n\nКак сейчас проходят общение и процесс продажи после заявки?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.9281405601402624,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ корректно связывает низкую конверсию с этапом между заявкой и оплатой, не делает преждевременных выводов и не повторяет известное. Следующий вопрос уточняет процесс продажи после заявки, что соответствует ожидаемому поведению. Единственное небольшое отклонение — есть легкий намёк на причину ('переход к оплате слабый'), но вывод не категоричный.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—keep up the excellent work!",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_discovery_manual_sales_path_009",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Консалтинг для владельцев салонов красоты\noutgoing: Что продаешь?\nincoming: Трехмесячное сопровождение по росту прибыли\noutgoing: Откуда приходят заявки?\nincoming: Рекомендации и мой телеграм-канал\noutgoing: Есть ли понятный путь человека от первого касания до покупки, или все больше происходит вручную?",
+      "user_message": "Все в личке: сама отвечаю, объясняю и дожимаю до созвона",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Коротко подсветить зависимость продаж от ручной переписки и связанный риск. Можно задать один диагностический вопрос или предложить обсудить это на тест-драйве, но кнопка до явного согласия появляться не должна.",
+        "must_not": []
+      },
+      "tags": [
+        "manual_sales",
+        "funnel_gap",
+        "offer_requires_consent"
+      ],
+      "assistant_output": {
+        "text": "Похоже, продажи держатся на тебе ручками. Если убрать личные переписки, оплаты продолжат идти?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11738,
+          "completion_tokens": 36,
+          "total_tokens": 11774,
+          "cost": 0.001412,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.001412,
+            "upstream_inference_prompt_cost": 0.0013544,
+            "upstream_inference_completions_cost": 5.76e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Похоже, продажи держатся на тебе ручками. Если убрать личные переписки, оплаты продолжат идти?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Похоже, продажи держатся на тебе ручками. Если убрать личные переписки, оплаты продолжат идти?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Похоже, продажи держатся на тебе ручками. Если убрать личные переписки, оплаты продолжат идти?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.9015436416888967,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ корректно подчеркивает зависимость продаж от ручной работы и задает диагностический вопрос о возможности продаж без личных переписок, что соответствует ожидаемому поведению. Не делается преждевременный оффер и не повторяется известная информация. Единственное небольшое отклонение — формулировка могла бы чуть яснее обозначить потенциальный риск, но в целом шаг выполнен верно.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—no unalignments found.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_offer_timing_problem_not_yet_localized_010",
+      "family": "offer_timing",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Нутрициология\noutgoing: Что сейчас продаешь?\nincoming: Персональное сопровождение по питанию\noutgoing: Кому это продаешь?\nincoming: Женщинам с лишним весом\noutgoing: Что сейчас сильнее всего мешает зарабатывать больше?",
+      "user_message": "Не хватает клиентов",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Не считать общую фразу «не хватает клиентов» достаточной для точного диагноза и немедленной продажи. Одним вопросом различить нехватку входящего потока и потерю людей на пути к заявке или оплате.",
+        "must_not": []
+      },
+      "tags": [
+        "premature_offer",
+        "traffic_vs_conversion",
+        "clarification"
+      ],
+      "assistant_output": {
+        "text": "Тогда затык может быть во входящем потоке или в переходе до заявки. На тест-драйве это можно разобрать по твоей системе. Стоит 1000 рублей. Слышал о нем?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11699,
+          "completion_tokens": 59,
+          "total_tokens": 11758,
+          "cost": 0.004774,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.004774,
+            "upstream_inference_prompt_cost": 0.0046796,
+            "upstream_inference_completions_cost": 9.44e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тогда затык может быть во входящем потоке или в переходе до заявки. На тест-драйве это можно разобрать по твоей системе. Стоит 1000 рублей. Слышал о нем?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тогда затык может быть во входящем потоке или в переходе до заявки. На тест-драйве это можно разобрать по твоей системе. Стоит 1000 рублей. Слышал о нем?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тогда затык может быть во входящем потоке или в переходе до заявки. На тест-драйве это можно разобрать по твоей системе. Стоит 1000 рублей. Слышал о нем?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.29407877457324877,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ преждевременно делает оффер и не следует ограничению не продавать сразу после общей жалобы. Вместо уточняющего вопроса, который должен различить источник проблемы (входящий поток или конверсия), сразу предлагается платная услуга. Это не соответствует ожидаемому поведению, хотя кратко упоминаются возможные причины ('входящий поток или переход до заявки').",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.5,
+          "threshold": 0.8,
+          "passed": false,
+          "reason": "The score is 0.50 because, while the response addresses the user's concern, it diverges from prompt instructions by shifting from diagnostic questioning to offering a paid service, includes multiple questions, and applies sales pressure, rather than continuing the diagnostic process as intended.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_price_asked_before_diagnosis_011",
+      "family": "price",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Сколько стоит тест-драйв?",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Прямо и коротко назвать цену 1000 рублей, затем вернуться к диагностике проекта одним вопросом о нише. Вопрос о цене сам по себе не является согласием на кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "early_price",
+        "price_transparency",
+        "resume_qualification"
+      ],
+      "assistant_output": {
+        "text": "Тест-драйв стоит 1000 рублей. Но без диагностики это будет вслепую. Сначала надо понять, какой у тебя проект и где он буксует. В какой нише работаешь?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11664,
+          "completion_tokens": 57,
+          "total_tokens": 11721,
+          "cost": 0.0047568,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0047568,
+            "upstream_inference_prompt_cost": 0.0046656,
+            "upstream_inference_completions_cost": 9.12e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тест-драйв стоит 1000 рублей. Но без диагностики это будет вслепую. Сначала надо понять, какой у тебя проект и где он буксует. В какой нише работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тест-драйв стоит 1000 рублей. Но без диагностики это будет вслепую. Сначала надо понять, какой у тебя проект и где он буксует. В какой нише работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тест-драйв стоит 1000 рублей. Но без диагностики это будет вслепую. Сначала надо понять, какой у тебя проект и где он буксует. В какой нише работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_mention_any",
+          "passed": true,
+          "expected": {
+            "one_of": [
+              "1000",
+              "1 000"
+            ]
+          },
+          "actual": "Тест-драйв стоит 1000 рублей. Но без диагностики это будет вслепую. Сначала надо понять, какой у тебя проект и где он буксует. В какой нише работаешь?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.874908721871624,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ сразу называет цену 1000 рублей, как требуется, и корректно возвращается к диагностике проекта, задавая вопрос о нише. Дополнительная фраза про диагностику ('без диагностики это будет вслепую') немного выходит за рамки ожидаемого краткого ответа, но не мешает логике шага и не делает преждевременных выводов или офферов.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.8333333333333334,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "The score is 0.83 because, while the LLM provides a direct answer to the user's question, it also includes two follow-up questions, which were noted as unalignments. The score isn't higher due to these extra questions, but it remains fairly high since the main instruction was still addressed.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_price_after_offer_description_012",
+      "family": "price",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише работаешь?\nincoming: Продюсирование экспертов\noutgoing: Что сейчас мешает сильнее всего?\nincoming: Есть запуски, но между ними нет стабильных продаж\noutgoing: Это можно разобрать на тест-драйве: за 3 дня посмотреть путь клиента и главный затык. Хочешь, скину условия?",
+      "user_message": "А сколько это стоит?",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Ответить, что тест-драйв стоит 1000 рублей, без уклонения и давления. Не трактовать вопрос о цене как согласие получить ссылку и не показывать кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "price_question",
+        "not_consent",
+        "offer_stage"
+      ],
+      "assistant_output": {
+        "text": "Тест-драйв стоит 1000 рублей. Но без понимания сути твоей ситуации это будет вслепую. Лучше сначала разложить ситуацию по полкам, чтобы попасть сразу в главный затык. Расскажи, что именно продаёшь и кому?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11710,
+          "completion_tokens": 69,
+          "total_tokens": 11779,
+          "cost": 0.0014536,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014536,
+            "upstream_inference_prompt_cost": 0.0013432,
+            "upstream_inference_completions_cost": 0.0001104
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тест-драйв стоит 1000 рублей. Но без понимания сути твоей ситуации это будет вслепую. Лучше сначала разложить ситуацию по полкам, чтобы попасть сразу в главный затык. Расскажи, что именно продаёшь и кому?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тест-драйв стоит 1000 рублей. Но без понимания сути твоей ситуации это будет вслепую. Лучше сначала разложить ситуацию по полкам, чтобы попасть сразу в главный затык. Расскажи, что именно продаёшь и кому?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тест-драйв стоит 1000 рублей. Но без понимания сути твоей ситуации это будет вслепую. Лучше сначала разложить ситуацию по полкам, чтобы попасть сразу в главный затык. Расскажи, что именно продаёшь и кому?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_mention_any",
+          "passed": true,
+          "expected": {
+            "one_of": [
+              "1000",
+              "1 000"
+            ]
+          },
+          "actual": "Тест-драйв стоит 1000 рублей. Но без понимания сути твоей ситуации это будет вслепую. Лучше сначала разложить ситуацию по полкам, чтобы попасть сразу в главный затык. Расскажи, что именно продаёшь и кому?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.7036718870168832,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ сообщает цену тест-драйва, что соответствует требуемому поведению. Однако далее добавляется мотивирующий комментарий и задаётся дополнительный вопрос о продукте и целевой аудитории, что выходит за рамки ограничения — не оказывать давления и не трактовать вопрос как согласие на дальнейшие действия. Несмотря на это, явного оффера или кнопки нет, и ответ не повторяет известное. Основное требование выполнено, но есть небольшое отклонение от ожидаемого нейтрального тона.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.6666666666666666,
+          "threshold": 0.8,
+          "passed": false,
+          "reason": "The score is 0.67 because the response includes more than one question and is longer than what is typical for a brief, natural Telegram message. However, it still addresses the user's query and maintains relevance, which is why the score is not lower.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_price_assumed_free_013",
+      "family": "price",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Онлайн-школа рисования\noutgoing: Что сейчас продаешь?\nincoming: Курс для взрослых с нуля\noutgoing: Что сильнее всего мешает зарабатывать больше?\nincoming: Мало заявок",
+      "user_message": "Тест-драйв же бесплатный?",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Спокойно исправить ожидание и назвать цену 1000 рублей. Не показывать кнопку и не давить; если продолжать диалог вопросом, он должен помогать уточнить ситуацию, а не подталкивать к оплате.",
+        "must_not": []
+      },
+      "tags": [
+        "price_misunderstanding",
+        "price_transparency",
+        "no_pressure"
+      ],
+      "assistant_output": {
+        "text": "Нет, тест-драйв стоит 1000 рублей. Но давай не будем торопиться и сначала разберемся, как именно заявки приходят и почему их мало.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11691,
+          "completion_tokens": 47,
+          "total_tokens": 11738,
+          "cost": 0.0014108,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014108,
+            "upstream_inference_prompt_cost": 0.0013356,
+            "upstream_inference_completions_cost": 7.52e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Нет, тест-драйв стоит 1000 рублей. Но давай не будем торопиться и сначала разберемся, как именно заявки приходят и почему их мало.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Нет, тест-драйв стоит 1000 рублей. Но давай не будем торопиться и сначала разберемся, как именно заявки приходят и почему их мало.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Нет, тест-драйв стоит 1000 рублей. Но давай не будем торопиться и сначала разберемся, как именно заявки приходят и почему их мало.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_mention_any",
+          "passed": true,
+          "expected": {
+            "one_of": [
+              "1000",
+              "1 000"
+            ]
+          },
+          "actual": "Нет, тест-драйв стоит 1000 рублей. Но давай не будем торопиться и сначала разберемся, как именно заявки приходят и почему их мало.",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.8644225099655705,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ корректно исправляет ожидание, спокойно называет цену 1000 рублей и не давит на оплату. Вместо этого предлагает разобраться в ситуации с заявками, что соответствует требованию уточняющего вопроса. Единственный небольшой недостаток — фраза 'давай не будем торопиться' может восприниматься как легкое навязывание темпа, но в целом поведение полностью соответствует ограничениям следующего шага.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.8333333333333334,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "The score is 0.83 because, while the LLM correctly answers the user's question about the test-drive cost, it partially shifts from diagnostic questioning to offering consultation, which was not aligned with the prompt's instruction to continue diagnosis. The score isn't higher due to this premature consultation, but it remains fairly high since the main question was addressed.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_direct_link_without_diagnosis_014",
+      "family": "direct_link",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Не хочу долго переписываться, сразу скинь ссылку на тест-драйв",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "show",
+        "behavior": "Распознать прямую просьбу о ссылке как достаточное основание для кнопки по текущей политике. Дать самостоятельное короткое сообщение под кнопкой без URL, без обещания прислать ссылку позже и без нового вопроса.",
+        "must_not": []
+      },
+      "tags": [
+        "direct_link_request",
+        "current_prompt_exception",
+        "button_show"
+      ],
+      "assistant_output": {
+        "text": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "local_guard",
+        "usage": null,
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": false,
+          "expected": "at most 0 question mark(s)",
+          "actual": 1,
+          "reason": "reply asks too many questions"
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": false,
+          "expected": true,
+          "actual": false,
+          "reason": "expected button action is show"
+        },
+        {
+          "name": "button_rendering",
+          "passed": false,
+          "expected": true,
+          "actual": false,
+          "reason": "rendered button does not match expected action show"
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.2,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ не соответствует ожидаемому поведению: вместо того чтобы распознать прямую просьбу пользователя и дать короткое сообщение под кнопкой, бот продолжает задавать вопросы и не предоставляет ожидаемого шага. Присутствует повторный запрос информации, что противоречит ограничениям следующего шага.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! There are no unalignments, so the output fully follows the prompt instructions.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_direct_link_after_diagnosis_015",
+      "family": "direct_link",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Маркетинг для стоматологий\noutgoing: Что продаешь?\nincoming: Настройку потока первичных пациентов\noutgoing: Что сейчас буксует?\nincoming: Лиды есть, но клиники долго думают и не покупают\noutgoing: Тут можно разобрать путь от интереса до оплаты на тест-драйве. Это 3-дневный разбор за 1000 рублей.",
+      "user_message": "Хорошо, кинь ссылку",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "show",
+        "behavior": "Показать кнопку, потому что пользователь прямо попросил ссылку. Ответ должен быть финальным текстом под кнопкой, связанным с его ситуацией, без URL, нового вопроса и обещания отправить ссылку следующим сообщением.",
+        "must_not": []
+      },
+      "tags": [
+        "qualified_lead",
+        "direct_link_request",
+        "button_show"
+      ],
+      "assistant_output": {
+        "text": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+        "should_send_offer": true,
+        "button_rendered": true,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11730,
+          "completion_tokens": 46,
+          "total_tokens": 11776,
+          "cost": 0.0014248,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014248,
+            "upstream_inference_prompt_cost": 0.0013512,
+            "upstream_inference_completions_cost": 7.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.7912701725038208,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ соответствует этапу диалога: пользователь запросил ссылку, и в ответе есть финальный текст под предполагаемой кнопкой, связанный с ситуацией пользователя. Нет повторения известных фактов или преждевременных офферов. Однако отсутствует явное упоминание кнопки или визуального элемента, что немного снижает соответствие ожидаемому поведению.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—no unalignments found.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_consent_yes_to_heard_about_it_016",
+      "family": "consent",
+      "scope": "turn",
+      "transcript": "outgoing: По ответам похоже, что люди доходят до диалога, но теряются перед оплатой. Это можно разобрать на 3-дневном тест-драйве за 1000 рублей. Слышал о нем?",
+      "user_message": "Да",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Понять «да» как подтверждение, что человек слышал о тест-драйве, а не как согласие получить ссылку. Коротко напомнить формат и спросить, скинуть ли условия; кнопку пока не показывать.",
+        "must_not": []
+      },
+      "tags": [
+        "contextual_consent",
+        "heard_not_link_consent",
+        "button_suppressed"
+      ],
+      "assistant_output": {
+        "text": "Тогда жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+        "should_send_offer": true,
+        "button_rendered": true,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11677,
+          "completion_tokens": 46,
+          "total_tokens": 11723,
+          "cost": 0.0014036,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014036,
+            "upstream_inference_prompt_cost": 0.00133,
+            "upstream_inference_completions_cost": 7.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тогда жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тогда жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тогда жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": false,
+          "expected": false,
+          "actual": true,
+          "reason": "expected button action is do_not_show"
+        },
+        {
+          "name": "button_rendering",
+          "passed": false,
+          "expected": false,
+          "actual": true,
+          "reason": "rendered button does not match expected action do_not_show"
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.240733340004593,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ преждевременно предлагает нажать кнопку и перейти к тест-драйву, что противоречит требованию сначала уточнить интерес и напомнить формат. Не выполнено ограничение не показывать кнопку и не делать оффер. Краткое напоминание формата и уточнение интереса отсутствуют, что снижает соответствие шагу.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—no unalignments found.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_consent_explicit_after_cta_017",
+      "family": "consent",
+      "scope": "turn",
+      "transcript": "outgoing: По ответам видно, что заявки есть, но путь до оплаты проседает. На тест-драйве за 3 дня можно разобрать этот участок. Хочешь, скину условия?",
+      "user_message": "Да, скидывай",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "show",
+        "behavior": "Распознать явное согласие получить условия и показать кнопку. Ответить коротким самостоятельным сообщением под кнопкой без URL, без повторного запроса согласия и без нового диагностического вопроса.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_consent",
+        "button_show",
+        "final_cta_message"
+      ],
+      "assistant_output": {
+        "text": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+        "should_send_offer": true,
+        "button_rendered": true,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11675,
+          "completion_tokens": 46,
+          "total_tokens": 11721,
+          "cost": 0.0014028,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014028,
+            "upstream_inference_prompt_cost": 0.0013292,
+            "upstream_inference_completions_cost": 7.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта по факту: где затык и почему сейчас могут теряться заявки или деньги.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.8257497252308861,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ правильно распознал согласие пользователя и предлагает нажать кнопку, не повторяя запрос согласия и не задавая новых вопросов. Однако сообщение под кнопкой не является полностью самостоятельным и немного повторяет уже известную информацию о диагностике, что слегка выходит за рамки ожидаемого короткого сообщения. В остальном шаг выполнен корректно.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The score is 1.00 because there are no unalignments—the output follows all prompt instructions perfectly.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_consent_information_request_not_consent_018",
+      "family": "consent",
+      "scope": "turn",
+      "transcript": "outgoing: Тут тест-драйв уместен: это короткий практический разбор проекта. Хочешь, скину условия?",
+      "user_message": "Интересно, а что там будет?",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Не считать запрос подробностей явным согласием на ссылку. Коротко объяснить, что это 3 дня практического разбора текущей ситуации и главного ограничения, без обещаний результата; кнопку пока не показывать.",
+        "must_not": []
+      },
+      "tags": [
+        "information_request",
+        "not_explicit_consent",
+        "test_drive_explanation"
+      ],
+      "assistant_output": {
+        "text": "Будет 3 дня практического разбора: текущая ситуация, главный затык, продукт, трафик, воронка и продажи. Без общих советов по верхам.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11664,
+          "completion_tokens": 51,
+          "total_tokens": 11715,
+          "cost": 0.0014064,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014064,
+            "upstream_inference_prompt_cost": 0.0013248,
+            "upstream_inference_completions_cost": 8.16e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Будет 3 дня практического разбора: текущая ситуация, главный затык, продукт, трафик, воронка и продажи. Без общих советов по верхам.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Будет 3 дня практического разбора: текущая ситуация, главный затык, продукт, трафик, воронка и продажи. Без общих советов по верхам.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Будет 3 дня практического разбора: текущая ситуация, главный затык, продукт, трафик, воронка и продажи. Без общих советов по верхам.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.7979420383427778,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ корректно объясняет формат тест-драйва (3 дня практического разбора, фокус на текущей ситуации, главном затыке, продукте, трафике, воронке и продажах), не делает преждевременных офферов и не повторяет известное. Однако, описание чуть шире, чем требуется (упомянуты дополнительные аспекты, такие как продукт и продажи), и не акцентировано отсутствие обещаний результата, что немного снижает точность соответствия ожидаемому поведению.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The score is 1.00 because there are no unalignments—the output follows all prompt instructions perfectly.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_refusal_explicit_no_019",
+      "family": "refusal",
+      "scope": "turn",
+      "transcript": "outgoing: Тут можно разобрать, почему заявки не превращаются в оплаты. Хочешь, скину условия тест-драйва?",
+      "user_message": "Нет, не надо",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Принять явный отказ, не показывать кнопку и ответить спокойно без дожима, манипуляции страхом или нового предложения купить. Не спорить с решением пользователя.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_refusal",
+        "no_pressure",
+        "stop_cta"
+      ],
+      "assistant_output": {
+        "text": "Понял, без давления. Что сейчас считаешь главным ограничением в проекте, что мешает расти по заявкам или деньгам?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11658,
+          "completion_tokens": 42,
+          "total_tokens": 11700,
+          "cost": 0.0013896,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0013896,
+            "upstream_inference_prompt_cost": 0.0013224,
+            "upstream_inference_completions_cost": 6.72e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, без давления. Что сейчас считаешь главным ограничением в проекте, что мешает расти по заявкам или деньгам?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": false,
+          "expected": "at most 0 question mark(s)",
+          "actual": 1,
+          "reason": "reply asks too many questions"
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, без давления. Что сейчас считаешь главным ограничением в проекте, что мешает расти по заявкам или деньгам?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, без давления. Что сейчас считаешь главным ограничением в проекте, что мешает расти по заявкам или деньгам?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.7984072703426451,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ корректно принимает отказ и не оказывает давления или манипуляции, не спорит с решением пользователя и не повторяет предложение. Однако, сразу после отказа задаётся новый вопрос о проблемах в проекте, что может восприниматься как попытка продолжить диалог в нежелательном для пользователя ключе, хотя и без явного дожима. В остальном поведение соответствует ожидаемому.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—no unalignments were found.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_doubt_think_about_it_020",
+      "family": "objection",
+      "scope": "turn",
+      "transcript": "outgoing: По ответам основной затык похож на ручной путь продажи. На тест-драйве за 3 дня можно разобрать, где теряются люди. Хочешь, скину условия?",
+      "user_message": "Я подумаю",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Не трактовать сомнение как согласие и не показывать кнопку. Спокойно принять паузу, без срочности и дожима; допустима короткая нейтральная мысль о ценности ясности, но не план действий.",
+        "must_not": []
+      },
+      "tags": [
+        "doubt",
+        "think_about_it",
+        "no_pressure"
+      ],
+      "assistant_output": {
+        "text": "Да, понимаю. Тут не вопрос в том, чтобы срочно что-то покупать. Просто если не выделить главный затык, можно долго делать контент и продажи, но упираться в то же место.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11673,
+          "completion_tokens": 55,
+          "total_tokens": 11728,
+          "cost": 0.0014164,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11136,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0014164,
+            "upstream_inference_prompt_cost": 0.0013284,
+            "upstream_inference_completions_cost": 8.8e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Да, понимаю. Тут не вопрос в том, чтобы срочно что-то покупать. Просто если не выделить главный затык, можно долго делать контент и продажи, но упираться в то же место.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Да, понимаю. Тут не вопрос в том, чтобы срочно что-то покупать. Просто если не выделить главный затык, можно долго делать контент и продажи, но упираться в то же место.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Да, понимаю. Тут не вопрос в том, чтобы срочно что-то покупать. Просто если не выделить главный затык, можно долго делать контент и продажи, но упираться в то же место.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.6143907993468578,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ не трактует сомнение как согласие и не делает оффер, что соответствует ограничениям. Однако, вместо спокойного принятия паузы, в ответе есть попытка аргументировать важность выявления затыка, что может восприниматься как мягкий дожим. Также присутствует намёк на план действий, что выходит за рамки допустимой нейтральной мысли о ценности ясности.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—no unalignments were found.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_objection_too_expensive_021",
+      "family": "objection",
+      "scope": "turn",
+      "transcript": "outgoing: Это 3-дневный практический разбор за 1000 рублей, где смотрим твою ситуацию и главный затык. Хочешь, скину условия?",
+      "user_message": "Дорого для меня",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Признать ценовое сомнение без спора и не показывать кнопку. Можно одним вопросом уточнить, что именно смущает в цене, но нельзя давить, советовать искать или занимать деньги либо обещать окупаемость.",
+        "must_not": []
+      },
+      "tags": [
+        "price_objection",
+        "no_borrowing_advice",
+        "no_roi_promise"
+      ],
+      "assistant_output": {
+        "text": "Понимаю. Тут вопрос не только в самой тысяче, а в том, сколько времени и денег уже может сливаться в хаотичные действия. Что именно смущает в цене?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11670,
+          "completion_tokens": 52,
+          "total_tokens": 11722,
+          "cost": 0.0013336,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11392,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0013336,
+            "upstream_inference_prompt_cost": 0.0012504,
+            "upstream_inference_completions_cost": 8.32e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понимаю. Тут вопрос не только в самой тысяче, а в том, сколько времени и денег уже может сливаться в хаотичные действия. Что именно смущает в цене?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понимаю. Тут вопрос не только в самой тысяче, а в том, сколько времени и денег уже может сливаться в хаотичные действия. Что именно смущает в цене?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понимаю. Тут вопрос не только в самой тысяче, а в том, сколько времени и денег уже может сливаться в хаотичные действия. Что именно смущает в цене?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.7871324121494454,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ признает ценовое сомнение и не спорит с пользователем, а также корректно уточняет, что именно смущает в цене. Однако есть легкий элемент давления во фразе о 'сливании времени и денег', что выходит за рамки ограничения не убеждать и не обещать окупаемость. В остальном шаг соответствует ожидаемому поведению.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—no unalignments detected.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_non_target_no_project_or_intent_022",
+      "family": "non_target",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?",
+      "user_message": "Ни в какой. У меня нет экспертного проекта и заводить его не планирую",
+      "expected": {
+        "lead_status": "non_target",
+        "button_action": "do_not_show",
+        "behavior": "Распознать явное отсутствие проекта и намерения как несоответствие этой воронке. Не показывать кнопку, не пытаться дожимать до тест-драйва и спокойно завершить либо коротко пояснить, для кого предназначен разбор.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_non_target",
+        "disqualification",
+        "no_offer"
+      ],
+      "assistant_output": {
+        "text": "Так понять сложно. А что сейчас делаешь онлайн, если не проект? Какие деньги хочешь для себя?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11654,
+          "completion_tokens": 34,
+          "total_tokens": 11688,
+          "cost": 0.0012984,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11392,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0012984,
+            "upstream_inference_prompt_cost": 0.001244,
+            "upstream_inference_completions_cost": 5.44e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Так понять сложно. А что сейчас делаешь онлайн, если не проект? Какие деньги хочешь для себя?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": false,
+          "expected": "at most 1 question mark(s)",
+          "actual": 2,
+          "reason": "reply asks too many questions"
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Так понять сложно. А что сейчас делаешь онлайн, если не проект? Какие деньги хочешь для себя?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Так понять сложно. А что сейчас делаешь онлайн, если не проект? Какие деньги хочешь для себя?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "non_target_never_gets_offer",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.21037486296375443,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ не распознал явное несоответствие пользователя воронке и продолжил задавать вопросы, пытаясь дожать до следующего шага. Не было спокойного завершения диалога или пояснения, для кого предназначен разбор, что требовалось по EXPECTED_OUTPUT. Преждевременного оффера не было, но шаг не соответствует ограничениям.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 0.6666666666666666,
+          "threshold": 0.8,
+          "passed": false,
+          "reason": "The score is 0.67 because the response includes two questions instead of the instructed maximum of one, and the message is not concise or natural for Telegram chat, making it less aligned with the prompt. However, it still addresses the user's situation and attempts to continue the conversation, which is why the score is not lower.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_non_target_direct_link_request_023",
+      "family": "non_target",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Ни в какой, я не эксперт и ничего не продаю\noutgoing: Правильно понял, экспертного проекта сейчас нет?",
+      "user_message": "Да, и не планирую. Но ссылку скинь, просто посмотрю",
+      "expected": {
+        "lead_status": "non_target",
+        "button_action": "do_not_show",
+        "behavior": "Не позволить прямой просьбе о ссылке отменить уже установленную нецелевость лида. Не показывать кнопку и без давления объяснить, что тест-драйв предназначен для разбора действующего или планируемого экспертного проекта.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_non_target",
+        "direct_link_conflict",
+        "qualification_overrides_cta"
+      ],
+      "assistant_output": {
+        "text": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта и что сейчас выглядит главным затыком.",
+        "should_send_offer": true,
+        "button_rendered": true,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11681,
+          "completion_tokens": 37,
+          "total_tokens": 11718,
+          "cost": 0.001314,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 11392,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.001314,
+            "upstream_inference_prompt_cost": 0.0012548,
+            "upstream_inference_completions_cost": 5.92e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта и что сейчас выглядит главным затыком.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта и что сейчас выглядит главным затыком.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Да, жми кнопку ниже. На тест-драйве разберем систему проекта и что сейчас выглядит главным затыком.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": false,
+          "expected": false,
+          "actual": true,
+          "reason": "expected button action is do_not_show"
+        },
+        {
+          "name": "button_rendering",
+          "passed": false,
+          "expected": false,
+          "actual": true,
+          "reason": "rendered button does not match expected action do_not_show"
+        },
+        {
+          "name": "non_target_never_gets_offer",
+          "passed": false,
+          "expected": false,
+          "actual": true,
+          "reason": "a non-target lead must never receive the offer button"
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.19343951579736618,
+          "threshold": 0.7,
+          "passed": false,
+          "reason": "Ответ проигнорировал установленную нецелевость лида и предоставил ссылку, что противоречит ограничению не показывать кнопку и не делать оффер. Вместо объяснения предназначения тест-драйва для целевых лидов, был предложен следующий шаг, что является преждевременным выводом. Однако, частично упомянуто, что на тест-драйве разбирается система проекта, что минимально связано с контекстом.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The output fully aligns with the prompt instructions—keep up the excellent work!",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_off_topic_code_request_024",
+      "family": "off_topic",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Онлайн-обучение английскому\noutgoing: Что сейчас продаешь?\nincoming: Разговорный клуб для айтишников\noutgoing: Откуда сейчас приходят заявки?",
+      "user_message": "Напиши мне код сортировки на Python",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Не выполнять запрос на программирование. Коротко вернуть человека к разбору проекта и повторить актуальный вопрос об источнике заявок, не начиная диагностику заново и не показывая кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "off_topic",
+        "local_guard",
+        "resume_current_question"
+      ],
+      "assistant_output": {
+        "text": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "local_guard",
+        "usage": null,
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 1.0,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ не выполняет запрос на программирование, корректно возвращает пользователя к разбору проекта и повторяет актуальный вопрос об источнике заявок, не начиная диагностику заново и не добавляя лишних элементов. Все требования соблюдены.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! There are no unalignments, so the output fully follows the prompt instructions.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    }
+  ]
+}

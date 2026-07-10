@@ -1,0 +1,21 @@
+{
+  "schema_version": "prompt-improvement-packet-v1",
+  "run_id": "smoke-real",
+  "prompt": {
+    "path": "/root/siemensbot/prompts/user_chat.system.md",
+    "sha256": "99ab4763d8a547478ae931a3fee487146135809845351bc390f10d2d736c522b"
+  },
+  "dataset_version": "sales_v1",
+  "summary": {
+    "actionable_cases": 0,
+    "human_rejected_responses": 0,
+    "human_button_mismatches": 0,
+    "failed_hard_checks": 0,
+    "failure_tag_counts": {}
+  },
+  "metric_calibration_warning": {
+    "description": "Human/judge disagreements are listed for metric calibration; they must not by themselves drive prompt changes.",
+    "response_disagreements": []
+  },
+  "items": []
+}

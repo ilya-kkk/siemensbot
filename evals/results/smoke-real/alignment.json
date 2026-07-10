@@ -1,0 +1,30 @@
+{
+  "schema_version": "human-judge-alignment-v1",
+  "run_id": "smoke-real",
+  "reviewed_cases": 2,
+  "judge_rule": "all_judge_metrics_must_pass",
+  "response": {
+    "compared": 2,
+    "agreements": 2,
+    "agreement_rate": 1.0,
+    "confusion": {
+      "human_good_judge_good": 2,
+      "human_good_judge_bad": 0,
+      "human_bad_judge_good": 0,
+      "human_bad_judge_bad": 0
+    },
+    "disagreements": []
+  },
+  "button": {
+    "compared": 2,
+    "agreements": 2,
+    "agreement_rate": 1.0,
+    "disagreements": []
+  },
+  "lead_status": {
+    "compared": 2,
+    "agreements": 2,
+    "agreement_rate": 1.0,
+    "disagreements": []
+  }
+}

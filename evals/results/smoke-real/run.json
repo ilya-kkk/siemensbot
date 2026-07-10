@@ -1,0 +1,273 @@
+{
+  "schema_version": "sales-eval-run-v1",
+  "run_id": "smoke-real",
+  "generated_at": "2026-07-10T13:11:40.462188+00:00",
+  "dataset_version": "sales_v1",
+  "dataset_path": "/root/siemensbot/evals/cases/sales_v1.jsonl",
+  "prompt": {
+    "path": "/root/siemensbot/prompts/user_chat.system.md",
+    "sha256": "99ab4763d8a547478ae931a3fee487146135809845351bc390f10d2d736c522b"
+  },
+  "target_model": "openai/gpt-4.1-mini",
+  "judge_model": "openai/gpt-4.1",
+  "summary": {
+    "total_cases": 2,
+    "hard_passed_cases": 2,
+    "hard_failed_cases": 0,
+    "generation_errors": 0,
+    "buttons_rendered": 0,
+    "non_target_buttons": 0,
+    "judge_metrics": {
+      "Sales Next-Step Quality [GEval]": {
+        "average_score": 0.947,
+        "passed": 2,
+        "total": 2
+      },
+      "Prompt Alignment": {
+        "average_score": 1.0,
+        "passed": 2,
+        "total": 2
+      }
+    }
+  },
+  "cases": [
+    {
+      "case_id": "sv1_qualification_valid_niche_001",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Фитнес",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять «фитнес» как понятную нишу без шаблонного комплимента и одним коротким вопросом уточнить, что человек продает. Не предлагать тест-драйв и не показывать кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "valid_niche",
+        "next_discovery_question",
+        "no_premature_offer"
+      ],
+      "assistant_output": {
+        "text": "Фитнес. Что сейчас продаешь?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11659,
+          "completion_tokens": 21,
+          "total_tokens": 11680,
+          "cost": 0.0046972,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0046972,
+            "upstream_inference_prompt_cost": 0.0046636,
+            "upstream_inference_completions_cost": 3.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Фитнес. Что сейчас продаешь?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Фитнес. Что сейчас продаешь?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Фитнес. Что сейчас продаешь?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.998831274380079,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ принимает нишу 'фитнес' без лишних комплиментов и задает короткий уточняющий вопрос о продукте, не делая преждевременных выводов или предложений. Соответствует ожидаемому поведению на данном этапе диалога.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The score is 1.00 because there are no unalignments—the output follows all prompt instructions perfectly.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    },
+    {
+      "case_id": "sv1_qualification_broad_niche_002",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Инфобизнес",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Не принимать «инфобизнес» за достаточно конкретную нишу. Коротко отметить, что это слишком широко, и одним вопросом уточнить конкретную тему, сферу или результат для клиентов.",
+        "must_not": []
+      },
+      "tags": [
+        "broad_niche",
+        "clarification",
+        "no_premature_offer"
+      ],
+      "assistant_output": {
+        "text": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 11660,
+          "completion_tokens": 30,
+          "total_tokens": 11690,
+          "cost": 0.004712,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.004712,
+            "upstream_inference_prompt_cost": 0.004664,
+            "upstream_inference_completions_cost": 4.8e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Инфобизнес это формат. В какой теме ты помогаешь людям получить результат?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": [
+        {
+          "name": "Sales Next-Step Quality [GEval]",
+          "score": 0.8951863231102355,
+          "threshold": 0.7,
+          "passed": true,
+          "reason": "Ответ не принимает 'инфобизнес' за конкретную нишу, корректно указывает, что это формат, и уточняет, в какой теме пользователь помогает людям получить результат. Ответ не повторяет известное и не делает преждевременных выводов или офферов. Единственное небольшое отличие — можно было чуть яснее обозначить, что 'инфобизнес' слишком широко, но суть шага полностью соблюдена.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        },
+        {
+          "name": "Prompt Alignment",
+          "score": 1.0,
+          "threshold": 0.8,
+          "passed": true,
+          "reason": "Great job! The score is 1.00 because there are no unalignments—the output follows all prompt instructions perfectly.",
+          "error": null,
+          "evaluation_model": "openai/gpt-4.1 (OpenRouter)"
+        }
+      ]
+    }
+  ]
+}
