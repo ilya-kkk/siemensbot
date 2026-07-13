@@ -1,0 +1,207 @@
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+import pytest
+from aiogram.exceptions import TelegramAPIError
+
+from app.ai.openrouter import OpenRouterError
+from app.bots import user_bot
+
+
+def _message(chat_id: int = 100, text: str | None = None) -> SimpleNamespace:
+    return SimpleNamespace(
+        chat=SimpleNamespace(id=chat_id),
+        from_user=SimpleNamespace(
+            id=200,
+            username="admin",
+            first_name="Анна",
+            last_name=None,
+        ),
+        voice=SimpleNamespace(file_id="voice-file"),
+        text=text,
+        caption=None,
+        date=None,
+        message_id=300,
+        answer=AsyncMock(),
+        model_dump=lambda **kwargs: {"voice": {"file_id": "voice-file"}},
+    )
+
+
+@pytest.mark.asyncio
+async def test_transcribe_voice_downloads_in_memory_without_echo(monkeypatch) -> None:
+    downloaded: list[tuple[str, object]] = []
+
+    async def download(file_id: str, destination) -> None:
+        downloaded.append((file_id, destination))
+        destination.write(b"ogg-bytes")
+
+    class FakeOpenRouterClient:
+        def __init__(self, settings) -> None:
+            pass
+
+        async def transcribe_ogg(self, audio_bytes: bytes) -> str:
+            assert audio_bytes == b"ogg-bytes"
+            return "Русская расшифровка"
+
+    monkeypatch.setattr(user_bot, "OpenRouterClient", FakeOpenRouterClient)
+    message = _message()
+    bot = SimpleNamespace(download=download)
+
+    result = await user_bot._transcribe_voice(bot, message)
+
+    assert result == "Русская расшифровка"
+    assert downloaded[0][0] == "voice-file"
+    message.answer.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_transcribe_voice_reports_download_error_once(monkeypatch) -> None:
+    error = TelegramAPIError(method=None, message="download failed")
+    monkeypatch.setattr(
+        user_bot,
+        "_download_voice_bytes",
+        AsyncMock(side_effect=error),
+    )
+    message = _message()
+
+    result = await user_bot._transcribe_voice(object(), message)
+
+    assert result is None
+    message.answer.assert_awaited_once_with(user_bot.VOICE_TRANSCRIPTION_ERROR)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("transcription", ["", "   "])
+async def test_transcribe_voice_reports_empty_text_once(monkeypatch, transcription: str) -> None:
+    class FakeOpenRouterClient:
+        def __init__(self, settings) -> None:
+            pass
+
+        async def transcribe_ogg(self, audio_bytes: bytes) -> str:
+            return transcription.strip()
+
+    monkeypatch.setattr(user_bot, "_download_voice_bytes", AsyncMock(return_value=b"ogg"))
+    monkeypatch.setattr(user_bot, "OpenRouterClient", FakeOpenRouterClient)
+    message = _message()
+
+    result = await user_bot._transcribe_voice(object(), message)
+
+    assert result is None
+    message.answer.assert_awaited_once_with(user_bot.VOICE_TRANSCRIPTION_ERROR)
+
+
+@pytest.mark.asyncio
+async def test_transcribe_voice_reports_openrouter_error_once(monkeypatch) -> None:
+    class FakeOpenRouterClient:
+        def __init__(self, settings) -> None:
+            pass
+
+        async def transcribe_ogg(self, audio_bytes: bytes) -> str:
+            raise OpenRouterError("stt failed")
+
+    monkeypatch.setattr(user_bot, "_download_voice_bytes", AsyncMock(return_value=b"ogg"))
+    monkeypatch.setattr(user_bot, "OpenRouterClient", FakeOpenRouterClient)
+    message = _message()
+
+    result = await user_bot._transcribe_voice(object(), message)
+
+    assert result is None
+    message.answer.assert_awaited_once_with(user_bot.VOICE_TRANSCRIPTION_ERROR)
+
+
+@pytest.mark.asyncio
+async def test_voice_message_uses_production_text_pipeline_without_echo(monkeypatch) -> None:
+    message = _message(chat_id=401)
+    user_bot.test_sessions.pop(message.chat.id, None)
+    transcribe = AsyncMock(return_value="Текст из голоса")
+    dialogue = AsyncMock()
+    test_dialogue = AsyncMock()
+    monkeypatch.setattr(user_bot, "_client_bot_stopped", AsyncMock(return_value=False))
+    monkeypatch.setattr(user_bot, "_transcribe_voice", transcribe)
+    monkeypatch.setattr(user_bot, "_handle_dialogue_message", dialogue)
+    monkeypatch.setattr(user_bot, "_handle_test_message", test_dialogue)
+
+    await user_bot.voice_message(message, object())
+
+    dialogue.assert_awaited_once_with(message, "Текст из голоса")
+    test_dialogue.assert_not_awaited()
+    message.answer.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_voice_message_uses_test_session_without_production_pipeline(monkeypatch) -> None:
+    message = _message(chat_id=402)
+    user_bot.test_sessions[message.chat.id] = ["outgoing: Привет"]
+    transcribe = AsyncMock(return_value="Тестовый голос")
+    dialogue = AsyncMock()
+    test_dialogue = AsyncMock()
+    monkeypatch.setattr(user_bot, "_is_test_admin", lambda user: True)
+    monkeypatch.setattr(user_bot, "_transcribe_voice", transcribe)
+    monkeypatch.setattr(user_bot, "_handle_dialogue_message", dialogue)
+    monkeypatch.setattr(user_bot, "_handle_test_message", test_dialogue)
+    try:
+        await user_bot.voice_message(message, object())
+    finally:
+        user_bot.test_sessions.pop(message.chat.id, None)
+
+    test_dialogue.assert_awaited_once_with(message, "Тестовый голос")
+    dialogue.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_voice_message_does_not_download_when_bot_is_stopped(monkeypatch) -> None:
+    message = _message(chat_id=403)
+    user_bot.test_sessions.pop(message.chat.id, None)
+    transcribe = AsyncMock()
+    monkeypatch.setattr(user_bot, "_client_bot_stopped", AsyncMock(return_value=True))
+    monkeypatch.setattr(user_bot, "_transcribe_voice", transcribe)
+
+    await user_bot.voice_message(message, object())
+
+    transcribe.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_text_message_still_uses_shared_dialogue_pipeline(monkeypatch) -> None:
+    message = _message(text="Обычный текст")
+    dialogue = AsyncMock()
+    monkeypatch.setattr(user_bot, "_handle_dialogue_message", dialogue)
+
+    await user_bot.text_message(message)
+
+    dialogue.assert_awaited_once_with(message, "Обычный текст")
+
+
+@pytest.mark.asyncio
+async def test_register_incoming_voice_stores_transcription_as_text(monkeypatch) -> None:
+    repo = SimpleNamespace(
+        upsert_telegram_user=AsyncMock(return_value=10),
+        log_message=AsyncMock(return_value=20),
+    )
+
+    class SessionContext:
+        async def __aenter__(self):
+            return object()
+
+        async def __aexit__(self, exc_type, exc, tb) -> None:
+            return None
+
+    monkeypatch.setattr(user_bot, "SessionLocal", SessionContext)
+    monkeypatch.setattr(user_bot, "AppRepository", lambda session: repo)
+    message = _message()
+
+    result = await user_bot._register_incoming_message(
+        message,
+        "dialogue",
+        text_value="Сохранённая расшифровка",
+    )
+
+    assert result == (10, 20)
+    repo.log_message.assert_awaited_once_with(
+        10,
+        "incoming",
+        "Сохранённая расшифровка",
+        300,
+        {"voice": {"file_id": "voice-file"}},
+        message_type="text",
+    )

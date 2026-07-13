@@ -25,6 +25,14 @@ def test_public_base_url_guard_allows_tracked_production_and_local() -> None:
     assert not local.public_base_url
 
 
+def test_stt_model_has_default_and_environment_override() -> None:
+    default = _settings()
+    overridden = _settings(OPENROUTER_STT_MODEL="vendor/russian-stt")
+
+    assert default.openrouter_stt_model == "openai/gpt-4o-mini-transcribe"
+    assert overridden.openrouter_stt_model == "vendor/russian-stt"
+
+
 @pytest.mark.parametrize(
     "value",
     [

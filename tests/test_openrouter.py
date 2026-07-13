@@ -1,6 +1,9 @@
+import base64
 import json
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
+import httpx
 import pytest
 
 from app.ai.openrouter import (
@@ -66,6 +69,99 @@ async def test_openrouter_error_keeps_full_attempted_payload() -> None:
 
     assert captured.value.request_payload == payload
     assert captured.value.response_payload == {}
+
+
+@pytest.mark.asyncio
+async def test_transcribe_ogg_sends_russian_openrouter_request(monkeypatch) -> None:
+    calls: list[dict] = []
+
+    class FakeAsyncClient:
+        def __init__(self, *, timeout: httpx.Timeout) -> None:
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb) -> None:
+            return None
+
+        async def post(self, url: str, **kwargs) -> httpx.Response:
+            calls.append({"url": url, **kwargs, "timeout": self.timeout})
+            return httpx.Response(200, json={"text": "  Привет, мир  "})
+
+    monkeypatch.setattr("app.ai.openrouter.httpx.AsyncClient", FakeAsyncClient)
+    client = OpenRouterClient(
+        settings=SimpleNamespace(
+            openrouter_api_key="secret",
+            openrouter_stt_model="openai/gpt-4o-mini-transcribe",
+            public_base_url="https://bot.example",
+        )
+    )
+
+    transcription = await client.transcribe_ogg(b"ogg-bytes")
+
+    assert transcription == "Привет, мир"
+    assert len(calls) == 1
+    assert calls[0]["url"] == "https://openrouter.ai/api/v1/audio/transcriptions"
+    assert calls[0]["headers"]["Authorization"] == "Bearer secret"
+    assert calls[0]["json"] == {
+        "model": "openai/gpt-4o-mini-transcribe",
+        "input_audio": {
+            "data": base64.b64encode(b"ogg-bytes").decode("ascii"),
+            "format": "ogg",
+        },
+        "language": "ru",
+    }
+    assert calls[0]["timeout"].read == 45
+
+
+@pytest.mark.asyncio
+async def test_transcription_retries_429_and_server_errors(monkeypatch) -> None:
+    responses = [
+        httpx.Response(429, text="limited"),
+        httpx.Response(503, text="unavailable"),
+        httpx.Response(200, json={"text": "готово"}),
+    ]
+    sleep = AsyncMock()
+
+    class FakeAsyncClient:
+        def __init__(self, *, timeout: httpx.Timeout) -> None:
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb) -> None:
+            return None
+
+        async def post(self, url: str, **kwargs) -> httpx.Response:
+            return responses.pop(0)
+
+    monkeypatch.setattr("app.ai.openrouter.httpx.AsyncClient", FakeAsyncClient)
+    monkeypatch.setattr("app.ai.openrouter.asyncio.sleep", sleep)
+    client = OpenRouterClient(
+        settings=SimpleNamespace(
+            openrouter_api_key="secret",
+            openrouter_stt_model="stt-model",
+            public_base_url=None,
+        )
+    )
+
+    assert await client.transcribe_ogg(b"ogg") == "готово"
+    assert sleep.await_args_list[0].args == (0.5,)
+    assert sleep.await_args_list[1].args == (1.0,)
+    assert responses == []
+
+
+@pytest.mark.asyncio
+async def test_transcribe_ogg_rejects_response_without_text(monkeypatch) -> None:
+    client = OpenRouterClient(
+        settings=SimpleNamespace(openrouter_stt_model="stt-model")
+    )
+    monkeypatch.setattr(client, "_post_transcription", AsyncMock(return_value={"usage": {}}))
+
+    with pytest.raises(OpenRouterError, match="missing text"):
+        await client.transcribe_ogg(b"ogg")
 
 
 def test_sanitize_reply_text_replaces_long_dash_chars() -> None:

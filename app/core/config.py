@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     user_bot_token: str | None = Field(default=None, alias="USER_BOT_TOKEN")
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
     openrouter_model: str = Field(default="openai/gpt-4.1-mini", alias="OPENROUTER_MODEL")
+    openrouter_stt_model: str = Field(
+        default="openai/gpt-4o-mini-transcribe",
+        alias="OPENROUTER_STT_MODEL",
+    )
     test_drive_url: str = Field(default="https://example.com/test-drive", alias="TEST_DRIVE_URL")
     welcome_text: str = Field(
         default="Привет! Давай разберём твой проект. В какой нише сейчас работаешь?",

@@ -1,4 +1,5 @@
 import asyncio
+import io
 import logging
 
 from aiogram import Bot, Dispatcher, F, Router
@@ -20,6 +21,9 @@ router = Router()
 settings = get_settings()
 test_sessions: dict[int, list[str]] = {}
 test_offer_sent: set[int] = set()
+VOICE_TRANSCRIPTION_ERROR = (
+    "Не удалось расшифровать голосовое сообщение. Попробуйте записать ещё раз."
+)
 
 
 def _offer_markup(url: str) -> InlineKeyboardMarkup:
@@ -53,7 +57,12 @@ def _message_text(message: Message) -> str | None:
     return message.text or message.caption
 
 
-async def _register_incoming_message(message: Message, event_stage: str) -> tuple[int, int]:
+async def _register_incoming_message(
+    message: Message,
+    event_stage: str,
+    text_value: str | None = None,
+) -> tuple[int, int]:
+    incoming_text = text_value if text_value is not None else _message_text(message)
     async with SessionLocal() as session:
         repo = AppRepository(session)
         telegram_user_id = await repo.upsert_telegram_user(
@@ -69,10 +78,10 @@ async def _register_incoming_message(message: Message, event_stage: str) -> tupl
         source_message_id = await repo.log_message(
             telegram_user_id,
             "incoming",
-            _message_text(message),
+            incoming_text,
             message.message_id,
             message.model_dump(mode="json"),
-            message_type="text" if _message_text(message) is not None else "service",
+            message_type="text" if incoming_text is not None else "service",
         )
     return telegram_user_id, source_message_id
 
@@ -174,15 +183,19 @@ async def test_text_message(message: Message) -> None:
         test_offer_sent.discard(message.chat.id)
         return
 
+    await _handle_test_message(message, message.text or "")
+
+
+async def _handle_test_message(message: Message, user_text: str) -> None:
     transcript = _render_test_transcript(message.chat.id)
     client = OpenRouterClient(settings)
     try:
-        decision = await client.chat_reply(transcript, message.text or "")
+        decision = await client.chat_reply(transcript, user_text)
     except OpenRouterError:
         await message.answer("Сейчас не могу ответить.")
         return
 
-    test_sessions[message.chat.id].append(f"incoming: {message.text or ''}")
+    test_sessions[message.chat.id].append(f"incoming: {user_text}")
     test_sessions[message.chat.id].append(f"outgoing: {decision.reply_text}")
 
     offer_already_sent = message.chat.id in test_offer_sent
@@ -196,12 +209,75 @@ async def test_text_message(message: Message) -> None:
     await message.answer(decision.reply_text, reply_markup=reply_markup)
 
 
+async def _download_voice_bytes(bot: Bot, message: Message) -> bytes:
+    if message.voice is None:
+        return b""
+    buffer = io.BytesIO()
+    await bot.download(message.voice.file_id, destination=buffer)
+    return buffer.getvalue()
+
+
+async def _transcribe_voice(bot: Bot, message: Message) -> str | None:
+    try:
+        audio_bytes = await _download_voice_bytes(bot, message)
+    except TelegramAPIError:
+        logger.exception("Telegram voice download failed")
+        await message.answer(VOICE_TRANSCRIPTION_ERROR)
+        return None
+
+    if not audio_bytes:
+        logger.warning("Telegram voice download returned no data")
+        await message.answer(VOICE_TRANSCRIPTION_ERROR)
+        return None
+
+    try:
+        transcription = await OpenRouterClient(settings).transcribe_ogg(audio_bytes)
+    except OpenRouterError:
+        logger.exception("OpenRouter voice transcription failed")
+        await message.answer(VOICE_TRANSCRIPTION_ERROR)
+        return None
+
+    if not transcription:
+        logger.info("OpenRouter voice transcription was empty")
+        await message.answer(VOICE_TRANSCRIPTION_ERROR)
+        return None
+    return transcription
+
+
+@router.message(F.voice)
+async def voice_message(message: Message, bot: Bot) -> None:
+    is_test_session = message.chat.id in test_sessions
+    if is_test_session:
+        if not _is_test_admin(message.from_user):
+            test_sessions.pop(message.chat.id, None)
+            test_offer_sent.discard(message.chat.id)
+            return
+    elif await _client_bot_stopped():
+        return
+
+    transcription = await _transcribe_voice(bot, message)
+    if transcription is None:
+        return
+    if is_test_session:
+        await _handle_test_message(message, transcription)
+        return
+    await _handle_dialogue_message(message, transcription)
+
+
 @router.message(F.text)
 async def text_message(message: Message) -> None:
+    await _handle_dialogue_message(message, message.text or "")
+
+
+async def _handle_dialogue_message(message: Message, user_text: str) -> None:
     if await _client_bot_stopped():
         return
 
-    telegram_user_id, source_message_id = await _register_incoming_message(message, "dialogue")
+    telegram_user_id, source_message_id = await _register_incoming_message(
+        message,
+        "dialogue",
+        text_value=user_text,
+    )
     async with SessionLocal() as session:
         repo = AppRepository(session)
         transcript = await repo.get_transcript_for_user(
@@ -212,7 +288,7 @@ async def text_message(message: Message) -> None:
 
     client = OpenRouterClient(settings)
     try:
-        decision = await client.chat_reply(transcript, message.text or "")
+        decision = await client.chat_reply(transcript, user_text)
     except OpenRouterError as exc:
         async with SessionLocal() as session:
             repo = AppRepository(session)

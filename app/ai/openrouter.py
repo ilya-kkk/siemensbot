@@ -1,3 +1,5 @@
+import asyncio
+import base64
 import json
 import re
 from collections.abc import Mapping
@@ -284,6 +286,80 @@ class OpenRouterClient:
                 request_payload=payload,
                 response_payload={"status_code": response.status_code, "body": response.text},
             ) from exc
+
+    async def transcribe_ogg(self, audio_bytes: bytes) -> str:
+        payload = {
+            "model": self.settings.openrouter_stt_model,
+            "input_audio": {
+                "data": base64.b64encode(audio_bytes).decode("ascii"),
+                "format": "ogg",
+            },
+            "language": "ru",
+        }
+        data = await self._post_transcription(payload)
+        text = data.get("text")
+        if not isinstance(text, str):
+            raise OpenRouterError(
+                "Invalid OpenRouter transcription response: missing text",
+                request_payload=payload,
+                response_payload=data,
+            )
+        return text.strip()
+
+    async def _post_transcription(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if not self.settings.openrouter_api_key:
+            raise OpenRouterError("OPENROUTER_API_KEY is not configured", request_payload=payload)
+
+        headers = {
+            "Authorization": f"Bearer {self.settings.openrouter_api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": self.settings.public_base_url or "http://localhost:8000",
+            "X-Title": "Siemensbot",
+        }
+        url = "https://openrouter.ai/api/v1/audio/transcriptions"
+        timeout = httpx.Timeout(45)
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            for attempt in range(3):
+                try:
+                    response = await client.post(url, headers=headers, json=payload)
+                except (httpx.TimeoutException, httpx.NetworkError) as exc:
+                    if attempt < 2:
+                        await asyncio.sleep(0.5 * (2**attempt))
+                        continue
+                    raise OpenRouterError(str(exc), request_payload=payload) from exc
+
+                if (response.status_code == 429 or response.status_code >= 500) and attempt < 2:
+                    await asyncio.sleep(0.5 * (2**attempt))
+                    continue
+                if response.status_code >= 400:
+                    raise OpenRouterError(
+                        f"OpenRouter error {response.status_code}: {response.text[:500]}",
+                        request_payload=payload,
+                        response_payload={
+                            "status_code": response.status_code,
+                            "body": response.text,
+                        },
+                    )
+                try:
+                    data = response.json()
+                except ValueError as exc:
+                    raise OpenRouterError(
+                        f"Invalid OpenRouter transcription JSON response: {exc}",
+                        request_payload=payload,
+                        response_payload={
+                            "status_code": response.status_code,
+                            "body": response.text,
+                        },
+                    ) from exc
+                if not isinstance(data, dict):
+                    raise OpenRouterError(
+                        "Invalid OpenRouter transcription JSON response",
+                        request_payload=payload,
+                        response_payload={"body": data},
+                    )
+                return data
+
+        raise OpenRouterError("OpenRouter transcription failed", request_payload=payload)
 
     async def chat_reply(
         self,
