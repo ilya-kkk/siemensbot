@@ -409,7 +409,10 @@ class AppRepository:
                 from app.messages
                 where telegram_user_id = :telegram_user_id
                   and text is not null
-                  and (:exclude_message_id is null or id <> :exclude_message_id)
+                  and (
+                    cast(:exclude_message_id as bigint) is null
+                    or id <> cast(:exclude_message_id as bigint)
+                  )
                 order by created_at, id
                 """
             ),

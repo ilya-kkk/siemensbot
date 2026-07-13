@@ -1,0 +1,4220 @@
+{
+  "schema_version": "sales-eval-run-v1",
+  "run_id": "soft-v2-release2",
+  "generated_at": "2026-07-13T15:22:29.040023+00:00",
+  "dataset_version": "sales_v2",
+  "dataset_path": "/root/siemensbot/evals/cases/sales_v2.jsonl",
+  "prompt": {
+    "path": "/root/siemensbot/prompts/user_chat.system.md",
+    "sha256": "b168adf1cd8069ec745219a12d8ef2d5526ff88a232403f03ff20b17c7679d72"
+  },
+  "target_model": "openai/gpt-4.1-mini",
+  "judge_model": null,
+  "summary": {
+    "total_cases": 36,
+    "hard_passed_cases": 36,
+    "hard_failed_cases": 0,
+    "generation_errors": 0,
+    "buttons_rendered": 3,
+    "non_target_buttons": 0,
+    "judge_metrics": {}
+  },
+  "cases": [
+    {
+      "case_id": "sv1_qualification_valid_niche_001",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Фитнес",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять «фитнес» как понятную нишу без шаблонного комплимента и одним коротким вопросом уточнить, что человек продает. Не предлагать тест-драйв и не показывать кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "valid_niche",
+        "next_discovery_question",
+        "no_premature_offer"
+      ],
+      "assistant_output": {
+        "text": "Понял, работаешь в фитнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4284,
+          "completion_tokens": 37,
+          "total_tokens": 4321,
+          "cost": 0.0006208,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 3840,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0006208,
+            "upstream_inference_prompt_cost": 0.0005616,
+            "upstream_inference_completions_cost": 5.92e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, работаешь в фитнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, работаешь в фитнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, работаешь в фитнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_qualification_broad_niche_002",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Инфобизнес",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять «инфобизнес» как рабочее описание рынка и одним нейтральным вопросом уточнить продукт, тему или клиентов. Не исправлять терминологию и не оценивать ответ как неправильный или слишком широкий.",
+        "must_not": [
+          "это не ниша",
+          "это формат",
+          "слишком широко"
+        ]
+      },
+      "tags": [
+        "working_context",
+        "soft_clarification",
+        "no_gatekeeping"
+      ],
+      "assistant_output": {
+        "text": "Понял, работаешь в инфобизнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4285,
+          "completion_tokens": 38,
+          "total_tokens": 4323,
+          "cost": 0.0006228,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 3840,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0006228,
+            "upstream_inference_prompt_cost": 0.000562,
+            "upstream_inference_completions_cost": 6.08e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, работаешь в инфобизнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, работаешь в инфобизнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, работаешь в инфобизнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:это не ниша",
+          "passed": true,
+          "expected": "reply does not contain 'это не ниша'",
+          "actual": "Понял, работаешь в инфобизнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:это формат",
+          "passed": true,
+          "expected": "reply does not contain 'это формат'",
+          "actual": "Понял, работаешь в инфобизнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:слишком широко",
+          "passed": true,
+          "expected": "reply does not contain 'слишком широко'",
+          "actual": "Понял, работаешь в инфобизнесе. Что именно ты сейчас хочешь проверить или улучшить в проекте?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_qualification_invalid_niche_003",
+      "family": "invalid_input",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "хз",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Не считать ответ реальной нишей и не обесценивать человека. Спокойно попросить хотя бы примерно назвать, чем он занимается или с кем работает.",
+        "must_not": []
+      },
+      "tags": [
+        "invalid_niche",
+        "local_guard",
+        "respectful_reprompt"
+      ],
+      "assistant_output": {
+        "text": "Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "local_guard",
+        "usage": null,
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_qualification_product_is_format_004",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Фитнес\noutgoing: Фитнес. Что сейчас продаешь?",
+      "user_message": "Наставничество",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять «наставничество» как рабочее описание предложения и одним нейтральным вопросом уточнить результат для клиента. Не читать лекцию о форматах и не переходить к чеку, трафику или тест-драйву.",
+        "must_not": [
+          "это формат",
+          "только формат",
+          "пока непонятно"
+        ]
+      },
+      "tags": [
+        "working_meaning",
+        "result_clarification",
+        "soft_tone"
+      ],
+      "assistant_output": {
+        "text": "Понимаю, ты предлагаешь наставничество в фитнесе. Какой результат получают твои клиенты после работы с тобой?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4282,
+          "completion_tokens": 42,
+          "total_tokens": 4324,
+          "cost": 0.0005512,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005512,
+            "upstream_inference_prompt_cost": 0.000484,
+            "upstream_inference_completions_cost": 6.72e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понимаю, ты предлагаешь наставничество в фитнесе. Какой результат получают твои клиенты после работы с тобой?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понимаю, ты предлагаешь наставничество в фитнесе. Какой результат получают твои клиенты после работы с тобой?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понимаю, ты предлагаешь наставничество в фитнесе. Какой результат получают твои клиенты после работы с тобой?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:это формат",
+          "passed": true,
+          "expected": "reply does not contain 'это формат'",
+          "actual": "Понимаю, ты предлагаешь наставничество в фитнесе. Какой результат получают твои клиенты после работы с тобой?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:только формат",
+          "passed": true,
+          "expected": "reply does not contain 'только формат'",
+          "actual": "Понимаю, ты предлагаешь наставничество в фитнесе. Какой результат получают твои клиенты после работы с тобой?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:пока непонятно",
+          "passed": true,
+          "expected": "reply does not contain 'пока непонятно'",
+          "actual": "Понимаю, ты предлагаешь наставничество в фитнесе. Какой результат получают твои клиенты после работы с тобой?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_qualification_broad_audience_005",
+      "family": "qualification",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Психология\noutgoing: Что сейчас продаешь?\nincoming: Групповую программу по работе с тревогой\noutgoing: Кому это продаешь?",
+      "user_message": "Женщинам",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Одним нейтральным вопросом уточнить аудиторию через задачу или ситуацию этих женщин. Не оценивать ответ как слишком широкий, не давать советов и не предлагать тест-драйв.",
+        "must_not": [
+          "слишком широко",
+          "нужно сузить",
+          "кто быстрее платит"
+        ]
+      },
+      "tags": [
+        "audience_clarification",
+        "soft_tone",
+        "no_gatekeeping"
+      ],
+      "assistant_output": {
+        "text": "С какой задачей эти женщины чаще всего приходят к тебе?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4301,
+          "completion_tokens": 25,
+          "total_tokens": 4326,
+          "cost": 0.0017604,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0017604,
+            "upstream_inference_prompt_cost": 0.0017204,
+            "upstream_inference_completions_cost": 4e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "С какой задачей эти женщины чаще всего приходят к тебе?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "С какой задачей эти женщины чаще всего приходят к тебе?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "С какой задачей эти женщины чаще всего приходят к тебе?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:слишком широко",
+          "passed": true,
+          "expected": "reply does not contain 'слишком широко'",
+          "actual": "С какой задачей эти женщины чаще всего приходят к тебе?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:нужно сузить",
+          "passed": true,
+          "expected": "reply does not contain 'нужно сузить'",
+          "actual": "С какой задачей эти женщины чаще всего приходят к тебе?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:кто быстрее платит",
+          "passed": true,
+          "expected": "reply does not contain 'кто быстрее платит'",
+          "actual": "С какой задачей эти женщины чаще всего приходят к тебе?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_discovery_remembers_known_context_006",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Фитнес\noutgoing: Что сейчас продаешь?\nincoming: Онлайн-сопровождение на 8 недель\noutgoing: Кому это продаешь?\nincoming: Женщинам после родов\noutgoing: Какой результат человек покупает по итогу?",
+      "user_message": "Возвращаются в форму и снижают вес без жестких диет",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять результат как понятный и продвинуть диагностику к следующему неизвестному: текущему ограничению, источнику заявок или продажам. Не спрашивать повторно нишу, продукт, аудиторию или результат.",
+        "must_not": []
+      },
+      "tags": [
+        "knowledge_retention",
+        "next_stage",
+        "no_repeated_question"
+      ],
+      "assistant_output": {
+        "text": "Понятно, помогаешь женщинам после родов вернуть форму и снизить вес с комфортом. Что сейчас ты хочешь проверить или улучшить в своем проекте?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4332,
+          "completion_tokens": 48,
+          "total_tokens": 4380,
+          "cost": 0.0005808,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005808,
+            "upstream_inference_prompt_cost": 0.000504,
+            "upstream_inference_completions_cost": 7.68e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понятно, помогаешь женщинам после родов вернуть форму и снизить вес с комфортом. Что сейчас ты хочешь проверить или улучшить в своем проекте?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понятно, помогаешь женщинам после родов вернуть форму и снизить вес с комфортом. Что сейчас ты хочешь проверить или улучшить в своем проекте?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понятно, помогаешь женщинам после родов вернуть форму и снизить вес с комфортом. Что сейчас ты хочешь проверить или улучшить в своем проекте?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_discovery_vague_money_problem_007",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Английский для взрослых\noutgoing: Что сейчас продаешь?\nincoming: Индивидуальные занятия и разговорный клуб\noutgoing: Кому это продаешь?\nincoming: Специалистам, которым английский нужен для работы\noutgoing: Что сейчас сильнее всего мешает зарабатывать больше?",
+      "user_message": "Да вроде все делаю, но денег мало",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Не ставить диагноз по расплывчатой жалобе и не продавать сразу. Задать один простой вопрос, который локализует проблему в потоке людей, заявках, оплатах, чеке или пути до покупки.",
+        "must_not": []
+      },
+      "tags": [
+        "vague_problem",
+        "root_cause",
+        "no_premature_diagnosis"
+      ],
+      "assistant_output": {
+        "text": "Понял, делаешь, но доход пока небольшой. Возможно, есть этап, где поток клиентов или продажи снижаются?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4333,
+          "completion_tokens": 38,
+          "total_tokens": 4371,
+          "cost": 0.0005652,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005652,
+            "upstream_inference_prompt_cost": 0.0005044,
+            "upstream_inference_completions_cost": 6.08e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, делаешь, но доход пока небольшой. Возможно, есть этап, где поток клиентов или продажи снижаются?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, делаешь, но доход пока небольшой. Возможно, есть этап, где поток клиентов или продажи снижаются?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, делаешь, но доход пока небольшой. Возможно, есть этап, где поток клиентов или продажи снижаются?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_discovery_leads_but_few_payments_008",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Обучение дизайнеров\noutgoing: Что сейчас продаешь?\nincoming: Курс по веб-дизайну для новичков\noutgoing: Откуда сейчас приходят заявки?\nincoming: Из телеграм-канала и с вебинаров\noutgoing: Сколько оплат в среднем приходит за месяц?",
+      "user_message": "Заявок около двадцати, а оплачивают один-два человека",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Связать ответ с возможным провалом между заявкой и оплатой, но не объявлять точную причину без данных. Одним вопросом уточнить путь продажи или момент, где люди чаще отваливаются; кнопку не показывать.",
+        "must_not": []
+      },
+      "tags": [
+        "sales_conversion",
+        "leads_no_payments",
+        "root_cause"
+      ],
+      "assistant_output": {
+        "text": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4342,
+          "completion_tokens": 36,
+          "total_tokens": 4378,
+          "cost": 0.000604,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 3968,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.000604,
+            "upstream_inference_prompt_cost": 0.0005464,
+            "upstream_inference_completions_cost": 5.76e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_discovery_manual_sales_path_009",
+      "family": "discovery",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Консалтинг для владельцев салонов красоты\noutgoing: Что продаешь?\nincoming: Трехмесячное сопровождение по росту прибыли\noutgoing: Откуда приходят заявки?\nincoming: Рекомендации и мой телеграм-канал\noutgoing: Есть ли понятный путь человека от первого касания до покупки, или все больше происходит вручную?",
+      "user_message": "Все в личке: сама отвечаю, объясняю и дожимаю до созвона",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Коротко подсветить зависимость продаж от ручной переписки и связанный риск. Можно задать один диагностический вопрос или предложить обсудить это на тест-драйве, но кнопка до явного согласия появляться не должна.",
+        "must_not": []
+      },
+      "tags": [
+        "manual_sales",
+        "funnel_gap",
+        "offer_requires_consent"
+      ],
+      "assistant_output": {
+        "text": "Понял, весь процесс идет через личные сообщения и созвоны. Какая сейчас главная трудность или вопрос в этом процессе, который хочется понять или улучшить?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4363,
+          "completion_tokens": 48,
+          "total_tokens": 4411,
+          "cost": 0.0005932,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005932,
+            "upstream_inference_prompt_cost": 0.0005164,
+            "upstream_inference_completions_cost": 7.68e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, весь процесс идет через личные сообщения и созвоны. Какая сейчас главная трудность или вопрос в этом процессе, который хочется понять или улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, весь процесс идет через личные сообщения и созвоны. Какая сейчас главная трудность или вопрос в этом процессе, который хочется понять или улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, весь процесс идет через личные сообщения и созвоны. Какая сейчас главная трудность или вопрос в этом процессе, который хочется понять или улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_offer_timing_problem_not_yet_localized_010",
+      "family": "offer_timing",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Нутрициология\noutgoing: Что сейчас продаешь?\nincoming: Персональное сопровождение по питанию\noutgoing: Кому это продаешь?\nincoming: Женщинам с лишним весом\noutgoing: Что сейчас сильнее всего мешает зарабатывать больше?",
+      "user_message": "Не хватает клиентов",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "need_more_qualification",
+        "behavior": "Не считать общую фразу «не хватает клиентов» достаточной для точного диагноза и немедленной продажи. Одним вопросом различить нехватку входящего потока и потерю людей на пути к заявке или оплате.",
+        "must_not": []
+      },
+      "tags": [
+        "premature_offer",
+        "traffic_vs_conversion",
+        "clarification"
+      ],
+      "assistant_output": {
+        "text": "Понял, есть ощущение недостатка клиентов. Легче ли привлекаются потенциальные клиенты, или основная сложность именно в конверсии в заявки?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4324,
+          "completion_tokens": 48,
+          "total_tokens": 4372,
+          "cost": 0.0005776,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005776,
+            "upstream_inference_prompt_cost": 0.0005008,
+            "upstream_inference_completions_cost": 7.68e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, есть ощущение недостатка клиентов. Легче ли привлекаются потенциальные клиенты, или основная сложность именно в конверсии в заявки?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, есть ощущение недостатка клиентов. Легче ли привлекаются потенциальные клиенты, или основная сложность именно в конверсии в заявки?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, есть ощущение недостатка клиентов. Легче ли привлекаются потенциальные клиенты, или основная сложность именно в конверсии в заявки?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_price_asked_before_diagnosis_011",
+      "family": "price",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Сколько стоит тест-драйв?",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Прямо и коротко назвать цену 1000 рублей, затем вернуться к диагностике проекта одним вопросом о нише. Вопрос о цене сам по себе не является согласием на кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "early_price",
+        "price_transparency",
+        "resume_qualification"
+      ],
+      "assistant_output": {
+        "text": "Тест-драйв стоит 1000 рублей. В какой сфере работаешь?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4289,
+          "completion_tokens": 29,
+          "total_tokens": 4318,
+          "cost": 0.0005332,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005332,
+            "upstream_inference_prompt_cost": 0.0004868,
+            "upstream_inference_completions_cost": 4.64e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тест-драйв стоит 1000 рублей. В какой сфере работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тест-драйв стоит 1000 рублей. В какой сфере работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тест-драйв стоит 1000 рублей. В какой сфере работаешь?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_mention_any",
+          "passed": true,
+          "expected": {
+            "one_of": [
+              "1000",
+              "1 000"
+            ]
+          },
+          "actual": "Тест-драйв стоит 1000 рублей. В какой сфере работаешь?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_price_after_offer_description_012",
+      "family": "price",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише работаешь?\nincoming: Продюсирование экспертов\noutgoing: Что сейчас мешает сильнее всего?\nincoming: Есть запуски, но между ними нет стабильных продаж\noutgoing: Это можно разобрать на тест-драйве: за 3 дня посмотреть путь клиента и главный затык. Хочешь, скину условия?",
+      "user_message": "А сколько это стоит?",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Ответить, что тест-драйв стоит 1000 рублей, без уклонения и давления. Не трактовать вопрос о цене как согласие получить ссылку и не показывать кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "price_question",
+        "not_consent",
+        "offer_stage"
+      ],
+      "assistant_output": {
+        "text": "Тест-драйв стоит 1000 рублей. Ранее интересовала именно ситуация с отсутствием стабильных продаж между запусками?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4335,
+          "completion_tokens": 40,
+          "total_tokens": 4375,
+          "cost": 0.0005308,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4224,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005308,
+            "upstream_inference_prompt_cost": 0.0004668,
+            "upstream_inference_completions_cost": 6.4e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тест-драйв стоит 1000 рублей. Ранее интересовала именно ситуация с отсутствием стабильных продаж между запусками?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тест-драйв стоит 1000 рублей. Ранее интересовала именно ситуация с отсутствием стабильных продаж между запусками?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тест-драйв стоит 1000 рублей. Ранее интересовала именно ситуация с отсутствием стабильных продаж между запусками?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_mention_any",
+          "passed": true,
+          "expected": {
+            "one_of": [
+              "1000",
+              "1 000"
+            ]
+          },
+          "actual": "Тест-драйв стоит 1000 рублей. Ранее интересовала именно ситуация с отсутствием стабильных продаж между запусками?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_price_assumed_free_013",
+      "family": "price",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Онлайн-школа рисования\noutgoing: Что сейчас продаешь?\nincoming: Курс для взрослых с нуля\noutgoing: Что сильнее всего мешает зарабатывать больше?\nincoming: Мало заявок",
+      "user_message": "Тест-драйв же бесплатный?",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Спокойно исправить ожидание и назвать цену 1000 рублей. Не показывать кнопку и не давить; если продолжать диалог вопросом, он должен помогать уточнить ситуацию, а не подталкивать к оплате.",
+        "must_not": []
+      },
+      "tags": [
+        "price_misunderstanding",
+        "price_transparency",
+        "no_pressure"
+      ],
+      "assistant_output": {
+        "text": "Нет, тест-драйв платный и стоит 1000 рублей. А сколько сейчас приходит заявок на курс?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4316,
+          "completion_tokens": 36,
+          "total_tokens": 4352,
+          "cost": 0.0005552,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005552,
+            "upstream_inference_prompt_cost": 0.0004976,
+            "upstream_inference_completions_cost": 5.76e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Нет, тест-драйв платный и стоит 1000 рублей. А сколько сейчас приходит заявок на курс?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Нет, тест-драйв платный и стоит 1000 рублей. А сколько сейчас приходит заявок на курс?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Нет, тест-драйв платный и стоит 1000 рублей. А сколько сейчас приходит заявок на курс?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_mention_any",
+          "passed": true,
+          "expected": {
+            "one_of": [
+              "1000",
+              "1 000"
+            ]
+          },
+          "actual": "Нет, тест-драйв платный и стоит 1000 рублей. А сколько сейчас приходит заявок на курс?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_direct_link_without_diagnosis_014",
+      "family": "direct_link",
+      "scope": "turn",
+      "transcript": "outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
+      "user_message": "Не хочу долго переписываться, сразу скинь ссылку на тест-драйв",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "show",
+        "behavior": "Распознать прямую просьбу о ссылке как достаточное основание для кнопки по текущей политике. Дать самостоятельное короткое сообщение под кнопкой без URL, без обещания прислать ссылку позже и без нового вопроса.",
+        "must_not": []
+      },
+      "tags": [
+        "direct_link_request",
+        "current_prompt_exception",
+        "button_show"
+      ],
+      "assistant_output": {
+        "text": "Условия и запись доступны по кнопке ниже.",
+        "should_send_offer": true,
+        "button_rendered": true,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4300,
+          "completion_tokens": 21,
+          "total_tokens": 4321,
+          "cost": 0.0005248,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005248,
+            "upstream_inference_prompt_cost": 0.0004912,
+            "upstream_inference_completions_cost": 3.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_direct_link_after_diagnosis_015",
+      "family": "direct_link",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Маркетинг для стоматологий\noutgoing: Что продаешь?\nincoming: Настройку потока первичных пациентов\noutgoing: Что сейчас буксует?\nincoming: Лиды есть, но клиники долго думают и не покупают\noutgoing: Тут можно разобрать путь от интереса до оплаты на тест-драйве. Это 3-дневный разбор за 1000 рублей.",
+      "user_message": "Хорошо, кинь ссылку",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "show",
+        "behavior": "Показать кнопку, потому что пользователь прямо попросил ссылку. Ответ должен быть финальным текстом под кнопкой, связанным с его ситуацией, без URL, нового вопроса и обещания отправить ссылку следующим сообщением.",
+        "must_not": []
+      },
+      "tags": [
+        "qualified_lead",
+        "direct_link_request",
+        "button_show"
+      ],
+      "assistant_output": {
+        "text": "Условия и запись доступны по кнопке ниже.",
+        "should_send_offer": true,
+        "button_rendered": true,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4355,
+          "completion_tokens": 21,
+          "total_tokens": 4376,
+          "cost": 0.0005084,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4224,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005084,
+            "upstream_inference_prompt_cost": 0.0004748,
+            "upstream_inference_completions_cost": 3.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_awareness_known_no_repeat_016",
+      "family": "consent",
+      "scope": "turn",
+      "transcript": "outgoing: По ответам похоже, что люди доходят до диалога, но теряются перед оплатой. Это можно разобрать на 3-дневном тест-драйве за 1000 рублей. Слышал о нем?",
+      "user_message": "Да",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Понять «да» как подтверждение знакомства с тест-драйвом, не повторять 3 дня, цену и базовое описание. Коротко сказать, что базу повторять не нужно, и оставить пользователю возможность запросить условия. Кнопку не показывать.",
+        "must_not": [
+          "3 дня",
+          "3-днев",
+          "1000",
+          "1 000"
+        ]
+      },
+      "tags": [
+        "awareness_known",
+        "no_repeated_pitch",
+        "button_suppressed"
+      ],
+      "assistant_output": {
+        "text": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4302,
+          "completion_tokens": 35,
+          "total_tokens": 4337,
+          "cost": 0.000548,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.000548,
+            "upstream_inference_prompt_cost": 0.000492,
+            "upstream_inference_completions_cost": 5.6e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:3 дня",
+          "passed": true,
+          "expected": "reply does not contain '3 дня'",
+          "actual": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:3-днев",
+          "passed": true,
+          "expected": "reply does not contain '3-днев'",
+          "actual": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:1000",
+          "passed": true,
+          "expected": "reply does not contain '1000'",
+          "actual": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:1 000",
+          "passed": true,
+          "expected": "reply does not contain '1 000'",
+          "actual": "Понял, ты знаком с тест-драйвом. Если нужны условия или ссылка для записи, скажи.",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_consent_explicit_after_cta_017",
+      "family": "consent",
+      "scope": "turn",
+      "transcript": "outgoing: По ответам видно, что заявки есть, но путь до оплаты проседает. На тест-драйве за 3 дня можно разобрать этот участок. Хочешь, скину условия?",
+      "user_message": "Да, скидывай",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "show",
+        "behavior": "Распознать явное согласие получить условия и показать кнопку. Ответить коротким самостоятельным сообщением под кнопкой без URL, без повторного запроса согласия и без нового диагностического вопроса.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_consent",
+        "button_show",
+        "final_cta_message"
+      ],
+      "assistant_output": {
+        "text": "Условия и запись доступны по кнопке ниже.",
+        "should_send_offer": true,
+        "button_rendered": true,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4300,
+          "completion_tokens": 21,
+          "total_tokens": 4321,
+          "cost": 0.0005248,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005248,
+            "upstream_inference_prompt_cost": 0.0004912,
+            "upstream_inference_completions_cost": 3.36e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Условия и запись доступны по кнопке ниже.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_consent_information_request_not_consent_018",
+      "family": "consent",
+      "scope": "turn",
+      "transcript": "outgoing: Тут тест-драйв уместен: это короткий практический разбор проекта. Хочешь, скину условия?",
+      "user_message": "Интересно, а что там будет?",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Не считать запрос подробностей явным согласием на ссылку. Коротко объяснить, что это 3 дня практического разбора текущей ситуации и главного ограничения, без обещаний результата; кнопку пока не показывать.",
+        "must_not": []
+      },
+      "tags": [
+        "information_request",
+        "not_explicit_consent",
+        "test_drive_explanation"
+      ],
+      "assistant_output": {
+        "text": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4289,
+          "completion_tokens": 47,
+          "total_tokens": 4336,
+          "cost": 0.000562,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.000562,
+            "upstream_inference_prompt_cost": 0.0004868,
+            "upstream_inference_completions_cost": 7.52e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_refusal_explicit_no_019",
+      "family": "refusal",
+      "scope": "turn",
+      "transcript": "outgoing: Тут можно разобрать, почему заявки не превращаются в оплаты. Хочешь, скину условия тест-драйва?",
+      "user_message": "Нет, не надо",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Принять явный отказ, не показывать кнопку и ответить спокойно без дожима, манипуляции страхом или нового предложения купить. Не спорить с решением пользователя.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_refusal",
+        "no_pressure",
+        "stop_cta"
+      ],
+      "assistant_output": {
+        "text": "Принял, без проблем.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4283,
+          "completion_tokens": 18,
+          "total_tokens": 4301,
+          "cost": 0.0005132,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005132,
+            "upstream_inference_prompt_cost": 0.0004844,
+            "upstream_inference_completions_cost": 2.88e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Принял, без проблем.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Принял, без проблем.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Принял, без проблем.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_doubt_think_about_it_020",
+      "family": "objection",
+      "scope": "turn",
+      "transcript": "outgoing: По ответам основной затык похож на ручной путь продажи. На тест-драйве за 3 дня можно разобрать, где теряются люди. Хочешь, скину условия?",
+      "user_message": "Я подумаю",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Не трактовать сомнение как согласие и не показывать кнопку. Спокойно принять паузу, без срочности и дожима; допустима короткая нейтральная мысль о ценности ясности, но не план действий.",
+        "must_not": []
+      },
+      "tags": [
+        "doubt",
+        "think_about_it",
+        "no_pressure"
+      ],
+      "assistant_output": {
+        "text": "Хорошо, можно спокойно подумать.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4298,
+          "completion_tokens": 20,
+          "total_tokens": 4318,
+          "cost": 0.0005224,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005224,
+            "upstream_inference_prompt_cost": 0.0004904,
+            "upstream_inference_completions_cost": 3.2e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Хорошо, можно спокойно подумать.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Хорошо, можно спокойно подумать.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Хорошо, можно спокойно подумать.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_objection_too_expensive_021",
+      "family": "objection",
+      "scope": "turn",
+      "transcript": "outgoing: Это 3-дневный практический разбор за 1000 рублей, где смотрим твою ситуацию и главный затык. Хочешь, скину условия?",
+      "user_message": "Дорого для меня",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Признать ценовое сомнение без спора и не показывать кнопку. Можно одним вопросом уточнить, что именно смущает в цене, но нельзя давить, советовать искать или занимать деньги либо обещать окупаемость.",
+        "must_not": []
+      },
+      "tags": [
+        "price_objection",
+        "no_borrowing_advice",
+        "no_roi_promise"
+      ],
+      "assistant_output": {
+        "text": "Понимаю. Тогда не буду подталкивать.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4295,
+          "completion_tokens": 24,
+          "total_tokens": 4319,
+          "cost": 0.0005276,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005276,
+            "upstream_inference_prompt_cost": 0.0004892,
+            "upstream_inference_completions_cost": 3.84e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понимаю. Тогда не буду подталкивать.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понимаю. Тогда не буду подталкивать.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понимаю. Тогда не буду подталкивать.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_non_target_no_project_or_intent_022",
+      "family": "non_target",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?",
+      "user_message": "Ни в какой. У меня нет экспертного проекта и заводить его не планирую",
+      "expected": {
+        "lead_status": "non_target",
+        "button_action": "do_not_show",
+        "behavior": "Распознать явное отсутствие проекта и намерения как несоответствие этой воронке. Не показывать кнопку, не пытаться дожимать до тест-драйва и спокойно завершить либо коротко пояснить, для кого предназначен разбор.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_non_target",
+        "disqualification",
+        "no_offer"
+      ],
+      "assistant_output": {
+        "text": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4279,
+          "completion_tokens": 36,
+          "total_tokens": 4315,
+          "cost": 0.0005404,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005404,
+            "upstream_inference_prompt_cost": 0.0004828,
+            "upstream_inference_completions_cost": 5.76e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "non_target_never_gets_offer",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_non_target_direct_link_request_023",
+      "family": "non_target",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Ни в какой, я не эксперт и ничего не продаю\noutgoing: Правильно понял, экспертного проекта сейчас нет?",
+      "user_message": "Да, и не планирую. Но ссылку скинь, просто посмотрю",
+      "expected": {
+        "lead_status": "non_target",
+        "button_action": "do_not_show",
+        "behavior": "Не позволить прямой просьбе о ссылке отменить уже установленную нецелевость лида. Не показывать кнопку и без давления объяснить, что тест-драйв предназначен для разбора действующего или планируемого экспертного проекта.",
+        "must_not": []
+      },
+      "tags": [
+        "explicit_non_target",
+        "direct_link_conflict",
+        "qualification_overrides_cta"
+      ],
+      "assistant_output": {
+        "text": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4306,
+          "completion_tokens": 36,
+          "total_tokens": 4342,
+          "cost": 0.0005512,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005512,
+            "upstream_inference_prompt_cost": 0.0004936,
+            "upstream_inference_completions_cost": 5.76e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Этот формат рассчитан на действующий или планируемый экспертный проект, поэтому сейчас он вряд ли будет полезен.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "non_target_never_gets_offer",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv1_off_topic_code_request_024",
+      "family": "off_topic",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас проект?\nincoming: Онлайн-обучение английскому\noutgoing: Что сейчас продаешь?\nincoming: Разговорный клуб для айтишников\noutgoing: Откуда сейчас приходят заявки?",
+      "user_message": "Напиши мне код сортировки на Python",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Не выполнять запрос на программирование. Коротко вернуть человека к разбору проекта и повторить актуальный вопрос об источнике заявок, не начиная диагностику заново и не показывая кнопку.",
+        "must_not": []
+      },
+      "tags": [
+        "off_topic",
+        "local_guard",
+        "resume_current_question"
+      ],
+      "assistant_output": {
+        "text": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "local_guard",
+        "usage": null,
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_soft_service_area_025",
+      "family": "soft_qualification",
+      "scope": "turn",
+      "transcript": "outgoing: Привет! Давай разберём твой проект. В какой нише сейчас работаешь?",
+      "user_message": "Построение отделов продаж",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять построение отделов продаж как понятное рабочее направление. Одним нейтральным вопросом уточнить, для каких проектов человек их строит, без исправления терминологии и без оценки ответа.",
+        "must_not": [
+          "это не ниша",
+          "тема, не ниша",
+          "слишком широко",
+          "это формат"
+        ]
+      },
+      "tags": [
+        "soft_tone",
+        "working_meaning",
+        "no_gatekeeping"
+      ],
+      "assistant_output": {
+        "text": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4281,
+          "completion_tokens": 28,
+          "total_tokens": 4309,
+          "cost": 0.0005284,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005284,
+            "upstream_inference_prompt_cost": 0.0004836,
+            "upstream_inference_completions_cost": 4.48e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:это не ниша",
+          "passed": true,
+          "expected": "reply does not contain 'это не ниша'",
+          "actual": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:тема, не ниша",
+          "passed": true,
+          "expected": "reply does not contain 'тема, не ниша'",
+          "actual": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:слишком широко",
+          "passed": true,
+          "expected": "reply does not contain 'слишком широко'",
+          "actual": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:это формат",
+          "passed": true,
+          "expected": "reply does not contain 'это формат'",
+          "actual": "Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_soft_contextual_infobusiness_026",
+      "family": "soft_qualification",
+      "scope": "turn",
+      "transcript": "outgoing: В какой нише сейчас работаешь?\nincoming: Построение отделов продаж\noutgoing: Понял, строишь отделы продаж. Для каких проектов чаще всего?",
+      "user_message": "Для инфобизнеса, который продает обучение",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Учесть весь контекст и принять ответ как понятный рынок: проекты, продающие обучение. Уточнить только содержание услуги или следующий действительно неизвестный факт, не объявляя инфобизнес форматом или неправильной нишей.",
+        "must_not": [
+          "это не ниша",
+          "инфобизнес это формат",
+          "инфобизнес - формат",
+          "слишком широко"
+        ]
+      },
+      "tags": [
+        "soft_tone",
+        "context_memory",
+        "no_semantic_argument"
+      ],
+      "assistant_output": {
+        "text": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4299,
+          "completion_tokens": 42,
+          "total_tokens": 4341,
+          "cost": 0.000558,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.000558,
+            "upstream_inference_prompt_cost": 0.0004908,
+            "upstream_inference_completions_cost": 6.72e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:это не ниша",
+          "passed": true,
+          "expected": "reply does not contain 'это не ниша'",
+          "actual": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:инфобизнес это формат",
+          "passed": true,
+          "expected": "reply does not contain 'инфобизнес это формат'",
+          "actual": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:инфобизнес - формат",
+          "passed": true,
+          "expected": "reply does not contain 'инфобизнес - формат'",
+          "actual": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:слишком широко",
+          "passed": true,
+          "expected": "reply does not contain 'слишком широко'",
+          "actual": "Работаешь с проектами, которые продают обучение в инфобизнесе. Что именно ты выстраиваешь в этих отделах продаж?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_soft_multiple_segments_027",
+      "family": "soft_qualification",
+      "scope": "turn",
+      "transcript": "outgoing: С какими проектами работаешь?",
+      "user_message": "С экспертами, фрилансерами и продюсерами. Строю им систему продаж",
+      "expected": {
+        "lead_status": "unknown",
+        "button_action": "need_more_qualification",
+        "behavior": "Принять несколько сегментов как допустимую модель и перейти к содержанию продукта или результату. Не заставлять выбрать один сегмент и не спрашивать, кто быстрее или чаще платит.",
+        "must_not": [
+          "разный контингент",
+          "кто платит",
+          "быстрее готов",
+          "слишком широко",
+          "выбери"
+        ]
+      },
+      "tags": [
+        "soft_tone",
+        "multiple_segments",
+        "no_forced_narrowing"
+      ],
+      "assistant_output": {
+        "text": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4281,
+          "completion_tokens": 44,
+          "total_tokens": 4325,
+          "cost": 0.000554,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.000554,
+            "upstream_inference_prompt_cost": 0.0004836,
+            "upstream_inference_completions_cost": 7.04e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:разный контингент",
+          "passed": true,
+          "expected": "reply does not contain 'разный контингент'",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:кто платит",
+          "passed": true,
+          "expected": "reply does not contain 'кто платит'",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:быстрее готов",
+          "passed": true,
+          "expected": "reply does not contain 'быстрее готов'",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:слишком широко",
+          "passed": true,
+          "expected": "reply does not contain 'слишком широко'",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:выбери",
+          "passed": true,
+          "expected": "reply does not contain 'выбери'",
+          "actual": "Работаешь с разными специалистами по созданию системы продаж. Какую конкретную задачу хочешь проверить или улучшить в этих системах сейчас?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_no_problem_first_statement_028",
+      "family": "no_problem",
+      "scope": "turn",
+      "transcript": "outgoing: Что сейчас мешает продажам идти стабильнее?",
+      "user_message": "Да ничего в целом. Позиционирование выстроено, остается собирать заявки и продавать. Все логично",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Принять самооценку пользователя и не искать скрытый затык. Допустим один нейтральный вопрос о том, хочет ли он что-то проверить или усилить. Не ставить диагноз и не предлагать тест-драйв.",
+        "must_not": [
+          "значит проблема",
+          "главный затык",
+          "все равно",
+          "буксует",
+          "теряются деньги",
+          "тест-драйв"
+        ]
+      },
+      "tags": [
+        "self_assessment",
+        "no_problem",
+        "no_forced_diagnosis"
+      ],
+      "assistant_output": {
+        "text": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4288,
+          "completion_tokens": 48,
+          "total_tokens": 4336,
+          "cost": 0.0005632,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005632,
+            "upstream_inference_prompt_cost": 0.0004864,
+            "upstream_inference_completions_cost": 7.68e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:значит проблема",
+          "passed": true,
+          "expected": "reply does not contain 'значит проблема'",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:главный затык",
+          "passed": true,
+          "expected": "reply does not contain 'главный затык'",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:все равно",
+          "passed": true,
+          "expected": "reply does not contain 'все равно'",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:буксует",
+          "passed": true,
+          "expected": "reply does not contain 'буксует'",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:теряются деньги",
+          "passed": true,
+          "expected": "reply does not contain 'теряются деньги'",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:тест-драйв",
+          "passed": true,
+          "expected": "reply does not contain 'тест-драйв'",
+          "actual": "Понимаю, что с позиционированием всё в порядке. Есть ли что-то, что хотелось бы проверить или улучшить в работе с заявками или продажами?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_no_problem_repeated_029",
+      "family": "no_problem",
+      "scope": "turn",
+      "transcript": "outgoing: Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?",
+      "user_message": "Нет. Я уже сказал, что проблем нет и меня все устраивает",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Признать повторное отсутствие запроса и спокойно завершить диагностику. Не задавать вопросов, не искать новую проблему и не упоминать тест-драйв.",
+        "must_not": [
+          "проблема",
+          "затык",
+          "буксует",
+          "теряются",
+          "тест-драйв",
+          "условия"
+        ]
+      },
+      "tags": [
+        "self_assessment",
+        "stop_diagnosis",
+        "no_offer"
+      ],
+      "assistant_output": {
+        "text": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4294,
+          "completion_tokens": 31,
+          "total_tokens": 4325,
+          "cost": 0.0005384,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005384,
+            "upstream_inference_prompt_cost": 0.0004888,
+            "upstream_inference_completions_cost": 4.96e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 0 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:проблема",
+          "passed": true,
+          "expected": "reply does not contain 'проблема'",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:затык",
+          "passed": true,
+          "expected": "reply does not contain 'затык'",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:буксует",
+          "passed": true,
+          "expected": "reply does not contain 'буксует'",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:теряются",
+          "passed": true,
+          "expected": "reply does not contain 'теряются'",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:тест-драйв",
+          "passed": true,
+          "expected": "reply does not contain 'тест-драйв'",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:условия",
+          "passed": true,
+          "expected": "reply does not contain 'условия'",
+          "actual": "Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_rejected_hypothesis_030",
+      "family": "disagreement",
+      "scope": "turn",
+      "transcript": "outgoing: Возможно, проблема в упаковке продукта. Похоже ли это на твою ситуацию?",
+      "user_message": "Нет, с упаковкой все нормально. Проблема точно не там",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Снять отвергнутую гипотезу без спора и без попытки доказать ее. Можно одним нейтральным вопросом спросить версию пользователя; тест-драйв не предлагать.",
+        "must_not": [
+          "на самом деле",
+          "все равно",
+          "ты просто",
+          "значит проблема",
+          "тест-драйв"
+        ]
+      },
+      "tags": [
+        "disagreement",
+        "hypothesis_retracted",
+        "user_is_source_of_truth"
+      ],
+      "assistant_output": {
+        "text": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4285,
+          "completion_tokens": 33,
+          "total_tokens": 4318,
+          "cost": 0.000538,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.000538,
+            "upstream_inference_prompt_cost": 0.0004852,
+            "upstream_inference_completions_cost": 5.28e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:на самом деле",
+          "passed": true,
+          "expected": "reply does not contain 'на самом деле'",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:все равно",
+          "passed": true,
+          "expected": "reply does not contain 'все равно'",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:ты просто",
+          "passed": true,
+          "expected": "reply does not contain 'ты просто'",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:значит проблема",
+          "passed": true,
+          "expected": "reply does not contain 'значит проблема'",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:тест-драйв",
+          "passed": true,
+          "expected": "reply does not contain 'тест-драйв'",
+          "actual": "Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_unknown_is_missing_data_031",
+      "family": "evidence",
+      "scope": "turn",
+      "transcript": "outgoing: Насколько понятно клиентам, почему платить нужно именно тебе?",
+      "user_message": "Не знаю",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Считать ответ отсутствием данных, а не подтверждением проблемы. Сказать, что вывод делать рано, и задать максимум один нейтральный вопрос о наблюдаемом факте.",
+        "must_not": [
+          "клиент не понимает",
+          "этап убеждения",
+          "теряются деньги",
+          "главный затык",
+          "значит"
+        ]
+      },
+      "tags": [
+        "missing_data",
+        "no_invented_diagnosis",
+        "epistemic_humility"
+      ],
+      "assistant_output": {
+        "text": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4267,
+          "completion_tokens": 34,
+          "total_tokens": 4301,
+          "cost": 0.0005324,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005324,
+            "upstream_inference_prompt_cost": 0.000478,
+            "upstream_inference_completions_cost": 5.44e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:клиент не понимает",
+          "passed": true,
+          "expected": "reply does not contain 'клиент не понимает'",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:этап убеждения",
+          "passed": true,
+          "expected": "reply does not contain 'этап убеждения'",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:теряются деньги",
+          "passed": true,
+          "expected": "reply does not contain 'теряются деньги'",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:главный затык",
+          "passed": true,
+          "expected": "reply does not contain 'главный затык'",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:значит",
+          "passed": true,
+          "expected": "reply does not contain 'значит'",
+          "actual": "Понял, данные пока отсутствуют. Есть какие-то наблюдения по реакции клиентов на предложение или цене?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_user_corrects_invented_fact_032",
+      "family": "evidence",
+      "scope": "turn",
+      "transcript": "outgoing: Похоже, заявки есть, но до оплаты доходит мало людей.",
+      "user_message": "Нет, заявок вообще нет. Ты неправильно понял",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Прямо принять исправление и отказаться от прежнего вывода. Не продолжать рассуждение об оплатах или убеждении; допустим один вопрос о фактической ситуации со входящим потоком.",
+        "must_not": [
+          "оплат мало",
+          "до оплаты",
+          "убеждени",
+          "все равно",
+          "тест-драйв"
+        ]
+      },
+      "tags": [
+        "user_correction",
+        "fact_update",
+        "no_defending_mistake"
+      ],
+      "assistant_output": {
+        "text": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4279,
+          "completion_tokens": 41,
+          "total_tokens": 4320,
+          "cost": 0.0005484,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005484,
+            "upstream_inference_prompt_cost": 0.0004828,
+            "upstream_inference_completions_cost": 6.56e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:оплат мало",
+          "passed": true,
+          "expected": "reply does not contain 'оплат мало'",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:до оплаты",
+          "passed": true,
+          "expected": "reply does not contain 'до оплаты'",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:убеждени",
+          "passed": true,
+          "expected": "reply does not contain 'убеждени'",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:все равно",
+          "passed": true,
+          "expected": "reply does not contain 'все равно'",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:тест-драйв",
+          "passed": true,
+          "expected": "reply does not contain 'тест-драйв'",
+          "actual": "Принял, значит заявок сейчас не приходит вовсе. Сколько примерно людей видят твое предложение или приходят на первые касания?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_explicit_conversion_gap_positive_control_033",
+      "family": "evidence",
+      "scope": "turn",
+      "transcript": "outgoing: Сколько заявок и оплат приходит в среднем?",
+      "user_message": "Около двадцати заявок, а оплачивают один-два человека",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Осторожно обозначить подтвержденный участок от заявки к оплате и спросить, именно его ли пользователь хочет улучшить. Не придумывать конкретную причину и не предлагать тест-драйв до подтверждения.",
+        "must_not": [
+          "клиенты не понимают",
+          "плохой оффер",
+          "этап убеждения",
+          "тест-драйв"
+        ]
+      },
+      "tags": [
+        "positive_control",
+        "grounded_diagnosis",
+        "conversion_gap"
+      ],
+      "assistant_output": {
+        "text": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4279,
+          "completion_tokens": 36,
+          "total_tokens": 4315,
+          "cost": 0.0005404,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005404,
+            "upstream_inference_prompt_cost": 0.0004828,
+            "upstream_inference_completions_cost": 5.76e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:клиенты не понимают",
+          "passed": true,
+          "expected": "reply does not contain 'клиенты не понимают'",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:плохой оффер",
+          "passed": true,
+          "expected": "reply does not contain 'плохой оффер'",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:этап убеждения",
+          "passed": true,
+          "expected": "reply does not contain 'этап убеждения'",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:тест-драйв",
+          "passed": true,
+          "expected": "reply does not contain 'тест-драйв'",
+          "actual": "Тогда имеет смысл посмотреть переход от заявки к оплате. Верно, что именно этот участок сейчас хочется улучшить?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_awareness_unknown_034",
+      "family": "awareness",
+      "scope": "turn",
+      "transcript": "outgoing: Ты уже знаком с тест-драйвом наставничества или рассказать в двух словах?",
+      "user_message": "Нет, вообще не знаю, что это",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Один раз коротко объяснить, что это платный 3-дневный практический разбор проекта за 1000 рублей, и назвать преимущество: возможность попробовать подход на своей ситуации до большой программы. Мягко предложить условия, но кнопку не показывать.",
+        "must_not": [
+          "гарантирован",
+          "точно заработ",
+          "обязан"
+        ]
+      },
+      "tags": [
+        "awareness_unknown",
+        "format_explanation",
+        "soft_cta"
+      ],
+      "assistant_output": {
+        "text": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4281,
+          "completion_tokens": 61,
+          "total_tokens": 4342,
+          "cost": 0.0005812,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005812,
+            "upstream_inference_prompt_cost": 0.0004836,
+            "upstream_inference_completions_cost": 9.76e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:гарантирован",
+          "passed": true,
+          "expected": "reply does not contain 'гарантирован'",
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:точно заработ",
+          "passed": true,
+          "expected": "reply does not contain 'точно заработ'",
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:обязан",
+          "passed": true,
+          "expected": "reply does not contain 'обязан'",
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        },
+        {
+          "name": "must_contain:1000",
+          "passed": true,
+          "expected": "reply contains '1000'",
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        },
+        {
+          "name": "must_mention_any",
+          "passed": true,
+          "expected": {
+            "one_of": [
+              "3 дня",
+              "три дня",
+              "3-днев",
+              "трёхднев",
+              "трехднев"
+            ]
+          },
+          "actual": "Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_awareness_course_confusion_035",
+      "family": "awareness",
+      "scope": "turn",
+      "transcript": "outgoing: Ты уже знаком с тест-драйвом наставничества или рассказать в двух словах?",
+      "user_message": "Слышал, но не понял, чем это отличается от курса",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Объяснить только отличие: не общая теория, а практический разбор на материале проекта пользователя. Не показывать кнопку и не повторять полный оффер.",
+        "must_not": [
+          "жми кнопку",
+          "записывайся",
+          "гарантирован"
+        ]
+      },
+      "tags": [
+        "awareness_partial",
+        "course_difference",
+        "no_repeated_pitch"
+      ],
+      "assistant_output": {
+        "text": "Главное отличие от курса в том, что здесь нет общей теории для всех. Разбор идет на материале твоего проекта и текущей задачи.",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4286,
+          "completion_tokens": 42,
+          "total_tokens": 4328,
+          "cost": 0.0005528,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005528,
+            "upstream_inference_prompt_cost": 0.0004856,
+            "upstream_inference_completions_cost": 6.72e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "Главное отличие от курса в том, что здесь нет общей теории для всех. Разбор идет на материале твоего проекта и текущей задачи.",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 0,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "Главное отличие от курса в том, что здесь нет общей теории для всех. Разбор идет на материале твоего проекта и текущей задачи.",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "Главное отличие от курса в том, что здесь нет общей теории для всех. Разбор идет на материале твоего проекта и текущей задачи.",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:жми кнопку",
+          "passed": true,
+          "expected": "reply does not contain 'жми кнопку'",
+          "actual": "Главное отличие от курса в том, что здесь нет общей теории для всех. Разбор идет на материале твоего проекта и текущей задачи.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:записывайся",
+          "passed": true,
+          "expected": "reply does not contain 'записывайся'",
+          "actual": "Главное отличие от курса в том, что здесь нет общей теории для всех. Разбор идет на материале твоего проекта и текущей задачи.",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:гарантирован",
+          "passed": true,
+          "expected": "reply does not contain 'гарантирован'",
+          "actual": "Главное отличие от курса в том, что здесь нет общей теории для всех. Разбор идет на материале твоего проекта и текущей задачи.",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    },
+    {
+      "case_id": "sv2_more_details_without_repeat_036",
+      "family": "awareness",
+      "scope": "turn",
+      "transcript": "outgoing: Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.",
+      "user_message": "Расскажи подробнее",
+      "expected": {
+        "lead_status": "target",
+        "button_action": "do_not_show",
+        "behavior": "Добавить новую конкретику о том, какие части проекта рассматриваются или как выделяется приоритетный участок. Не повторять длительность, цену и тот же призыв получить условия; кнопку не показывать.",
+        "must_not": [
+          "3 дня",
+          "3-днев",
+          "1000",
+          "1 000",
+          "скину условия",
+          "хочешь условия"
+        ]
+      },
+      "tags": [
+        "information_request",
+        "new_information",
+        "no_repetition"
+      ],
+      "assistant_output": {
+        "text": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+        "should_send_offer": false,
+        "button_rendered": false,
+        "source": "llm",
+        "usage": {
+          "prompt_tokens": 4307,
+          "completion_tokens": 47,
+          "total_tokens": 4354,
+          "cost": 0.0005692,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 4096,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.0005692,
+            "upstream_inference_prompt_cost": 0.000494,
+            "upstream_inference_completions_cost": 7.52e-05
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "error": null
+      },
+      "hard_checks": [
+        {
+          "name": "generation_succeeded",
+          "passed": true,
+          "expected": "successful response",
+          "actual": "success",
+          "reason": ""
+        },
+        {
+          "name": "non_empty_reply",
+          "passed": true,
+          "expected": "non-empty reply",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "max_one_question",
+          "passed": true,
+          "expected": "at most 1 question mark(s)",
+          "actual": 1,
+          "reason": ""
+        },
+        {
+          "name": "no_long_dash",
+          "passed": true,
+          "expected": "no em/en dash",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "no_url_in_text",
+          "passed": true,
+          "expected": "no URL in reply text",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "offer_decision",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "button_rendering",
+          "passed": true,
+          "expected": false,
+          "actual": false,
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:3 дня",
+          "passed": true,
+          "expected": "reply does not contain '3 дня'",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:3-днев",
+          "passed": true,
+          "expected": "reply does not contain '3-днев'",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:1000",
+          "passed": true,
+          "expected": "reply does not contain '1000'",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:1 000",
+          "passed": true,
+          "expected": "reply does not contain '1 000'",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:скину условия",
+          "passed": true,
+          "expected": "reply does not contain 'скину условия'",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        },
+        {
+          "name": "must_not_contain:хочешь условия",
+          "passed": true,
+          "expected": "reply does not contain 'хочешь условия'",
+          "actual": "На разборе смотрят продукт, поток людей, путь до заявки и продажи, а затем выделяют участок, который требует внимания первым. Что именно хочешь уточнить?",
+          "reason": ""
+        }
+      ],
+      "judge_metrics": []
+    }
+  ]
+}

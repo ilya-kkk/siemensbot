@@ -194,7 +194,7 @@ def _is_invalid_niche_answer(user_message: str) -> bool:
         return True
     if len(compact) >= 4 and len(set(compact)) == 1:
         return True
-    if len(compact) >= 4 and KEYBOARD_MASH_RE.search(compact):
+    if 4 <= len(compact) <= 16 and KEYBOARD_MASH_RE.search(compact):
         return True
     if re.fullmatch(r"[a-z]{5,}", letters) and not re.search(r"[aeiouy]", letters):
         return True
@@ -203,7 +203,7 @@ def _is_invalid_niche_answer(user_message: str) -> bool:
 
 def _invalid_niche_reply(transcript: str) -> str:
     return _sanitize_reply_text(
-        "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
+        "Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?",
         transcript,
     )
 

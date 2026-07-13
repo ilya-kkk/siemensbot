@@ -202,6 +202,9 @@ def test_detects_obviously_invalid_niche_answers() -> None:
     assert not _is_invalid_niche_answer("фитнес")
     assert not _is_invalid_niche_answer("smm")
     assert not _is_invalid_niche_answer("b2b-сервисы")
+    assert not _is_invalid_niche_answer(
+        "Не хочу долго переписываться, сразу скинь ссылку на тест-драйв"
+    )
 
 
 @pytest.mark.asyncio
@@ -224,7 +227,7 @@ async def test_chat_reply_reasks_niche_for_obviously_invalid_answer() -> None:
     decision = await client.chat_reply(transcript, "фывапр")
 
     assert decision.reply_text == (
-        "Похоже, это не ниша. Напиши хотя бы примерно, чем занимаешься или с кем работаешь?"
+        "Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?"
     )
     assert decision.should_send_offer is False
     assert decision.request_payload["type"] == "local_guard"

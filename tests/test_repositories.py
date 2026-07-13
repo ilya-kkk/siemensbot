@@ -43,6 +43,20 @@ class _RowsResult:
         return [_MappingRow(value) for value in self.values]
 
 
+class _TranscriptRow:
+    def __init__(self, direction: str, text: str) -> None:
+        self.direction = direction
+        self.text = text
+
+
+class _TranscriptResult:
+    def __init__(self, values: list[_TranscriptRow]) -> None:
+        self.values = values
+
+    def all(self) -> list[_TranscriptRow]:
+        return self.values
+
+
 @pytest.mark.asyncio
 async def test_ensure_admin_user_commits() -> None:
     session = AsyncMock()
@@ -134,6 +148,24 @@ async def test_log_outgoing_message_links_ai_request() -> None:
     assert "dialogue_id" not in query
     assert params["ai_request_id"] == 55
     session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_transcript_casts_excluded_message_id() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _TranscriptResult([_TranscriptRow("incoming", "Привет")])
+
+    transcript = await AppRepository(session).get_transcript_for_user(
+        telegram_user_id=1,
+        exclude_message_id=93,
+    )
+
+    query = str(session.execute.call_args.args[0])
+    params = session.execute.call_args.args[1]
+    assert transcript == "incoming: Привет"
+    assert "cast(:exclude_message_id as bigint) is null" in query
+    assert "id <> cast(:exclude_message_id as bigint)" in query
+    assert params["exclude_message_id"] == 93
 
 
 @pytest.mark.asyncio
