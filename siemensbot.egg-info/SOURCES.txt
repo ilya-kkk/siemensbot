@@ -3,6 +3,7 @@ pyproject.toml
 app/__init__.py
 app/alerts.py
 app/main.py
+app/monitoring.py
 app/repositories.py
 app/ai/__init__.py
 app/ai/openrouter.py
@@ -12,6 +13,7 @@ app/bots/user_bot.py
 app/core/__init__.py
 app/core/config.py
 app/core/db.py
+app/core/logging.py
 app/services/__init__.py
 app/services/admin_views.py
 app/services/leads.py
@@ -24,6 +26,8 @@ evals/__init__.py
 evals/deepeval_adapter.py
 evals/reporting.py
 evals/run_sales_eval.py
+ops/__init__.py
+ops/host_monitor.py
 siemensbot.egg-info/PKG-INFO
 siemensbot.egg-info/SOURCES.txt
 siemensbot.egg-info/dependency_links.txt
@@ -33,10 +37,15 @@ tests/test_admin_views.py
 tests/test_config.py
 tests/test_eval_reporting.py
 tests/test_eval_runner.py
+tests/test_health.py
+tests/test_host_monitor.py
 tests/test_leads.py
+tests/test_monitoring.py
+tests/test_monitoring_migration.py
 tests/test_openrouter.py
 tests/test_ping_migration.py
 tests/test_ping_worker.py
 tests/test_redirect.py
 tests/test_repositories.py
 tests/test_transcript.py
+tests/test_user_bot.py

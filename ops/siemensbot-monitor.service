@@ -1,0 +1,21 @@
+[Unit]
+Description=Siemensbot host-level monitor
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/siemensbot
+EnvironmentFile=/etc/siemensbot-monitor.env
+Environment=SIEMENSBOT_ROOT=/opt/siemensbot
+ExecStart=/usr/bin/python3 /opt/siemensbot/ops/host_monitor.py
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/siemensbot-monitor
+ReadOnlyPaths=/opt/siemensbot/runtime
+
+[Install]
+WantedBy=multi-user.target

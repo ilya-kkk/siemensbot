@@ -43,6 +43,15 @@ Or with Docker:
 docker compose up --build
 ```
 
+## Production Monitoring
+
+Production includes component heartbeats, split liveness/readiness endpoints, a host-level resource
+monitor, and an external Supabase watchdog. Technical alerts are sent by the admin bot only to the
+active user configured by `TECH_ADMIN_USERNAME` (currently `@ilya_kkk`).
+
+See [ops/MONITORING.md](ops/MONITORING.md) for migration, Supabase Cron, systemd, alert testing,
+triage, and maintenance instructions.
+
 ## Notes
 
 - Users enter the funnel themselves through the user-facing bot.

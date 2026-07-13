@@ -1,3 +1,9 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   api:
     container_name: siemensbot_api
@@ -6,12 +12,15 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "${API_HOST_PORT:-8001}:8000"
+    volumes:
+      - ./runtime:/app/runtime:ro
+    logging: *default-logging
     healthcheck:
       test:
         - CMD-SHELL
         - >
           bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8000;
-          printf "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n" >&3;
+          printf "GET /health/ready HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n" >&3;
           IFS= read -r status <&3;
           [[ "$$status" == *" 200 "* ]]'
       interval: 30s
@@ -25,6 +34,9 @@ services:
     build: .
     env_file: .env
     command: python -m app.bots.admin_bot
+    volumes:
+      - ./runtime:/app/runtime
+    logging: *default-logging
     restart: unless-stopped
     depends_on:
       api:
@@ -35,7 +47,7 @@ services:
         - >
           bash -ec 'tr "\0" " " < /proc/1/cmdline | grep -Fq "python -m app.bots.admin_bot";
           exec 3<>/dev/tcp/api/8000;
-          printf "GET /health HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
+          printf "GET /health/ready HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
           IFS= read -r status <&3;
           [[ "$$status" == *" 200 "* ]]'
       interval: 60s
@@ -48,6 +60,9 @@ services:
     build: .
     env_file: .env
     command: python -m app.bots.user_bot
+    volumes:
+      - ./runtime:/app/runtime:ro
+    logging: *default-logging
     restart: unless-stopped
     depends_on:
       api:
@@ -58,7 +73,7 @@ services:
         - >
           bash -ec 'tr "\0" " " < /proc/1/cmdline | grep -Fq "python -m app.bots.user_bot";
           exec 3<>/dev/tcp/api/8000;
-          printf "GET /health HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
+          printf "GET /health/ready HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
           IFS= read -r status <&3;
           [[ "$$status" == *" 200 "* ]]'
       interval: 60s
@@ -71,6 +86,9 @@ services:
     build: .
     env_file: .env
     command: python -m app.workers.ping_worker
+    volumes:
+      - ./runtime:/app/runtime:ro
+    logging: *default-logging
     restart: unless-stopped
     depends_on:
       api:
@@ -81,7 +99,7 @@ services:
         - >
           bash -ec 'tr "\0" " " < /proc/1/cmdline | grep -Fq "python -m app.workers.ping_worker";
           exec 3<>/dev/tcp/api/8000;
-          printf "GET /health HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
+          printf "GET /health/ready HTTP/1.1\r\nHost: api\r\nConnection: close\r\n\r\n" >&3;
           IFS= read -r status <&3;
           [[ "$$status" == *" 200 "* ]]'
       interval: 60s

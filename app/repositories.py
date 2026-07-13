@@ -1,5 +1,6 @@
 import json
-from datetime import datetime
+import socket
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -35,26 +36,100 @@ class AppRepository:
                 returning id
                 """
             ),
-            {"username": username.lstrip("@"), "normalized": normalized, "role": role, "chat_id": chat_id},
+            {
+                "username": username.lstrip("@"),
+                "normalized": normalized,
+                "role": role,
+                "chat_id": chat_id,
+            },
         )
         admin_id = int(result.scalar_one())
         await self.session.commit()
         return admin_id
 
-    async def get_tech_admin_chat_id(self) -> int | None:
+    async def get_tech_admin_chat_id(self, username_normalized: str | None = None) -> int | None:
         result = await self.session.execute(
             text(
                 """
                 select chat_id
                 from app.admin_users
                 where role = 'tech' and is_active = true and chat_id is not null
+                  and (
+                    cast(:username_normalized as text) is null
+                    or username_normalized = cast(:username_normalized as text)
+                  )
                 order by last_seen_at desc nulls last
                 limit 1
                 """
-            )
+            ),
+            {"username_normalized": username_normalized},
         )
         value = result.scalar_one_or_none()
         return int(value) if value is not None else None
+
+    async def upsert_service_heartbeat(
+        self,
+        component: str,
+        status: str = "ok",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        await self.session.execute(
+            text(
+                """
+                insert into app.service_heartbeats (
+                  component, instance_id, status, details, updated_at
+                )
+                values (
+                  :component, :instance_id, :status, cast(:details as jsonb), now()
+                )
+                on conflict (component) do update set
+                  instance_id = excluded.instance_id,
+                  status = excluded.status,
+                  details = excluded.details,
+                  updated_at = now()
+                """
+            ),
+            {
+                "component": component,
+                "instance_id": socket.gethostname(),
+                "status": status,
+                "details": json.dumps(details or {}),
+            },
+        )
+        await self.session.commit()
+
+    async def get_service_health(
+        self,
+        components: tuple[str, ...],
+        stale_seconds: int,
+    ) -> dict[str, dict[str, Any]]:
+        result = await self.session.execute(
+            text(
+                """
+                select component, status, updated_at
+                from app.service_heartbeats
+                where component = any(cast(:components as text[]))
+                """
+            ),
+            {"components": list(components)},
+        )
+        rows = {str(row.component): row for row in result.all()}
+        cutoff = datetime.now(UTC) - timedelta(seconds=max(1, stale_seconds))
+        health: dict[str, dict[str, Any]] = {}
+        for component in components:
+            row = rows.get(component)
+            updated_at = row.updated_at if row is not None else None
+            healthy = bool(
+                row is not None
+                and row.status == "ok"
+                and updated_at is not None
+                and updated_at >= cutoff
+            )
+            health[component] = {
+                "status": "ok" if healthy else "stale",
+                "updated_at": updated_at.isoformat() if updated_at is not None else None,
+            }
+        return health
 
     async def get_app_config(self, default_offer_url: str) -> dict[str, Any]:
         """Return the singleton runtime config, seeding its URL exactly once."""

@@ -5,11 +5,12 @@ from app.core.config import Settings
 
 
 def _settings(**values: str) -> Settings:
-    return Settings(
-        _env_file=None,
-        DATABASE_URL="postgresql://localhost/example",
-        **values,
-    )
+    defaults = {
+        "ADMIN_BOT_TOKEN": "admin-token",
+        "TECH_ADMIN_USERNAME": "@ilya_kkk",
+    }
+    defaults.update(values)
+    return Settings(_env_file=None, DATABASE_URL="postgresql://localhost/example", **defaults)
 
 
 def test_public_base_url_is_required_outside_local_or_test() -> None:
@@ -31,6 +32,20 @@ def test_stt_model_has_default_and_environment_override() -> None:
 
     assert default.openrouter_stt_model == "openai/gpt-4o-mini-transcribe"
     assert overridden.openrouter_stt_model == "vendor/russian-stt"
+
+
+@pytest.mark.parametrize(
+    ("values", "message"),
+    [
+        ({"ADMIN_BOT_TOKEN": ""}, "ADMIN_BOT_TOKEN"),
+        ({"TECH_ADMIN_USERNAME": ""}, "TECH_ADMIN_USERNAME"),
+    ],
+)
+def test_production_requires_technical_alert_recipient(
+    values: dict[str, str], message: str
+) -> None:
+    with pytest.raises(ValidationError, match=message):
+        _settings(APP_ENV="production", PUBLIC_BASE_URL="https://bot.example", **values)
 
 
 @pytest.mark.parametrize(

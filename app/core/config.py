@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -54,6 +55,17 @@ class Settings(BaseSettings):
     ping_worker_poll_seconds: float = Field(default=5.0, alias="PING_WORKER_POLL_SECONDS")
     ping_worker_lease_seconds: int = Field(default=600, alias="PING_WORKER_LEASE_SECONDS")
     ping_worker_retry_seconds: int = Field(default=300, alias="PING_WORKER_RETRY_SECONDS")
+    heartbeat_interval_seconds: int = Field(default=30, alias="HEARTBEAT_INTERVAL_SECONDS")
+    heartbeat_stale_seconds: int = Field(default=120, alias="HEARTBEAT_STALE_SECONDS")
+    tech_admin_chat_cache_path: Path = Field(
+        default=Path("runtime/tech_admin_chat_id"),
+        alias="TECH_ADMIN_CHAT_CACHE_PATH",
+    )
+    tech_status_message_cache_path: Path = Field(
+        default=Path("runtime/tech_status_message_id"),
+        alias="TECH_STATUS_MESSAGE_CACHE_PATH",
+    )
+    tech_status_update_seconds: int = Field(default=60, alias="TECH_STATUS_UPDATE_SECONDS")
 
     @model_validator(mode="after")
     def require_tracked_redirect_in_production(self) -> "Settings":
@@ -61,6 +73,10 @@ class Settings(BaseSettings):
         public_base_url = (self.public_base_url or "").strip()
         if not is_local and not public_base_url:
             raise ValueError("PUBLIC_BASE_URL is required outside local/test environments")
+        if not is_local and not self.admin_bot_token:
+            raise ValueError("ADMIN_BOT_TOKEN is required outside local/test environments")
+        if not is_local and not self.tech_admin_username_normalized:
+            raise ValueError("TECH_ADMIN_USERNAME is required outside local/test environments")
         if public_base_url:
             try:
                 parsed = urlsplit(public_base_url)

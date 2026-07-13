@@ -9,21 +9,34 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
 
 from app.ai.openrouter import OpenRouterClient, OpenRouterError
-from app.alerts import send_critical_alert
+from app.alerts import (
+    record_dependency_failure,
+    record_dependency_success,
+    send_critical_alert,
+)
 from app.core.config import get_settings
 from app.core.db import SessionLocal
+from app.core.logging import configure_logging
+from app.monitoring import heartbeat_loop, stop_background_task
 from app.repositories import AppRepository
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 router = Router()
 settings = get_settings()
+configure_logging(settings)
+logger = logging.getLogger(__name__)
 test_sessions: dict[int, list[str]] = {}
 test_offer_sent: set[int] = set()
 VOICE_TRANSCRIPTION_ERROR = (
     "Не удалось расшифровать голосовое сообщение. Попробуйте записать ещё раз."
 )
+
+
+def _openrouter_status_code(exc: OpenRouterError) -> int | None:
+    value = exc.response_payload.get("status_code")
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
 
 
 def _offer_markup(url: str) -> InlineKeyboardMarkup:
@@ -115,17 +128,17 @@ async def _ensure_user_analysis(
                 None,
                 str(exc),
             )
-            await send_critical_alert(
-                session,
-                settings,
-                "dialogue_analysis",
-                str(exc),
-                {
-                    "telegram_user_id": telegram_user_id,
-                    "source_message_id": source_message_id,
-                },
-            )
+        await record_dependency_failure(
+            settings,
+            "user_bot",
+            "openrouter",
+            str(exc),
+            status_code=_openrouter_status_code(exc),
+            details={"purpose": "dialogue_analysis"},
+        )
         return
+
+    await record_dependency_success(settings, "user_bot", "openrouter")
 
     async with SessionLocal() as session:
         repo = AppRepository(session)
@@ -201,9 +214,11 @@ async def _handle_test_message(message: Message, user_text: str) -> None:
     offer_already_sent = message.chat.id in test_offer_sent
     async with SessionLocal() as session:
         config = await AppRepository(session).get_app_config(settings.test_drive_url)
-    reply_markup = _offer_markup(str(config["offer_url"] or settings.test_drive_url)) if (
-        decision.should_send_offer or offer_already_sent
-    ) else None
+    reply_markup = (
+        _offer_markup(str(config["offer_url"] or settings.test_drive_url))
+        if (decision.should_send_offer or offer_already_sent)
+        else None
+    )
     if decision.should_send_offer:
         test_offer_sent.add(message.chat.id)
     await message.answer(decision.reply_text, reply_markup=reply_markup)
@@ -232,8 +247,16 @@ async def _transcribe_voice(bot: Bot, message: Message) -> str | None:
 
     try:
         transcription = await OpenRouterClient(settings).transcribe_ogg(audio_bytes)
-    except OpenRouterError:
+    except OpenRouterError as exc:
         logger.exception("OpenRouter voice transcription failed")
+        await record_dependency_failure(
+            settings,
+            "user_bot",
+            "openrouter",
+            str(exc),
+            status_code=_openrouter_status_code(exc),
+            details={"purpose": "transcription"},
+        )
         await message.answer(VOICE_TRANSCRIPTION_ERROR)
         return None
 
@@ -241,6 +264,7 @@ async def _transcribe_voice(bot: Bot, message: Message) -> str | None:
         logger.info("OpenRouter voice transcription was empty")
         await message.answer(VOICE_TRANSCRIPTION_ERROR)
         return None
+    await record_dependency_success(settings, "user_bot", "openrouter")
     return transcription
 
 
@@ -304,16 +328,14 @@ async def _handle_dialogue_message(message: Message, user_text: str) -> None:
                 None,
                 str(exc),
             )
-            await send_critical_alert(
-                session,
-                settings,
-                "openrouter",
-                str(exc),
-                {
-                    "telegram_user_id": telegram_user_id,
-                    "source_message_id": source_message_id,
-                },
-            )
+        await record_dependency_failure(
+            settings,
+            "user_bot",
+            "openrouter",
+            str(exc),
+            status_code=_openrouter_status_code(exc),
+            details={"purpose": "chat"},
+        )
         if await _client_bot_stopped():
             return
         sent = await message.answer("Сейчас не могу ответить. Уже чиним.")
@@ -328,8 +350,9 @@ async def _handle_dialogue_message(message: Message, user_text: str) -> None:
                 ai_request_id=ai_request_id,
             )
         return
-
     provider = "local" if decision.request_payload.get("type") == "local_guard" else "openrouter"
+    if provider == "openrouter":
+        await record_dependency_success(settings, "user_bot", "openrouter")
     model = "local_guard" if provider == "local" else settings.openrouter_model
     async with SessionLocal() as session:
         repo = AppRepository(session)
@@ -391,6 +414,7 @@ async def non_text_message(message: Message) -> None:
 @router.errors()
 async def errors(event) -> None:
     logger.exception("user bot error: %s", event.exception)
+    await send_critical_alert(None, settings, "user_bot", str(event.exception), {})
 
 
 async def main() -> None:
@@ -403,12 +427,19 @@ async def main() -> None:
     bot = Bot(settings.user_bot_token)
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
+    heartbeat_task = asyncio.create_task(heartbeat_loop("user_bot", settings))
     try:
         await dp.start_polling(bot)
     except TelegramAPIError as exc:
         async with SessionLocal() as session:
             await send_critical_alert(session, settings, "user_bot", str(exc), {})
         raise
+    except Exception as exc:
+        await send_critical_alert(None, settings, "user_bot", str(exc), {})
+        raise
+    finally:
+        await stop_background_task(heartbeat_task)
+        await bot.session.close()
 
 
 if __name__ == "__main__":

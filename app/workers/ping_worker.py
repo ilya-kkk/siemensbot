@@ -17,15 +17,21 @@ from aiogram.exceptions import (
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.ai.openrouter import OpenRouterClient, OpenRouterError, parse_ping_response
-from app.alerts import send_critical_alert
+from app.alerts import (
+    record_dependency_failure,
+    record_dependency_success,
+    send_critical_alert,
+)
 from app.core.config import Settings, get_settings
 from app.core.db import SessionLocal
+from app.core.logging import configure_logging
+from app.monitoring import heartbeat_loop, stop_background_task
 from app.repositories import AppRepository
 from app.services.telegram_errors import classify_telegram_error
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 settings = get_settings()
+configure_logging(settings)
+logger = logging.getLogger(__name__)
 
 DEFAULT_LEASE_SECONDS = 600
 DEFAULT_POLL_SECONDS = 15
@@ -41,6 +47,14 @@ def _setting_int(current_settings: Settings, name: str, default: int) -> int:
 
 def _retry_at(seconds: int) -> datetime:
     return datetime.now(UTC) + timedelta(seconds=max(1, seconds))
+
+
+def _openrouter_status_code(exc: OpenRouterError) -> int | None:
+    value = exc.response_payload.get("status_code")
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
 
 
 def _ping_delays(row: Mapping[str, Any]) -> tuple[int, int, int]:
@@ -66,11 +80,7 @@ def _extract_pending_ping_text(payload: Any, transcript: str = "") -> str | None
     if isinstance(direct_text, str) and direct_text.strip():
         try:
             return parse_ping_response(
-                {
-                    "choices": [
-                        {"message": {"content": json.dumps({"text": direct_text})}}
-                    ]
-                },
+                {"choices": [{"message": {"content": json.dumps({"text": direct_text})}}]},
                 transcript,
             )
         except (KeyError, IndexError, TypeError, ValueError):
@@ -207,7 +217,17 @@ async def _generate_ping(
                 ),
                 preserve_pending=False,
             )
+        await record_dependency_failure(
+            current_settings,
+            "ping_worker",
+            "openrouter",
+            str(exc),
+            status_code=_openrouter_status_code(exc),
+            details={"purpose": "ping"},
+        )
         return None
+
+    await record_dependency_success(current_settings, "ping_worker", "openrouter")
 
     async with SessionLocal() as session:
         repo = AppRepository(session)
@@ -251,9 +271,8 @@ async def _handle_delivery_error(
         DEFAULT_RETRY_SECONDS,
     )
     retry_at = None if action.user_status else _retry_at(retry_seconds)
-    preserve_pending = (
-        action.user_status is None
-        and (status_code in {400, 401, 429} or status_code >= 500)
+    preserve_pending = action.user_status is None and (
+        status_code in {400, 401, 429} or status_code >= 500
     )
 
     await repo.fail_ping_delivery(
@@ -263,16 +282,14 @@ async def _handle_delivery_error(
         retry_at=retry_at,
         preserve_pending=preserve_pending,
     )
-    if action.is_critical:
-        await send_critical_alert(
-            session,
+    if action.user_status is None:
+        await record_dependency_failure(
             current_settings,
-            "ping_worker_telegram",
+            "ping_worker",
+            "telegram",
             description,
-            {
-                "telegram_user_id": telegram_user_id,
-                "status_code": status_code,
-            },
+            status_code=status_code,
+            details={"telegram_user_id": telegram_user_id},
         )
 
 
@@ -290,9 +307,7 @@ async def _process_claim(
     try:
         if pending_ai_request_id is not None:
             async with SessionLocal() as session:
-                transcript = await AppRepository(session).get_transcript_for_user(
-                    telegram_user_id
-                )
+                transcript = await AppRepository(session).get_transcript_for_user(telegram_user_id)
             text_value = _extract_pending_ping_text(
                 claim.get("pending_response_payload"),
                 transcript,
@@ -350,6 +365,11 @@ async def _process_claim(
                         int(validated["chat_id"]),
                         text_value,
                         reply_markup=reply_markup,
+                    )
+                    await record_dependency_success(
+                        current_settings,
+                        "ping_worker",
+                        "telegram",
                     )
                 except TelegramAPIError as exc:
                     await _handle_delivery_error(
@@ -444,6 +464,7 @@ async def main() -> None:
     if settings.app_env.lower() not in {"local", "test"} and not settings.public_base_url:
         raise RuntimeError("PUBLIC_BASE_URL is required outside local/test environments")
     bot = Bot(settings.user_bot_token)
+    heartbeat_task = asyncio.create_task(heartbeat_loop("ping_worker", settings))
     try:
         while True:
             try:
@@ -461,6 +482,7 @@ async def main() -> None:
                 _setting_int(settings, "ping_worker_poll_seconds", DEFAULT_POLL_SECONDS)
             )
     finally:
+        await stop_background_task(heartbeat_task)
         await bot.session.close()
 
 
