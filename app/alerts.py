@@ -1,4 +1,5 @@
 import logging
+from html import escape
 from typing import Any
 
 from aiogram import Bot
@@ -24,7 +25,7 @@ async def send_critical_alert(
     if not chat_id or not settings.admin_bot_token:
         return
 
-    text = f"🚨 CRITICAL\n<b>{category}</b>\n{message}"
+    text = f"🚨 CRITICAL\n<b>{escape(category)}</b>\n{escape(message)}"
     bot = Bot(settings.admin_bot_token, default=DefaultBotProperties(parse_mode="HTML"))
     try:
         await bot.send_message(chat_id, text)

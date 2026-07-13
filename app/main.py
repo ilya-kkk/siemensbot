@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,16 +22,11 @@ async def health() -> JSONResponse:
 @app.get("/r/{token}")
 async def redirect_link(
     token: str,
-    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> RedirectResponse:
     repo = AppRepository(session)
-    destination = await repo.record_link_click(
-        token=token,
-        ip_address=request.client.host if request.client else None,
-        user_agent=request.headers.get("user-agent"),
-    )
-    if not destination:
-        settings = get_settings()
-        destination = settings.test_drive_url
+    settings = get_settings()
+    await repo.record_offer_click(token)
+    config = await repo.get_app_config(settings.test_drive_url)
+    destination = str(config["offer_url"] or settings.test_drive_url)
     return RedirectResponse(destination, status_code=302)

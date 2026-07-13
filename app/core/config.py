@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Literal
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import Field, computed_field
+from pydantic import Field, computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,17 +38,41 @@ class Settings(BaseSettings):
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
     openrouter_model: str = Field(default="openai/gpt-4.1-mini", alias="OPENROUTER_MODEL")
     test_drive_url: str = Field(default="https://example.com/test-drive", alias="TEST_DRIVE_URL")
-    followup_text: str = Field(
-        default="Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?",
-        alias="FOLLOWUP_TEXT",
+    welcome_text: str = Field(
+        default="Привет! Давай разберём твой проект. В какой нише сейчас работаешь?",
+        alias="WELCOME_TEXT",
     )
     public_base_url: str | None = Field(default=None, alias="PUBLIC_BASE_URL")
     tech_admin_username: str | None = Field(default=None, alias="TECH_ADMIN_USERNAME")
     business_admin_username: str | None = Field(default=None, alias="BUSINESS_ADMIN_USERNAME")
     app_env: str = Field(default="local", alias="APP_ENV")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
-    worker_poll_seconds: float = Field(default=5.0, alias="WORKER_POLL_SECONDS")
-    worker_claim_limit: int = Field(default=25, alias="WORKER_CLAIM_LIMIT")
+    ping_worker_poll_seconds: float = Field(default=5.0, alias="PING_WORKER_POLL_SECONDS")
+    ping_worker_lease_seconds: int = Field(default=600, alias="PING_WORKER_LEASE_SECONDS")
+    ping_worker_retry_seconds: int = Field(default=300, alias="PING_WORKER_RETRY_SECONDS")
+
+    @model_validator(mode="after")
+    def require_tracked_redirect_in_production(self) -> "Settings":
+        is_local = self.app_env.strip().lower() in {"local", "test"}
+        public_base_url = (self.public_base_url or "").strip()
+        if not is_local and not public_base_url:
+            raise ValueError("PUBLIC_BASE_URL is required outside local/test environments")
+        if public_base_url:
+            try:
+                parsed = urlsplit(public_base_url)
+                _ = parsed.port
+            except ValueError as exc:
+                raise ValueError("PUBLIC_BASE_URL must be an absolute HTTP(S) URL") from exc
+            if (
+                parsed.scheme.lower() not in {"http", "https"}
+                or not parsed.netloc
+                or not parsed.hostname
+                or bool(parsed.query)
+                or bool(parsed.fragment)
+                or any(character.isspace() for character in public_base_url)
+            ):
+                raise ValueError("PUBLIC_BASE_URL must be an absolute HTTP(S) URL")
+        return self
 
     @computed_field
     @property

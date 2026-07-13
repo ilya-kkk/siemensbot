@@ -4,10 +4,13 @@ from types import SimpleNamespace
 import pytest
 
 from app.ai.openrouter import (
+    PING_SCHEMA,
     OpenRouterClient,
+    OpenRouterError,
     _is_invalid_niche_answer,
     _is_off_topic_request,
     _sanitize_reply_text,
+    parse_ping_response,
 )
 
 
@@ -35,6 +38,34 @@ class FakeOpenRouterClient(OpenRouterClient):
             ],
             "usage": {},
         }
+
+
+class FakePingOpenRouterClient(OpenRouterClient):
+    def __init__(self, response: dict):
+        super().__init__(settings=SimpleNamespace(openrouter_model="test-model"))
+        self.response = response
+        self.last_payload: dict | None = None
+
+    async def _chat_completion(self, payload: dict) -> dict:
+        self.last_payload = payload
+        return self.response
+
+
+@pytest.mark.asyncio
+async def test_openrouter_error_keeps_full_attempted_payload() -> None:
+    client = OpenRouterClient(
+        settings=SimpleNamespace(
+            openrouter_api_key=None,
+            public_base_url=None,
+        )
+    )
+    payload = {"model": "test", "messages": [{"role": "user", "content": "Привет"}]}
+
+    with pytest.raises(OpenRouterError) as captured:
+        await client._chat_completion(payload)
+
+    assert captured.value.request_payload == payload
+    assert captured.value.response_payload == {}
 
 
 def test_sanitize_reply_text_replaces_long_dash_chars() -> None:
@@ -105,22 +136,6 @@ async def test_chat_reply_reasks_niche_for_obviously_invalid_answer() -> None:
 
 
 @pytest.mark.asyncio
-async def test_chat_reply_starts_diagnostic_after_plain_followup_affirmation() -> None:
-    followup_text = (
-        "Привет. После бесплатного обучения лучше не гадать, "
-        "а приложить его к твоей ситуации. В какой нише сейчас проект?"
-    )
-    client = OpenRouterClient(settings=SimpleNamespace(followup_text=followup_text))
-
-    decision = await client.chat_reply(f"outgoing: {followup_text}", "да")
-
-    assert decision.reply_text == "Ок, тогда привяжем обучение к твоей ситуации. В какой нише сейчас проект?"
-    assert decision.should_send_offer is False
-    assert decision.request_payload["type"] == "local_guard"
-    assert decision.request_payload["reason"] == "initial_followup_affirmation"
-
-
-@pytest.mark.asyncio
 async def test_chat_reply_uses_model_false_offer_decision() -> None:
     client = FakeOpenRouterClient(
         "Тут тест-драйв как раз уместен. Хочешь, отправлю ссылку?",
@@ -167,3 +182,80 @@ async def test_chat_reply_accepts_eval_only_system_prompt_override() -> None:
 
     assert client.last_payload is not None
     assert client.last_payload["messages"][0] == {"role": "system", "content": "EVAL PROMPT"}
+
+
+@pytest.mark.asyncio
+async def test_generate_ping_uses_strict_schema_and_keeps_raw_payloads() -> None:
+    response = {
+        "choices": [
+            {
+                "message": {
+                    "content": json.dumps(
+                        {"text": "Вернемся к продукту - какой результат покупает клиент?"}
+                    )
+                }
+            }
+        ],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 8, "total_tokens": 18},
+    }
+    client = FakePingOpenRouterClient(response)
+
+    result = await client.generate_ping(
+        "incoming: продаю консультации\noutgoing: Какой результат покупает клиент?",
+        ping_number=2,
+        idle_minutes=1440,
+    )
+
+    assert result.text == "Вернемся к продукту - какой результат покупает клиент?"
+    assert result.response_payload is response
+    assert result.usage == response["usage"]
+    assert client.last_payload is not None
+    assert client.last_payload["response_format"] == {
+        "type": "json_schema",
+        "json_schema": PING_SCHEMA,
+    }
+    assert "Номер пинга: 2 из 3" in client.last_payload["messages"][1]["content"]
+    assert "1440 минут" in client.last_payload["messages"][1]["content"]
+
+
+@pytest.mark.asyncio
+async def test_generate_ping_rejects_invalid_model_response_with_payloads() -> None:
+    response = {"choices": [{"message": {"content": "not-json"}}]}
+    client = FakePingOpenRouterClient(response)
+
+    with pytest.raises(OpenRouterError) as captured:
+        await client.generate_ping("outgoing: В какой нише проект?", 1, 120)
+
+    assert captured.value.response_payload is response
+    assert captured.value.request_payload["response_format"]["json_schema"] == PING_SCHEMA
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("text_value", ["", None, "x" * 4097])
+async def test_generate_ping_rejects_empty_or_non_string_text(text_value: object) -> None:
+    response = {
+        "choices": [{"message": {"content": json.dumps({"text": text_value})}}]
+    }
+    client = FakePingOpenRouterClient(response)
+
+    with pytest.raises(OpenRouterError, match="Invalid OpenRouter ping response"):
+        await client.generate_ping("outgoing: Продолжим?", 1, 120)
+
+
+@pytest.mark.asyncio
+async def test_generate_ping_validates_number_before_api_call() -> None:
+    client = FakePingOpenRouterClient({})
+
+    with pytest.raises(ValueError, match="ping_number"):
+        await client.generate_ping("", 4, 120)
+
+    assert client.last_payload is None
+
+
+def test_parse_ping_response_enforces_telegram_length_limit() -> None:
+    response = {
+        "choices": [{"message": {"content": json.dumps({"text": "x" * 4097})}}]
+    }
+
+    with pytest.raises(ValueError, match="4096"):
+        parse_ping_response(response)

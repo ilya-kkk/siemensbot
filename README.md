@@ -1,11 +1,11 @@
 # Siemensbot
 
-Telegram follow-up microservice with:
+Inbound Telegram funnel with:
 
 - admin Telegram bot;
 - user-facing Telegram bot;
+- context-aware ping worker;
 - FastAPI redirect/health API;
-- campaign worker;
 - Supabase Postgres schema in private `app` schema;
 - OpenRouter AI chat and structured dialogue analysis.
 
@@ -34,7 +34,7 @@ Run locally:
 uvicorn app.main:app --reload
 python -m app.bots.admin_bot
 python -m app.bots.user_bot
-python -m app.workers.campaign_worker
+python -m app.workers.ping_worker
 ```
 
 Or with Docker:
@@ -45,7 +45,11 @@ docker compose up --build
 
 ## Notes
 
-- Bot API cannot send private messages by username alone. Import needs `chat_id`.
-- Username-only imports are stored as `unresolved` and excluded from campaigns.
-- URL button clicks are tracked through `/r/{token}` redirect links.
-# siemensbot
+- Users enter the funnel themselves through the user-facing bot.
+- `telegram_users` owns funnel stage, lead analysis, offer token, and aggregate click data.
+- `config` stores the destination URL and the three ping delays. `TEST_DRIVE_URL` seeds an empty singleton once; after that the database is the source of truth and admins update both values from the admin bot.
+- `messages` stores the complete per-user timeline; `ai_requests` links each model call to its source and output messages.
+- Pings are generated from the full dialogue context after 2, 24, and 72 hours of inactivity by default.
+- Funnel stages progress through `started`, `dialogue`, and `lead`; only a tracked button click creates a lead.
+- URL button clicks are aggregated on the user through `/r/{token}` redirects. Set `APP_ENV=production` and an externally reachable `PUBLIC_BASE_URL` in production; startup fails without it so clicks cannot silently bypass tracking.
+- Funnel statistics use Moscow-time `/start` cohorts and include the latest 14 calendar days.

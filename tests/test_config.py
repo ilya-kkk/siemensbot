@@ -1,0 +1,41 @@
+import pytest
+from pydantic import ValidationError
+
+from app.core.config import Settings
+
+
+def _settings(**values: str) -> Settings:
+    return Settings(
+        _env_file=None,
+        DATABASE_URL="postgresql://localhost/example",
+        **values,
+    )
+
+
+def test_public_base_url_is_required_outside_local_or_test() -> None:
+    with pytest.raises(ValidationError, match="PUBLIC_BASE_URL is required"):
+        _settings(APP_ENV="Production", PUBLIC_BASE_URL="")
+
+
+def test_public_base_url_guard_allows_tracked_production_and_local() -> None:
+    production = _settings(APP_ENV="Production", PUBLIC_BASE_URL="https://bot.example")
+    local = _settings(APP_ENV="local", PUBLIC_BASE_URL="")
+
+    assert production.public_base_url == "https://bot.example"
+    assert not local.public_base_url
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "bot.example",
+        "ftp://bot.example",
+        "https://bad host",
+        "https://bot.example:bad",
+        "https://bot.example?query=1",
+        "https://bot.example#fragment",
+    ],
+)
+def test_public_base_url_must_be_absolute_http_url(value: str) -> None:
+    with pytest.raises(ValidationError, match="absolute HTTP"):
+        _settings(APP_ENV="Production", PUBLIC_BASE_URL=value)

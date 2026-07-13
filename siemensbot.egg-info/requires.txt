@@ -1,4 +1,4 @@
-aiogram<4.0,>=3.8
+aiogram<4.0,>=3.29
 asyncpg<1.0,>=0.29
 fastapi<1.0,>=0.111
 httpx<1.0,>=0.27
@@ -12,3 +12,6 @@ uvicorn[standard]<1.0,>=0.30
 pytest<9.0,>=8.2
 pytest-asyncio<1.0,>=0.23
 ruff<1.0,>=0.5
+
+[eval]
+deepeval==4.0.8

@@ -1,5 +1,6 @@
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -43,10 +44,6 @@ KEYBOARD_MASH_RE = re.compile(
     r"asdf|qwer|zxcv|йцук|фыв|ыва|вап|олд|джэ|ячс",
     re.IGNORECASE,
 )
-PLAIN_AFFIRMATION_RE = re.compile(
-    r"^\s*(да|давай|ок|окей|ага|угу|актуально|интересно|можно|готов|хочу)\s*[.!?]*\s*$",
-    re.IGNORECASE,
-)
 DIAGNOSTIC_QUESTIONS: tuple[tuple[str, str], ...] = (
     ("в какой нише", "В какой нише сейчас проект?"),
     ("что сейчас прода", "Что сейчас продаешь?"),
@@ -64,7 +61,15 @@ DIAGNOSTIC_QUESTIONS: tuple[tuple[str, str], ...] = (
 
 
 class OpenRouterError(RuntimeError):
-    pass
+    def __init__(
+        self,
+        message: str,
+        request_payload: dict[str, Any] | None = None,
+        response_payload: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.request_payload = request_payload or {}
+        self.response_payload = response_payload or {}
 
 
 @dataclass(frozen=True)
@@ -80,6 +85,14 @@ class ChatDecision:
 @dataclass(frozen=True)
 class AnalysisResult:
     output: dict[str, Any]
+    usage: dict[str, Any] | None
+    request_payload: dict[str, Any]
+    response_payload: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class PingResult:
+    text: str
     usage: dict[str, Any] | None
     request_payload: dict[str, Any]
     response_payload: dict[str, Any]
@@ -152,16 +165,6 @@ def _last_outgoing_message(transcript: str) -> str:
     return ""
 
 
-def _is_plain_affirmation(user_message: str) -> bool:
-    return bool(PLAIN_AFFIRMATION_RE.match(user_message))
-
-
-def _is_affirming_initial_followup(transcript: str, user_message: str, followup_text: str | None) -> bool:
-    if not followup_text or not _is_plain_affirmation(user_message):
-        return False
-    return _last_outgoing_message(transcript).strip() == followup_text.strip()
-
-
 def _last_outgoing_asks_for_niche(transcript: str) -> bool:
     message = _last_outgoing_message(transcript).lower()
     return any(
@@ -203,6 +206,19 @@ def _invalid_niche_reply(transcript: str) -> str:
     )
 
 
+def parse_ping_response(response: Mapping[str, Any], transcript: str = "") -> str:
+    content = response["choices"][0]["message"]["content"]
+    parsed = json.loads(content)
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("text"), str):
+        raise ValueError("ping text must be a string")
+    text = _sanitize_reply_text(parsed["text"], transcript)
+    if not text:
+        raise ValueError("ping text is empty")
+    if len(text) > 4096:
+        raise ValueError("ping text exceeds Telegram's 4096-character limit")
+    return text
+
+
 CHAT_SCHEMA: dict[str, Any] = {
     "name": "telegram_chat_reply",
     "strict": True,
@@ -217,6 +233,19 @@ CHAT_SCHEMA: dict[str, Any] = {
     },
 }
 
+PING_SCHEMA: dict[str, Any] = {
+    "name": "telegram_ping_reply",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["text"],
+        "properties": {
+            "text": {"type": "string", "minLength": 1, "maxLength": 4096},
+        },
+    },
+}
+
 
 class OpenRouterClient:
     def __init__(self, settings: Settings):
@@ -224,7 +253,7 @@ class OpenRouterClient:
 
     async def _chat_completion(self, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.settings.openrouter_api_key:
-            raise OpenRouterError("OPENROUTER_API_KEY is not configured")
+            raise OpenRouterError("OPENROUTER_API_KEY is not configured", request_payload=payload)
 
         headers = {
             "Authorization": f"Bearer {self.settings.openrouter_api_key}",
@@ -232,15 +261,29 @@ class OpenRouterClient:
             "HTTP-Referer": self.settings.public_base_url or "http://localhost:8000",
             "X-Title": "Siemensbot",
         }
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers=headers,
-                json=payload,
-            )
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers=headers,
+                    json=payload,
+                )
+        except httpx.HTTPError as exc:
+            raise OpenRouterError(str(exc), request_payload=payload) from exc
         if response.status_code >= 400:
-            raise OpenRouterError(f"OpenRouter error {response.status_code}: {response.text[:500]}")
-        return response.json()
+            raise OpenRouterError(
+                f"OpenRouter error {response.status_code}: {response.text[:500]}",
+                request_payload=payload,
+                response_payload={"status_code": response.status_code, "body": response.text},
+            )
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise OpenRouterError(
+                f"Invalid OpenRouter JSON response: {exc}",
+                request_payload=payload,
+                response_payload={"status_code": response.status_code, "body": response.text},
+            ) from exc
 
     async def chat_reply(
         self,
@@ -249,27 +292,6 @@ class OpenRouterClient:
         *,
         system_prompt: str | None = None,
     ) -> ChatDecision:
-        followup_text = getattr(self.settings, "followup_text", None)
-        if _is_affirming_initial_followup(transcript, user_message, followup_text):
-            reply_text = _sanitize_reply_text(
-                "Ок, тогда привяжем обучение к твоей ситуации. В какой нише сейчас проект?",
-                transcript,
-            )
-            parsed = {"reply_text": reply_text, "should_send_offer": False}
-            local_payload = {
-                "type": "local_guard",
-                "reason": "initial_followup_affirmation",
-                "user_message": user_message,
-            }
-            return ChatDecision(
-                reply_text=reply_text,
-                should_send_offer=False,
-                raw_output=parsed,
-                usage=None,
-                request_payload=local_payload,
-                response_payload=parsed,
-            )
-
         if _is_off_topic_request(user_message):
             reply_text = _sanitize_reply_text(_off_topic_redirect_reply(transcript), transcript)
             parsed = {"reply_text": reply_text, "should_send_offer": False}
@@ -315,8 +337,15 @@ class OpenRouterClient:
             "response_format": {"type": "json_schema", "json_schema": CHAT_SCHEMA},
         }
         response = await self._chat_completion(payload)
-        content = response["choices"][0]["message"]["content"]
-        parsed = json.loads(content)
+        try:
+            content = response["choices"][0]["message"]["content"]
+            parsed = json.loads(content)
+        except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+            raise OpenRouterError(
+                f"Invalid OpenRouter chat response: {exc}",
+                request_payload=payload,
+                response_payload=response,
+            ) from exc
         reply_text = _sanitize_reply_text(str(parsed["reply_text"]), transcript)
         parsed["reply_text"] = reply_text
         should_send_offer = bool(parsed["should_send_offer"])
@@ -341,10 +370,60 @@ class OpenRouterClient:
             "response_format": {"type": "json_schema", "json_schema": schema},
         }
         response = await self._chat_completion(payload)
-        content = response["choices"][0]["message"]["content"]
-        parsed = json.loads(content)
+        try:
+            content = response["choices"][0]["message"]["content"]
+            parsed = json.loads(content)
+        except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+            raise OpenRouterError(
+                f"Invalid OpenRouter analysis response: {exc}",
+                request_payload=payload,
+                response_payload=response,
+            ) from exc
         return AnalysisResult(
             output=parsed,
+            usage=response.get("usage"),
+            request_payload=payload,
+            response_payload=response,
+        )
+
+    async def generate_ping(
+        self,
+        transcript: str,
+        ping_number: int,
+        idle_minutes: int,
+    ) -> PingResult:
+        if ping_number not in (1, 2, 3):
+            raise ValueError("ping_number must be between 1 and 3")
+        if idle_minutes < 0:
+            raise ValueError("idle_minutes must be non-negative")
+
+        system_prompt = load_prompt("ping.system.md")
+        payload = {
+            "model": self.settings.openrouter_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        f"Номер пинга: {ping_number} из 3.\n"
+                        f"Пользователь не отвечает уже {idle_minutes} минут.\n\n"
+                        f"Контекст диалога:\n{transcript}"
+                    ),
+                },
+            ],
+            "response_format": {"type": "json_schema", "json_schema": PING_SCHEMA},
+        }
+        response = await self._chat_completion(payload)
+        try:
+            text = parse_ping_response(response, transcript)
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
+            raise OpenRouterError(
+                f"Invalid OpenRouter ping response: {exc}",
+                request_payload=payload,
+                response_payload=response,
+            ) from exc
+        return PingResult(
+            text=text,
             usage=response.get("usage"),
             request_payload=payload,
             response_payload=response,
