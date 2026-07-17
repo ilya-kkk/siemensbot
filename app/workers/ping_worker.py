@@ -36,6 +36,11 @@ logger = logging.getLogger(__name__)
 DEFAULT_LEASE_SECONDS = 600
 DEFAULT_POLL_SECONDS = 15
 DEFAULT_RETRY_SECONDS = 300
+NO_DIALOGUE_PING_TEXTS = (
+    "Получилось посмотреть мой вопрос выше? Напиши пару слов о своём проекте, и начнём разбор.",
+    "Если разбор ещё актуален, напиши, в какой нише работаешь. Продолжим с этого.",
+    "Я на связи. Если захочешь разобрать проект, просто напиши, в какой нише работаешь.",
+)
 
 
 def _setting_int(current_settings: Settings, name: str, default: int) -> int:
@@ -176,6 +181,35 @@ async def _generate_ping(
             exclude_message_id=source_message_id,
         )
         user_snapshot = await repo.get_user_snapshot(telegram_user_id)
+
+        if not claim.get("dialogue_started"):
+            text_value = NO_DIALOGUE_PING_TEXTS[ping_number - 1]
+            response_payload = {"text": text_value, "type": "scripted_no_dialogue_ping"}
+            ai_request_id = await repo.save_ai_request(
+                telegram_user_id,
+                source_message_id,
+                "ping",
+                "scripted_no_dialogue_ping",
+                "success",
+                {
+                    "type": "scripted_no_dialogue_ping",
+                    "ping_number": ping_number,
+                },
+                response_payload,
+                user_snapshot,
+                None,
+                provider="local",
+                commit=False,
+            )
+            attached = await repo.set_pending_ping_ai_request(
+                telegram_user_id,
+                claim_token,
+                ai_request_id,
+            )
+            if not attached:
+                logger.info("ping claim for user %s changed during scripting", telegram_user_id)
+                return None
+            return text_value, ai_request_id
 
     try:
         result = await client.generate_ping(

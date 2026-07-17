@@ -98,6 +98,7 @@ def _claim(**overrides: object) -> dict[str, object]:
         "anchor_at": "2026-07-13T10:00:00+00:00",
         "idle_minutes": 120,
         "offer_shown": False,
+        "dialogue_started": True,
         "ping_pending_ai_request_id": None,
         "pending_response_payload": None,
         "ping_1_delay_minutes": 120,
@@ -145,6 +146,32 @@ async def test_fresh_ping_persists_ai_and_outgoing_message(fake_runtime: _FakeRe
         "telegram": {"message_id": 501, "text": "Продолжим?"},
     })
     assert fake_runtime.completed[0][1]["sent_at"] == _SentMessage.date
+
+
+@pytest.mark.asyncio
+async def test_ping_without_user_messages_is_scripted_without_llm(
+    fake_runtime: _FakeRepository,
+) -> None:
+    client = AsyncMock()
+    bot = AsyncMock()
+    bot.send_message.return_value = _SentMessage()
+
+    sent = await ping_worker._process_claim(
+        bot,
+        client,
+        _settings(),
+        _claim(dialogue_started=False),
+    )
+
+    assert sent is True
+    client.generate_ping.assert_not_awaited()
+    expected_text = ping_worker.NO_DIALOGUE_PING_TEXTS[0]
+    bot.send_message.assert_awaited_once_with(700, expected_text, reply_markup=None)
+    saved_args, saved_kwargs = fake_runtime.saved_ai_requests[0]
+    assert saved_args[2:5] == ("ping", "scripted_no_dialogue_ping", "success")
+    assert saved_args[5] == {"type": "scripted_no_dialogue_ping", "ping_number": 1}
+    assert saved_args[6] == {"text": expected_text, "type": "scripted_no_dialogue_ping"}
+    assert saved_kwargs == {"provider": "local", "commit": False}
 
 
 @pytest.mark.asyncio

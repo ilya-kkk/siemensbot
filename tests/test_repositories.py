@@ -443,6 +443,7 @@ async def test_claim_due_ping_uses_absolute_anchor_and_lease() -> None:
                     "anchor_at": None,
                     "idle_minutes": 1440,
                     "offer_shown": True,
+                    "dialogue_started": True,
                     "ping_pending_ai_request_id": None,
                     "pending_response_payload": None,
                     "offer_url": "https://example.com",
@@ -466,6 +467,7 @@ async def test_claim_due_ping_uses_absolute_anchor_and_lease() -> None:
     assert "ping_claimed_at < now() - make_interval" in select_query
     assert "u.pings_sent_count < 3" in select_query
     assert "u.funnel_stage <> 'lead'" in select_query
+    assert "u.dialogue_started_at is not null as dialogue_started" in select_query
     assert "for update of u skip locked" in select_query
     session.commit.assert_awaited_once()
 
