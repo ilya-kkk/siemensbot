@@ -1,9 +1,10 @@
 import re
 from collections.abc import Mapping, Sequence
-from datetime import date
+from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from html import escape
 from typing import Any
+from zoneinfo import ZoneInfo
 
 _PING_METRICS = (
     ("Нажали Start", "started_users"),
@@ -19,6 +20,32 @@ _PING_METRICS = (
 )
 _MAX_POSTGRES_INTEGER = 2_147_483_647
 _MAX_POSTGRES_BIGINT = 9_223_372_036_854_775_807
+_MOSCOW_TZ = ZoneInfo("Europe/Moscow")
+
+
+def render_admin_summary_html(
+    metrics: Mapping[str, Any] | None,
+    updated_at: datetime | None,
+) -> str:
+    """Render the compact summary prepended to both pinned admin messages."""
+    values = metrics or {}
+
+    def metric(key: str) -> str:
+        value = values.get(key)
+        return escape(str(value)) if value is not None else "—"
+
+    updated_text = (
+        updated_at.astimezone(_MOSCOW_TZ).strftime("%d.%m.%Y %H:%M MSK")
+        if updated_at is not None
+        else "недоступно"
+    )
+    return "\n".join(
+        [
+            f"/start: {metric('start_24h')} | lead: {metric('lead_24h')} | 24h",
+            f"/start: {metric('start_all')} | lead: {metric('lead_all')} | all",
+            f"Обновлено: {updated_text}",
+        ]
+    )
 
 
 def parse_growth_alert_threshold(text: str | None) -> int:

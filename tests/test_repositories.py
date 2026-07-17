@@ -77,6 +77,29 @@ async def test_ensure_admin_user_commits() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_admin_summary_counts_unique_users_in_rolling_24_hours() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _OneRowResult(
+        {"start_24h": 12, "start_all": 148, "lead_24h": 3, "lead_all": 27}
+    )
+
+    summary = await AppRepository(session).get_admin_summary()
+
+    assert summary == {
+        "start_24h": 12,
+        "start_all": 148,
+        "lead_24h": 3,
+        "lead_all": 27,
+    }
+    query = str(session.execute.call_args.args[0])
+    assert "started_at >= now() - interval '24 hours'" in query
+    assert "lead_at >= now() - interval '24 hours'" in query
+    assert "from app.telegram_users" in query
+    assert "app.messages" not in query
+    assert "offer_click_count" not in query
+
+
+@pytest.mark.asyncio
 async def test_set_user_growth_alert_replaces_active_and_enqueues_both_admins() -> None:
     session = AsyncMock()
     session.execute.side_effect = [

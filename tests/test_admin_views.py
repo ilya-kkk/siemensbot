@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
@@ -7,9 +7,31 @@ from app.services.admin_views import (
     parse_growth_alert_threshold,
     parse_ping_delays,
     ping_delays_from_config,
+    render_admin_summary_html,
     render_start_html,
     render_stats_rich_html,
 )
+
+
+def test_render_admin_summary_uses_compact_format_and_moscow_time() -> None:
+    html = render_admin_summary_html(
+        {"start_24h": 12, "lead_24h": 3, "start_all": 148, "lead_all": 27},
+        datetime(2026, 7, 17, 15, 40, tzinfo=UTC),
+    )
+
+    assert html.splitlines() == [
+        "/start: 12 | lead: 3 | 24h",
+        "/start: 148 | lead: 27 | all",
+        "Обновлено: 17.07.2026 18:40 MSK",
+    ]
+
+
+def test_render_admin_summary_marks_unavailable_values() -> None:
+    assert render_admin_summary_html(None, None).splitlines() == [
+        "/start: — | lead: — | 24h",
+        "/start: — | lead: — | all",
+        "Обновлено: недоступно",
+    ]
 
 
 def test_parse_growth_alert_threshold_accepts_positive_bigint() -> None:

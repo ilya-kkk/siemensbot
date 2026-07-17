@@ -399,6 +399,26 @@ class AppRepository:
             }
         return health
 
+    async def get_admin_summary(self) -> dict[str, int]:
+        """Return unique-user start and lead totals for the pinned admin summary."""
+        result = await self.session.execute(
+            text(
+                """
+                select
+                  count(*) filter (
+                    where started_at >= now() - interval '24 hours'
+                  ) as start_24h,
+                  count(*) filter (where started_at is not null) as start_all,
+                  count(*) filter (
+                    where lead_at >= now() - interval '24 hours'
+                  ) as lead_24h,
+                  count(*) filter (where lead_at is not null) as lead_all
+                from app.telegram_users
+                """
+            )
+        )
+        return {key: int(value) for key, value in dict(result.one()._mapping).items()}
+
     async def get_app_config(self) -> dict[str, Any]:
         """Return the singleton runtime config for ping scheduling."""
         await self.session.execute(

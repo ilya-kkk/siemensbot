@@ -47,6 +47,22 @@ def cache_tech_status_message_id(path: Path, message_id: int) -> None:
     _cache_int(path, message_id)
 
 
+def read_cached_business_admin_chat_id(path: Path) -> int | None:
+    return _read_cached_int(path)
+
+
+def cache_business_admin_chat_id(path: Path, chat_id: int) -> None:
+    _cache_int(path, chat_id)
+
+
+def read_cached_business_status_message_id(path: Path) -> int | None:
+    return _read_cached_int(path)
+
+
+def cache_business_status_message_id(path: Path, message_id: int) -> None:
+    _cache_int(path, message_id)
+
+
 async def refresh_tech_admin_chat_cache(settings: Settings) -> int | None:
     from app.core.db import SessionLocal
     from app.repositories import AppRepository

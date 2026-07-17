@@ -22,9 +22,13 @@ from app.core.config import get_settings
 from app.core.db import SessionLocal
 from app.core.logging import configure_logging
 from app.monitoring import (
+    cache_business_admin_chat_id,
+    cache_business_status_message_id,
     cache_tech_admin_chat_id,
     cache_tech_status_message_id,
     heartbeat_loop,
+    read_cached_business_admin_chat_id,
+    read_cached_business_status_message_id,
     read_cached_tech_admin_chat_id,
     read_cached_tech_status_message_id,
     refresh_tech_admin_chat_cache,
@@ -36,6 +40,7 @@ from app.services.admin_views import (
     parse_growth_alert_threshold,
     parse_ping_delays,
     ping_delays_from_config,
+    render_admin_summary_html,
     render_start_html,
     render_stats_rich_html,
 )
@@ -74,9 +79,15 @@ async def _admin_for_identity(username: str | None, chat_id: int) -> tuple[int, 
         return None
     async with SessionLocal() as session:
         admin_id = await AppRepository(session).ensure_admin_user(username or "", role, chat_id)
+    _cache_admin_chat_id(role, chat_id)
+    return admin_id, role
+
+
+def _cache_admin_chat_id(role: str, chat_id: int) -> None:
     if role == "tech":
         cache_tech_admin_chat_id(settings.tech_admin_chat_cache_path, chat_id)
-    return admin_id, role
+    else:
+        cache_business_admin_chat_id(settings.business_admin_chat_cache_path, chat_id)
 
 
 async def _ensure_admin(message: Message) -> tuple[int, str] | None:
@@ -96,18 +107,25 @@ def _status_icon(status: str) -> str:
 async def _render_tech_status_message() -> str:
     now = datetime.now(UTC)
     database_ok = True
+    summary: dict[str, int] | None = None
+    summary_updated_at: datetime | None = None
     components: dict[str, dict[str, str | None]] = {}
     try:
         async with SessionLocal() as session:
-            components = await AppRepository(session).get_service_health(
+            repository = AppRepository(session)
+            summary = await repository.get_admin_summary()
+            components = await repository.get_service_health(
                 HEALTH_COMPONENTS,
                 settings.heartbeat_stale_seconds,
             )
+            summary_updated_at = datetime.now(UTC)
     except Exception:
         database_ok = False
         logger.warning("failed to render pinned tech status from database", exc_info=True)
 
     lines = [
+        render_admin_summary_html(summary, summary_updated_at),
+        "",
         "<b>Siemensbot status</b>",
         f"Env: <code>{escape(settings.app_env)}</code>",
         f"Updated: <code>{now.strftime('%Y-%m-%d %H:%M:%S')} UTC</code>",
@@ -134,44 +152,105 @@ async def _render_tech_status_message() -> str:
     return "\n".join(lines)
 
 
-async def _upsert_pinned_tech_status(bot: Bot) -> None:
-    chat_id = read_cached_tech_admin_chat_id(settings.tech_admin_chat_cache_path)
-    if chat_id is None:
+async def _render_business_status_message() -> str:
+    async with SessionLocal() as session:
+        summary = await AppRepository(session).get_admin_summary()
+    return render_admin_summary_html(summary, datetime.now(UTC))
+
+
+def _status_cache_paths(role: str):
+    if role == "tech":
+        return settings.tech_admin_chat_cache_path, settings.tech_status_message_cache_path
+    return settings.business_admin_chat_cache_path, settings.business_status_message_cache_path
+
+
+def _read_cached_status_ids(role: str) -> tuple[int | None, int | None]:
+    chat_path, message_path = _status_cache_paths(role)
+    if role == "tech":
+        return (
+            read_cached_tech_admin_chat_id(chat_path),
+            read_cached_tech_status_message_id(message_path),
+        )
+    return (
+        read_cached_business_admin_chat_id(chat_path),
+        read_cached_business_status_message_id(message_path),
+    )
+
+
+def _cache_status_message_id(role: str, message_id: int) -> None:
+    _chat_path, message_path = _status_cache_paths(role)
+    if role == "tech":
+        cache_tech_status_message_id(message_path, message_id)
+    else:
+        cache_business_status_message_id(message_path, message_id)
+
+
+async def _pin_status_message(bot: Bot, chat_id: int, message_id: int) -> None:
+    try:
+        await bot.pin_chat_message(chat_id, message_id, disable_notification=True)
+    except Exception:
+        logger.warning("failed to pin %s admin status message", chat_id, exc_info=True)
+
+
+async def _upsert_pinned_admin_status(
+    bot: Bot,
+    role: str,
+    *,
+    chat_id: int | None = None,
+    ensure_pinned: bool = False,
+) -> None:
+    cached_chat_id, message_id = _read_cached_status_ids(role)
+    chat_id = chat_id if chat_id is not None else cached_chat_id
+    if chat_id is None and role == "tech":
         chat_id = await refresh_tech_admin_chat_cache(settings)
     if chat_id is None:
-        logger.warning("tech status pin skipped: tech admin chat id is unavailable")
+        logger.debug("%s status pin skipped: admin chat id is unavailable", role)
         return
 
-    text = await _render_tech_status_message()
-    message_id = read_cached_tech_status_message_id(settings.tech_status_message_cache_path)
+    text = (
+        await _render_tech_status_message()
+        if role == "tech"
+        else await _render_business_status_message()
+    )
     if message_id is not None:
         try:
             await bot.edit_message_text(text, chat_id=chat_id, message_id=message_id, parse_mode="HTML")
+            if ensure_pinned:
+                await _pin_status_message(bot, chat_id, message_id)
             return
         except TelegramBadRequest as exc:
             if "message is not modified" in str(exc).lower():
+                if ensure_pinned:
+                    await _pin_status_message(bot, chat_id, message_id)
                 return
-            logger.warning("failed to edit pinned tech status; creating a new one", exc_info=True)
+            logger.warning(
+                "failed to edit pinned %s status; creating a new one", role, exc_info=True
+            )
         except Exception:
-            logger.warning("failed to edit pinned tech status; creating a new one", exc_info=True)
+            logger.warning(
+                "failed to edit pinned %s status; creating a new one", role, exc_info=True
+            )
 
     message = await bot.send_message(chat_id, text, parse_mode="HTML")
-    cache_tech_status_message_id(settings.tech_status_message_cache_path, message.message_id)
-    try:
-        await bot.pin_chat_message(chat_id, message.message_id, disable_notification=True)
-    except Exception:
-        logger.warning("failed to pin tech status message", exc_info=True)
+    _cache_status_message_id(role, message.message_id)
+    await _pin_status_message(bot, chat_id, message.message_id)
+
+
+async def _upsert_pinned_tech_status(bot: Bot) -> None:
+    """Backward-compatible wrapper for the technical status updater."""
+    await _upsert_pinned_admin_status(bot, "tech")
 
 
 async def tech_status_loop(bot: Bot) -> None:
     delay = max(30, settings.tech_status_update_seconds)
     while True:
-        try:
-            await _upsert_pinned_tech_status(bot)
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            logger.warning("tech status update failed", exc_info=True)
+        for role in ("tech", "business"):
+            try:
+                await _upsert_pinned_admin_status(bot, role)
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.warning("%s status update failed", role, exc_info=True)
         await asyncio.sleep(delay)
 
 
@@ -228,9 +307,34 @@ async def _growth_alert_recipients() -> list[dict]:
 
 
 @router.message(CommandStart())
-async def start(message: Message) -> None:
-    if not await _ensure_admin(message):
+async def start(message: Message, bot: Bot) -> None:
+    try:
+        admin = await _ensure_admin(message)
+    except Exception:
+        username = message.from_user.username if message.from_user else None
+        role = settings.admin_role_for_username(username)
+        if role is None:
+            raise
+        logger.warning(
+            "database unavailable while registering %s admin during /start", role, exc_info=True
+        )
+        try:
+            _cache_admin_chat_id(role, message.chat.id)
+        except Exception:
+            logger.warning("failed to cache %s admin chat during /start", role, exc_info=True)
+        admin = (0, role)
+    if not admin:
         return
+    _admin_id, role = admin
+    try:
+        await _upsert_pinned_admin_status(
+            bot,
+            role,
+            chat_id=message.chat.id,
+            ensure_pinned=True,
+        )
+    except Exception:
+        logger.warning("failed to refresh %s status during /start", role, exc_info=True)
     await message.answer(render_start_html(), reply_markup=MENU, parse_mode="HTML")
 
 

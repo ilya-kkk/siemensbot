@@ -31,6 +31,13 @@ def test_stt_model_has_default_and_environment_override() -> None:
     assert overridden.openrouter_stt_model == "vendor/russian-stt"
 
 
+def test_business_status_cache_paths_have_runtime_defaults() -> None:
+    settings = _settings()
+
+    assert str(settings.business_admin_chat_cache_path) == "runtime/business_admin_chat_id"
+    assert str(settings.business_status_message_cache_path) == "runtime/business_status_message_id"
+
+
 @pytest.mark.parametrize(
     ("values", "message"),
     [

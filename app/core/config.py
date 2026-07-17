@@ -64,6 +64,14 @@ class Settings(BaseSettings):
         default=Path("runtime/tech_status_message_id"),
         alias="TECH_STATUS_MESSAGE_CACHE_PATH",
     )
+    business_admin_chat_cache_path: Path = Field(
+        default=Path("runtime/business_admin_chat_id"),
+        alias="BUSINESS_ADMIN_CHAT_CACHE_PATH",
+    )
+    business_status_message_cache_path: Path = Field(
+        default=Path("runtime/business_status_message_id"),
+        alias="BUSINESS_STATUS_MESSAGE_CACHE_PATH",
+    )
     tech_status_update_seconds: int = Field(default=60, alias="TECH_STATUS_UPDATE_SECONDS")
 
     @model_validator(mode="after")

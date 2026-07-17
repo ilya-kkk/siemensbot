@@ -6,7 +6,14 @@ import pytest
 
 from app import alerts
 from app.core.config import Settings
-from app.monitoring import cache_tech_admin_chat_id, read_cached_tech_admin_chat_id
+from app.monitoring import (
+    cache_business_admin_chat_id,
+    cache_business_status_message_id,
+    cache_tech_admin_chat_id,
+    read_cached_business_admin_chat_id,
+    read_cached_business_status_message_id,
+    read_cached_tech_admin_chat_id,
+)
 
 
 def _settings(tmp_path: Path, **values: str) -> Settings:
@@ -29,6 +36,17 @@ def test_tech_admin_cache_round_trip_and_invalid_value(tmp_path: Path) -> None:
 
     path.write_text("not-an-id", encoding="utf-8")
     assert read_cached_tech_admin_chat_id(path) is None
+
+
+def test_business_status_cache_round_trip(tmp_path: Path) -> None:
+    chat_path = tmp_path / "business_chat"
+    message_path = tmp_path / "business_message"
+
+    cache_business_admin_chat_id(chat_path, 202)
+    cache_business_status_message_id(message_path, 303)
+
+    assert read_cached_business_admin_chat_id(chat_path) == 202
+    assert read_cached_business_status_message_id(message_path) == 303
 
 
 @pytest.mark.asyncio
