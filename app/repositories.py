@@ -1165,7 +1165,12 @@ class AppRepository:
                 """
                 select
                   count(*) as total_users,
-                  count(*) filter (where started_at is not null) as started_users,
+                  (
+                    select count(*)
+                    from app.messages m
+                    where m.direction = 'incoming'
+                      and coalesce(m.text, '') ~ '^/start(@[^ ]+)?([[:space:]]|$)'
+                  ) as started_users,
                   count(*) filter (where dialogue_started_at is not null) as dialogue_users,
                   count(*) filter (
                     where status = 'active' and funnel_stage = 'dialogue'
@@ -1195,7 +1200,7 @@ class AppRepository:
                 )
                 select
                   d.day as date,
-                  count(u.id) as started_users,
+                  coalesce(s.started_users, 0) as started_users,
                   count(u.id) filter (where u.dialogue_started_at is not null) as dialogue_users,
                   count(u.id) filter (
                     where u.status = 'active' and u.funnel_stage = 'dialogue'
@@ -1210,7 +1215,16 @@ class AppRepository:
                 from days d
                 left join app.telegram_users u
                   on (u.started_at at time zone 'Europe/Moscow')::date = d.day
-                group by d.day
+                left join (
+                  select
+                    (m.created_at at time zone 'Europe/Moscow')::date as day,
+                    count(*) as started_users
+                  from app.messages m
+                  where m.direction = 'incoming'
+                    and coalesce(m.text, '') ~ '^/start(@[^ ]+)?([[:space:]]|$)'
+                  group by 1
+                ) s on s.day = d.day
+                group by d.day, s.started_users
                 order by d.day desc
                 """
             )

@@ -259,7 +259,11 @@ async def test_get_stats_returns_overall_and_daily_cohorts() -> None:
     overall_query = str(session.execute.call_args_list[0].args[0])
     daily_query = str(session.execute.call_args_list[1].args[0])
     assert "ping_3_answered_at" in overall_query
+    assert "app.messages" in overall_query
+    assert "^/start" in overall_query
     assert "Europe/Moscow" in daily_query
+    assert "(m.created_at at time zone 'Europe/Moscow')::date" in daily_query
+    assert "^/start" in daily_query
     assert "- 13" in daily_query
 
 

@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from html import escape
 
 from aiogram import Bot, Dispatcher, F, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -146,6 +147,10 @@ async def _upsert_pinned_tech_status(bot: Bot) -> None:
         try:
             await bot.edit_message_text(text, chat_id=chat_id, message_id=message_id, parse_mode="HTML")
             return
+        except TelegramBadRequest as exc:
+            if "message is not modified" in str(exc).lower():
+                return
+            logger.warning("failed to edit pinned tech status; creating a new one", exc_info=True)
         except Exception:
             logger.warning("failed to edit pinned tech status; creating a new one", exc_info=True)
 
