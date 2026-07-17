@@ -21,7 +21,7 @@ def eval_run() -> dict:
         "schema_version": "sales-eval-run-v1",
         "run_id": "baseline-v0",
         "generated_at": "2026-07-10T12:00:00Z",
-        "prompt": {"path": "prompts/user_chat.system.md", "sha256": "abc123"},
+        "prompt": {"path": "prompts/user_chat/v0.3.md", "sha256": "abc123"},
         "target_model": "private-target-model",
         "judge_model": "private-judge-model",
         "dataset_version": "sales-v1",

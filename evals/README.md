@@ -126,8 +126,9 @@ Judge-only ошибка намеренно не попадает в задачи
 
 1. Зафиксировать `baseline-v0` и получить reviewed JSON.
 2. Проверить `alignment.json`. Разобрать конфликты human/judge до изменения промпта.
-3. Скопировать текущий промпт в отдельный candidate-файл, например
-   `evals/candidates/user_chat.v1.md`.
+3. Выбрать идентификатор следующей тестируемой версии, например `sales-v1`, и
+   скопировать текущий промпт в `prompts/user_chat/sales-v1.md`. Имя файла и `run-id`
+   должны совпадать. Уже протестированные версии не изменять.
 4. Дать Codex `prompt_improvement_packet.json` и candidate-файл с инструкцией:
    «Меняй только candidate prompt; не меняй dataset, hard checks и judge; объясни каждое
    правило через human-rejected кейсы; не оптимизируйся под дословные ответы».
@@ -136,17 +137,20 @@ Judge-only ошибка намеренно не попадает в задачи
 
 ```bash
 .venv/bin/python -m evals.run_sales_eval run \
-  --run-id candidate-v1 \
-  --prompt evals/candidates/user_chat.v1.md
+  --run-id sales-v1 \
+  --prompt prompts/user_chat/sales-v1.md
 ```
 
 6. Сравнить `technical_report.html` baseline и candidate: сначала human-критичные кейсы и
    решение о кнопке, затем hard checks, затем judge score/reasons. Новый business HTML
    можно снова отдать заказчику вслепую.
-7. Только после принятия candidate перенести изменения в
-   `prompts/user_chat.system.md` и выполнить финальный полный прогон.
+7. После принятия candidate переключить `user_chat` на `sales-v1` в
+   `prompts/active.json` и выполнить финальный полный прогон. Сам версионный файл при
+   этом не менять.
 
 Хэш промпта сохраняется в каждом `run.json`, поэтому результаты нельзя случайно спутать.
+Если после eval нужна ещё одна правка, создать следующую версию с новым именем и новым
+`run-id`, а не перезаписывать уже проверенный файл.
 
 ## Сценарии
 

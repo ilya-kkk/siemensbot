@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
+import app.ai.openrouter as openrouter_module
 from app.ai.openrouter import (
     PING_SCHEMA,
     OpenRouterClient,
@@ -13,8 +14,33 @@ from app.ai.openrouter import (
     _is_invalid_niche_answer,
     _is_off_topic_request,
     _sanitize_reply_text,
+    active_prompt_path,
     parse_ping_response,
 )
+
+
+def test_active_prompt_path_uses_version_from_config(tmp_path, monkeypatch) -> None:
+    prompts_dir = tmp_path / "prompts"
+    prompt_dir = prompts_dir / "user_chat"
+    prompt_dir.mkdir(parents=True)
+    (prompt_dir / "sales-v7.md").write_text("version seven", encoding="utf-8")
+    active_config = prompts_dir / "active.json"
+    active_config.write_text('{"user_chat": "sales-v7"}', encoding="utf-8")
+    monkeypatch.setattr(openrouter_module, "PROMPTS_DIR", prompts_dir)
+    monkeypatch.setattr(openrouter_module, "ACTIVE_PROMPTS_PATH", active_config)
+
+    assert active_prompt_path("user_chat") == prompt_dir / "sales-v7.md"
+    assert openrouter_module.load_prompt("user_chat") == "version seven"
+
+
+def test_active_prompt_path_rejects_missing_version(tmp_path, monkeypatch) -> None:
+    active_config = tmp_path / "active.json"
+    active_config.write_text('{"user_chat": "missing"}', encoding="utf-8")
+    monkeypatch.setattr(openrouter_module, "PROMPTS_DIR", tmp_path)
+    monkeypatch.setattr(openrouter_module, "ACTIVE_PROMPTS_PATH", active_config)
+
+    with pytest.raises(FileNotFoundError, match="version 'missing'"):
+        active_prompt_path("user_chat")
 
 
 class FakeOpenRouterClient(OpenRouterClient):

@@ -14,7 +14,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from app.ai.openrouter import OpenRouterClient
+from app.ai.openrouter import OpenRouterClient, active_prompt_path
 from evals.reporting import (
     build_alignment_report,
     build_prompt_improvement_packet,
@@ -25,7 +25,7 @@ from evals.reporting import (
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET = ROOT_DIR / "evals" / "cases" / "sales_v1.jsonl"
-DEFAULT_PROMPT = ROOT_DIR / "prompts" / "user_chat.system.md"
+DEFAULT_PROMPT = active_prompt_path("user_chat")
 DEFAULT_RESULTS_DIR = ROOT_DIR / "evals" / "results"
 DEFAULT_FOLLOWUP_TEXT = (
     "Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей "

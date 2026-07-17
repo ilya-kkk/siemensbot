@@ -33,6 +33,7 @@ siemensbot.egg-info/SOURCES.txt
 siemensbot.egg-info/dependency_links.txt
 siemensbot.egg-info/requires.txt
 siemensbot.egg-info/top_level.txt
+tests/test_admin_leads.py
 tests/test_admin_views.py
 tests/test_config.py
 tests/test_eval_reporting.py

@@ -12,6 +12,8 @@ import httpx
 from app.core.config import Settings
 
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
+ACTIVE_PROMPTS_PATH = PROMPTS_DIR / "active.json"
+PROMPT_VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 DASH_TRANSLATION = str.maketrans({"—": "-", "–": "-"})
 LEADING_ACK_RE = re.compile(
     r"^\s*(понятно|понял|поняла|окей|ок|да|хорошо|принял|приняла|зафиксировал|зафиксировала)\b[,.!]*\s*",
@@ -100,8 +102,27 @@ class PingResult:
     response_payload: dict[str, Any]
 
 
-def load_prompt(name: str) -> str:
-    return (PROMPTS_DIR / name).read_text(encoding="utf-8")
+def active_prompt_path(prompt_name: str) -> Path:
+    if not PROMPT_VERSION_RE.fullmatch(prompt_name):
+        raise ValueError(f"Invalid prompt name: {prompt_name!r}")
+    active_versions = json.loads(ACTIVE_PROMPTS_PATH.read_text(encoding="utf-8"))
+    version = active_versions.get(prompt_name)
+    if not isinstance(version, str) or not PROMPT_VERSION_RE.fullmatch(version):
+        raise ValueError(
+            f"Invalid or missing active version for prompt {prompt_name!r} "
+            f"in {ACTIVE_PROMPTS_PATH}"
+        )
+
+    prompt_path = PROMPTS_DIR / prompt_name / f"{version}.md"
+    if not prompt_path.is_file():
+        raise FileNotFoundError(
+            f"Active prompt {prompt_name!r} version {version!r} does not exist: {prompt_path}"
+        )
+    return prompt_path
+
+
+def load_prompt(prompt_name: str) -> str:
+    return active_prompt_path(prompt_name).read_text(encoding="utf-8")
 
 
 def load_json_schema(name: str) -> dict[str, Any]:
@@ -403,7 +424,7 @@ class OpenRouterClient:
             )
 
         if system_prompt is None:
-            system_prompt = load_prompt("user_chat.system.md")
+            system_prompt = load_prompt("user_chat")
         payload = {
             "model": self.settings.openrouter_model,
             "messages": [
@@ -435,7 +456,7 @@ class OpenRouterClient:
         )
 
     async def analyze_dialogue(self, transcript: str) -> AnalysisResult:
-        system_prompt = load_prompt("dialog_analysis.system.md")
+        system_prompt = load_prompt("dialog_analysis")
         schema = load_json_schema("dialog_analysis.schema.json")
         payload = {
             "model": self.settings.openrouter_model,
@@ -473,7 +494,7 @@ class OpenRouterClient:
         if idle_minutes < 0:
             raise ValueError("idle_minutes must be non-negative")
 
-        system_prompt = load_prompt("ping.system.md")
+        system_prompt = load_prompt("ping")
         payload = {
             "model": self.settings.openrouter_model,
             "messages": [

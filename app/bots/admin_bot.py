@@ -44,7 +44,7 @@ from app.services.admin_views import (
     render_start_html,
     render_stats_rich_html,
 )
-from app.services.leads import render_leads_csv
+from app.services.leads import render_leads_xlsx
 from app.services.transcript import render_dialogue_html, split_telegram_html
 
 router = Router()
@@ -57,7 +57,7 @@ HEALTH_COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker")
 
 MENU = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="CSV"), KeyboardButton(text="Статистика")],
+        [KeyboardButton(text="Таблица"), KeyboardButton(text="Статистика")],
         [KeyboardButton(text="Диалог"), KeyboardButton(text="Настроить пинги")],
         [KeyboardButton(text="Установить алерт")],
         [KeyboardButton(text="Стоп")],
@@ -339,6 +339,7 @@ async def start(message: Message, bot: Bot) -> None:
 
 
 @router.message(Command("leads"))
+@router.message(F.text == "Таблица")
 @router.message(F.text == "CSV")
 async def download_leads(message: Message) -> None:
     if not await _ensure_admin(message):
@@ -346,10 +347,10 @@ async def download_leads(message: Message) -> None:
     async with SessionLocal() as session:
         rows = await AppRepository(session).get_leads_for_export()
 
-    csv_bytes = render_leads_csv(rows)
-    filename = f"leads_{datetime.now(UTC).strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+    xlsx_bytes = render_leads_xlsx(rows)
+    filename = f"leads_{datetime.now(UTC).strftime('%Y-%m-%d_%H-%M-%S')}.xlsx"
     await message.answer_document(
-        BufferedInputFile(csv_bytes, filename=filename),
+        BufferedInputFile(xlsx_bytes, filename=filename),
         caption=f"Лидов: {len(rows)}",
         reply_markup=MENU,
     )
