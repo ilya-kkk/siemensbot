@@ -69,14 +69,12 @@ async def test_ensure_admin_user_commits() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_app_config_seeds_fallback_url_once() -> None:
+async def test_get_app_config_seeds_ping_config_once() -> None:
     session = AsyncMock()
     session.execute.side_effect = [
         _OptionalScalarResult(None),
-        _OptionalScalarResult(None),
         _OneRowResult(
             {
-                "offer_url": "https://example.com/form",
                 "ping_1_delay_minutes": 120,
                 "ping_2_delay_minutes": 1440,
                 "ping_3_delay_minutes": 4320,
@@ -85,13 +83,12 @@ async def test_get_app_config_seeds_fallback_url_once() -> None:
         ),
     ]
 
-    config = await AppRepository(session).get_app_config("https://example.com/form")
+    config = await AppRepository(session).get_app_config()
 
-    assert config["offer_url"] == "https://example.com/form"
+    assert config["ping_1_delay_minutes"] == 120
     first_query = str(session.execute.call_args_list[0].args[0])
-    second_query = str(session.execute.call_args_list[1].args[0])
     assert "on conflict (id) do nothing" in first_query
-    assert "offer_url is null" in second_query
+    assert "offer_url" not in first_query
     session.commit.assert_awaited_once()
 
 
@@ -211,22 +208,59 @@ async def test_offer_display_does_not_mark_user_as_lead() -> None:
 
 
 @pytest.mark.asyncio
+async def test_analysis_is_refreshed_when_dialogue_changed_or_lead_is_new() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _OptionalScalarResult(True)
+
+    needed = await AppRepository(session).user_needs_analysis(telegram_user_id=1)
+
+    assert needed is True
+    query = str(session.execute.call_args.args[0])
+    assert "u.analyzed_at < u.lead_at" in query
+    assert "m.created_at > u.analyzed_at" in query
+
+
+@pytest.mark.asyncio
 async def test_offer_click_updates_aggregate_on_user() -> None:
     session = AsyncMock()
     session.execute.return_value = _OptionalScalarResult(1)
 
-    found = await AppRepository(session).record_offer_click("token")
+    found = await AppRepository(session).record_lead_click(123, 456)
 
-    assert found is True
+    assert found == 1
     query = str(session.execute.call_args.args[0])
     assert "update app.telegram_users" in query
     assert "offer_click_count = offer_click_count + 1" in query
-    assert "offer_legacy_tokens @>" in query
+    assert "chat_id = :chat_id" in query
+    assert "telegram_user_id = cast(:telegram_user_id as bigint)" in query
     assert "funnel_stage = 'lead'" in query
     assert "lead_at = coalesce(lead_at, now())" in query
     assert "ping_claim_token = null" in query
     assert "app.link_clicks" not in query
     session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_lead_export_only_selects_leads_and_analysis_fields() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult([])
+
+    rows = await AppRepository(session).get_leads_for_export()
+
+    assert rows == []
+    query = str(session.execute.call_args.args[0])
+    assert "where funnel_stage = 'lead'" in query
+    for column in (
+        "niche",
+        "revenue_estimate",
+        "average_check",
+        "sales_volume",
+        "main_problem",
+        "lead_temperature",
+        "summary",
+        "confidence",
+    ):
+        assert column in query
 
 
 @pytest.mark.asyncio

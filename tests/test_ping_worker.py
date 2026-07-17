@@ -27,7 +27,6 @@ class _FakeRepository:
             "chat_id": 700,
             "ping_number": 1,
             "offer_shown": False,
-            "offer_url": "https://example.com/form",
         }
         self.saved_ai_requests: list[tuple[tuple[object, ...], dict[str, object]]] = []
         self.completed: list[tuple[tuple[object, ...], dict[str, object]]] = []
@@ -68,15 +67,8 @@ class _FakeRepository:
         self.delivery_failures.append((args, kwargs))
         return True
 
-    async def get_or_create_offer_token(
-        self,
-        _telegram_user_id: int,
-        **_kwargs: object,
-    ) -> str:
-        return "tracked-token"
-
-    async def get_app_config(self, _default_offer_url: str) -> dict[str, object]:
-        return {"offer_url": "https://current.example/form"}
+    async def get_app_config(self) -> dict[str, object]:
+        return {}
 
 
 class _SentMessage:
@@ -91,8 +83,6 @@ class _SentMessage:
 def _settings(**overrides: object) -> SimpleNamespace:
     values: dict[str, object] = {
         "openrouter_model": "test-model",
-        "test_drive_url": "https://fallback.example/form",
-        "public_base_url": "https://bot.example",
         "ping_worker_retry_seconds": 300,
     }
     values.update(overrides)
@@ -108,7 +98,6 @@ def _claim(**overrides: object) -> dict[str, object]:
         "anchor_at": "2026-07-13T10:00:00+00:00",
         "idle_minutes": 120,
         "offer_shown": False,
-        "offer_url": "https://example.com/form",
         "ping_pending_ai_request_id": None,
         "pending_response_payload": None,
         "ping_1_delay_minutes": 120,
@@ -241,7 +230,6 @@ async def test_ping_after_offer_repeats_tracked_button(fake_runtime: _FakeReposi
         "chat_id": 700,
         "ping_number": 1,
         "offer_shown": True,
-        "offer_url": "https://example.com/form",
     }
     client = AsyncMock()
     client.generate_ping.return_value = PingResult(
@@ -262,7 +250,8 @@ async def test_ping_after_offer_repeats_tracked_button(fake_runtime: _FakeReposi
 
     assert sent is True
     markup = bot.send_message.await_args.kwargs["reply_markup"]
-    assert markup.inline_keyboard[0][0].url == "https://bot.example/r/tracked-token"
+    assert markup.inline_keyboard[0][0].url is None
+    assert markup.inline_keyboard[0][0].callback_data == "register_lead"
     assert fake_runtime.completed[0][1]["message_type"] == "button"
 
 

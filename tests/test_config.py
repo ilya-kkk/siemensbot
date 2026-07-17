@@ -13,16 +13,13 @@ def _settings(**values: str) -> Settings:
     return Settings(_env_file=None, DATABASE_URL="postgresql://localhost/example", **defaults)
 
 
-def test_public_base_url_is_required_outside_local_or_test() -> None:
-    with pytest.raises(ValidationError, match="PUBLIC_BASE_URL is required"):
-        _settings(APP_ENV="Production", PUBLIC_BASE_URL="")
-
-
-def test_public_base_url_guard_allows_tracked_production_and_local() -> None:
+def test_public_base_url_is_optional_in_production_and_local() -> None:
     production = _settings(APP_ENV="Production", PUBLIC_BASE_URL="https://bot.example")
+    production_without_url = _settings(APP_ENV="Production", PUBLIC_BASE_URL="")
     local = _settings(APP_ENV="local", PUBLIC_BASE_URL="")
 
     assert production.public_base_url == "https://bot.example"
+    assert not production_without_url.public_base_url
     assert not local.public_base_url
 
 

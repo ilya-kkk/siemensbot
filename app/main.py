@@ -2,13 +2,12 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Request
-from fastapi.responses import JSONResponse, RedirectResponse
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from app.alerts import send_critical_alert
 from app.core.config import get_settings
-from app.core.db import SessionLocal, check_database, get_session
+from app.core.db import SessionLocal, check_database
 from app.core.logging import configure_logging
 from app.monitoring import heartbeat_loop, stop_background_task
 from app.repositories import AppRepository
@@ -108,16 +107,3 @@ async def health_watchdog() -> JSONResponse:
         {"status": "ok" if healthy else "degraded"},
         status_code=200 if healthy else 503,
     )
-
-
-@app.get("/r/{token}")
-async def redirect_link(
-    token: str,
-    session: AsyncSession = Depends(get_session),
-) -> RedirectResponse:
-    repo = AppRepository(session)
-    settings = get_settings()
-    await repo.record_offer_click(token)
-    config = await repo.get_app_config(settings.test_drive_url)
-    destination = str(config["offer_url"] or settings.test_drive_url)
-    return RedirectResponse(destination, status_code=302)

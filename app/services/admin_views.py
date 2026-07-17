@@ -4,7 +4,6 @@ from datetime import date
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from html import escape
 from typing import Any
-from urllib.parse import urlsplit
 
 _PING_METRICS = (
     ("Нажали Start", "started_users"),
@@ -19,24 +18,6 @@ _PING_METRICS = (
     ("Нажали кнопку / лиды", "total_leads"),
 )
 _MAX_POSTGRES_INTEGER = 2_147_483_647
-
-
-def parse_offer_url(text: str | None) -> str:
-    """Return a validated absolute HTTP(S) URL entered by an admin."""
-    value = (text or "").strip()
-    if not value or any(character.isspace() for character in value):
-        raise ValueError("URL must be an absolute HTTP(S) URL")
-
-    try:
-        parsed = urlsplit(value)
-        # Reading port also validates malformed/non-numeric ports.
-        _ = parsed.port
-    except ValueError as exc:
-        raise ValueError("URL must be an absolute HTTP(S) URL") from exc
-
-    if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc or not parsed.hostname:
-        raise ValueError("URL must be an absolute HTTP(S) URL")
-    return value
 
 
 def _split_ping_delay_values(text: str | None) -> list[str]:
@@ -116,9 +97,8 @@ def render_start_html() -> str:
             "CSV - скачать таблицу лидов.",
             "Статистика - посмотреть общую статистику и когорты за 14 дней.",
             "Диалог - выгрузить диалог по username или chat_id.",
-            "Установить ссылку - изменить адрес финальной кнопки.",
             "Настроить пинги - задать три интервала в часах.",
-            "Отмена - выйти из настройки ссылки или пингов.",
+            "Отмена - выйти из настройки пингов.",
             "Стоп - аварийно остановить клиентского бота и пинги.",
         ]
     )

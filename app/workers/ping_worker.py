@@ -114,24 +114,18 @@ def _message_payload(message: Any) -> dict[str, Any]:
 
 
 async def _offer_markup(
-    repo: AppRepository,
-    current_settings: Settings,
-    telegram_user_id: int,
+    _repo: AppRepository,
+    _current_settings: Settings,
+    _telegram_user_id: int,
     claim: Mapping[str, Any],
 ) -> InlineKeyboardMarkup | None:
     if not claim.get("offer_shown"):
         return None
 
-    public_base_url = getattr(current_settings, "public_base_url", None)
-    if public_base_url:
-        token = await repo.get_or_create_offer_token(telegram_user_id, commit=False)
-        url = f"{public_base_url.rstrip('/')}/r/{token}"
-    else:
-        url = claim.get("offer_url") or getattr(current_settings, "test_drive_url", None)
-    if not url:
-        return None
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="Записаться", url=str(url))]]
+        inline_keyboard=[[
+            InlineKeyboardButton(text="Записаться", callback_data="register_lead")
+        ]]
     )
 
 
@@ -442,7 +436,7 @@ async def _process_once(
         repo = AppRepository(session)
         if await repo.is_client_bot_stopped():
             return 0
-        await repo.get_app_config(current_settings.test_drive_url)
+        await repo.get_app_config()
         claims = await repo.claim_due_ping_users(
             1,
             _setting_int(current_settings, "ping_worker_lease_seconds", DEFAULT_LEASE_SECONDS),
@@ -461,8 +455,6 @@ async def _process_once(
 async def main() -> None:
     if not settings.user_bot_token:
         raise RuntimeError("USER_BOT_TOKEN is required")
-    if settings.app_env.lower() not in {"local", "test"} and not settings.public_base_url:
-        raise RuntimeError("PUBLIC_BASE_URL is required outside local/test environments")
     bot = Bot(settings.user_bot_token)
     heartbeat_task = asyncio.create_task(heartbeat_loop("ping_worker", settings))
     try:

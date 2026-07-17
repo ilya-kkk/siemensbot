@@ -42,7 +42,6 @@ class Settings(BaseSettings):
         default="openai/gpt-4o-mini-transcribe",
         alias="OPENROUTER_STT_MODEL",
     )
-    test_drive_url: str = Field(default="https://example.com/test-drive", alias="TEST_DRIVE_URL")
     welcome_text: str = Field(
         default="Привет! Давай разберём твой проект. В какой нише сейчас работаешь?",
         alias="WELCOME_TEXT",
@@ -68,11 +67,9 @@ class Settings(BaseSettings):
     tech_status_update_seconds: int = Field(default=60, alias="TECH_STATUS_UPDATE_SECONDS")
 
     @model_validator(mode="after")
-    def require_tracked_redirect_in_production(self) -> "Settings":
+    def validate_public_base_url(self) -> "Settings":
         is_local = self.app_env.strip().lower() in {"local", "test"}
         public_base_url = (self.public_base_url or "").strip()
-        if not is_local and not public_base_url:
-            raise ValueError("PUBLIC_BASE_URL is required outside local/test environments")
         if not is_local and not self.admin_bot_token:
             raise ValueError("ADMIN_BOT_TOKEN is required outside local/test environments")
         if not is_local and not self.tech_admin_username_normalized:

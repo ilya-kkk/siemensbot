@@ -7,8 +7,6 @@ from uuid import UUID, uuid4
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.tokens import make_link_token
-
 
 def _normalize_username(username: str | None) -> str | None:
     if not username:
@@ -131,35 +129,21 @@ class AppRepository:
             }
         return health
 
-    async def get_app_config(self, default_offer_url: str) -> dict[str, Any]:
-        """Return the singleton runtime config, seeding its URL exactly once."""
+    async def get_app_config(self) -> dict[str, Any]:
+        """Return the singleton runtime config for ping scheduling."""
         await self.session.execute(
             text(
                 """
-                insert into app.config (id, offer_url)
-                values (1, nullif(btrim(:default_offer_url), ''))
+                insert into app.config (id)
+                values (1)
                 on conflict (id) do nothing
                 """
-            ),
-            {"default_offer_url": default_offer_url},
-        )
-        await self.session.execute(
-            text(
-                """
-                update app.config
-                set offer_url = nullif(btrim(:default_offer_url), ''), updated_at = now()
-                where id = 1
-                  and offer_url is null
-                  and nullif(btrim(:default_offer_url), '') is not null
-                """
-            ),
-            {"default_offer_url": default_offer_url},
+            )
         )
         result = await self.session.execute(
             text(
                 """
                 select
-                  offer_url,
                   ping_1_delay_minutes,
                   ping_2_delay_minutes,
                   ping_3_delay_minutes,
@@ -172,19 +156,6 @@ class AppRepository:
         row = result.one()
         await self.session.commit()
         return dict(row._mapping)
-
-    async def set_offer_url(self, offer_url: str) -> None:
-        await self.session.execute(
-            text(
-                """
-                update app.config
-                set offer_url = :offer_url, updated_at = now()
-                where id = 1
-                """
-            ),
-            {"offer_url": offer_url},
-        )
-        await self.session.commit()
 
     async def set_ping_delays(self, delays_minutes: tuple[int, int, int]) -> None:
         ping_1, ping_2, ping_3 = delays_minutes
@@ -570,9 +541,19 @@ class AppRepository:
         result = await self.session.execute(
             text(
                 """
-                select analysis_ai_request_id is null
-                from app.telegram_users
-                where id = :telegram_user_id
+                select
+                  u.analysis_ai_request_id is null
+                  or u.analyzed_at is null
+                  or u.analyzed_at < u.lead_at
+                  or exists (
+                    select 1
+                    from app.messages m
+                    where m.telegram_user_id = u.id
+                      and m.text is not null
+                      and m.created_at > u.analyzed_at
+                  )
+                from app.telegram_users u
+                where u.id = :telegram_user_id
                 """
             ),
             {"telegram_user_id": telegram_user_id},
@@ -668,56 +649,12 @@ class AppRepository:
         )
         return [dict(row._mapping) for row in result.all()]
 
-    async def get_or_create_offer_token(
+    async def record_lead_click(
         self,
-        telegram_user_id: int,
-        *,
-        commit: bool = True,
-    ) -> str:
-        result = await self.session.execute(
-            text("select offer_token from app.telegram_users where id = :telegram_user_id"),
-            {"telegram_user_id": telegram_user_id},
-        )
-        existing = result.scalar_one_or_none()
-        if existing:
-            return str(existing)
-
-        for _ in range(5):
-            token = make_link_token()
-            result = await self.session.execute(
-                text(
-                    """
-                    update app.telegram_users
-                    set offer_token = :token, updated_at = now()
-                    where id = :telegram_user_id
-                      and offer_token is null
-                      and not exists (
-                        select 1
-                        from app.telegram_users
-                        where offer_token = :token
-                           or offer_legacy_tokens @> array[cast(:token as text)]
-                      )
-                    returning offer_token
-                    """
-                ),
-                {"telegram_user_id": telegram_user_id, "token": token},
-            )
-            value = result.scalar_one_or_none()
-            if value:
-                if commit:
-                    await self.session.commit()
-                return str(value)
-
-            result = await self.session.execute(
-                text("select offer_token from app.telegram_users where id = :telegram_user_id"),
-                {"telegram_user_id": telegram_user_id},
-            )
-            existing = result.scalar_one_or_none()
-            if existing:
-                return str(existing)
-        raise RuntimeError("could not generate unique offer token")
-
-    async def record_offer_click(self, token: str) -> bool:
+        chat_id: int,
+        telegram_user_id: int | None,
+    ) -> int | None:
+        """Mark a user as a lead directly from the Telegram inline button."""
         result = await self.session.execute(
             text(
                 """
@@ -738,17 +675,48 @@ class AppRepository:
                     ping_retry_at = null,
                     ping_pending_ai_request_id = null,
                     updated_at = now()
-                where offer_token = :token
-                   or offer_legacy_tokens @> array[cast(:token as text)]
+                where chat_id = :chat_id
+                  and (
+                    cast(:telegram_user_id as bigint) is null
+                    or telegram_user_id = cast(:telegram_user_id as bigint)
+                  )
                 returning id
                 """
             ),
-            {"token": token},
+            {"chat_id": chat_id, "telegram_user_id": telegram_user_id},
         )
-        found = result.scalar_one_or_none() is not None
-        if found:
-            await self.session.commit()
-        return found
+        value = result.scalar_one_or_none()
+        if value is None:
+            await self.session.rollback()
+            return None
+        await self.session.commit()
+        return int(value)
+
+    async def get_message_id_for_telegram_message(
+        self,
+        telegram_user_id: int,
+        telegram_message_id: int,
+    ) -> int | None:
+        result = await self.session.execute(
+            text(
+                """
+                select id
+                from app.messages
+                where telegram_user_id = :telegram_user_id
+                order by
+                  (telegram_message_id = :telegram_message_id) desc,
+                  created_at desc,
+                  id desc
+                limit 1
+                """
+            ),
+            {
+                "telegram_user_id": telegram_user_id,
+                "telegram_message_id": telegram_message_id,
+            },
+        )
+        value = result.scalar_one_or_none()
+        return int(value) if value is not None else None
 
     async def claim_due_ping_users(
         self,
@@ -768,7 +736,6 @@ class AppRepository:
                   u.offer_shown_at is not null as offer_shown,
                   u.ping_pending_ai_request_id,
                   ar.response_payload as pending_response_payload,
-                  c.offer_url,
                   c.ping_1_delay_minutes,
                   c.ping_2_delay_minutes,
                   c.ping_3_delay_minutes
@@ -899,7 +866,6 @@ class AppRepository:
                   u.offer_shown_at is not null as offer_shown,
                   u.ping_pending_ai_request_id,
                   ar.response_payload as pending_response_payload,
-                  c.offer_url,
                   c.ping_1_delay_minutes,
                   c.ping_2_delay_minutes,
                   c.ping_3_delay_minutes

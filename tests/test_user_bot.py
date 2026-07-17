@@ -27,6 +27,65 @@ def _message(chat_id: int = 100, text: str | None = None) -> SimpleNamespace:
     )
 
 
+def test_offer_button_is_a_callback_without_external_url() -> None:
+    button = user_bot._offer_markup().inline_keyboard[0][0]
+
+    assert button.url is None
+    assert button.callback_data == user_bot.OFFER_CALLBACK_DATA
+
+
+@pytest.mark.asyncio
+async def test_test_offer_callback_does_not_touch_production_data() -> None:
+    callback = SimpleNamespace(answer=AsyncMock())
+
+    await user_bot.register_test_lead(callback)
+
+    callback.answer.assert_awaited_once_with("Тестовая заявка принята")
+
+
+@pytest.mark.asyncio
+async def test_lead_callback_marks_user_then_analyzes_full_dialogue(monkeypatch) -> None:
+    repo = SimpleNamespace(
+        record_lead_click=AsyncMock(return_value=10),
+        get_message_id_for_telegram_message=AsyncMock(return_value=20),
+    )
+
+    class SessionContext:
+        async def __aenter__(self):
+            return object()
+
+        async def __aexit__(self, exc_type, exc, tb) -> None:
+            return None
+
+    callback_message = SimpleNamespace(
+        chat=SimpleNamespace(id=100),
+        message_id=300,
+        answer=AsyncMock(),
+        edit_reply_markup=AsyncMock(),
+    )
+    callback = SimpleNamespace(
+        message=callback_message,
+        from_user=SimpleNamespace(id=200),
+        answer=AsyncMock(),
+    )
+    analyze = AsyncMock(return_value=False)
+    monkeypatch.setattr(user_bot, "SessionLocal", SessionContext)
+    monkeypatch.setattr(user_bot, "AppRepository", lambda _session: repo)
+    monkeypatch.setattr(user_bot, "_ensure_user_analysis", analyze)
+
+    await user_bot.register_lead(callback)
+
+    callback.answer.assert_awaited_once_with()
+    callback_message.answer.assert_awaited_once_with(
+        "Ваша заявка принята, скоро с вами свяжется менеджер."
+    )
+    repo.record_lead_click.assert_awaited_once_with(100, 200)
+    repo.get_message_id_for_telegram_message.assert_awaited_once_with(10, 300)
+    analyze.assert_awaited_once()
+    assert analyze.await_args.args[:2] == (10, 20)
+    callback_message.edit_reply_markup.assert_awaited_once_with(reply_markup=None)
+
+
 @pytest.mark.asyncio
 async def test_transcribe_voice_downloads_in_memory_without_echo(monkeypatch) -> None:
     downloaded: list[tuple[str, object]] = []

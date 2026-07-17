@@ -4,26 +4,11 @@ import pytest
 
 from app.services.admin_views import (
     format_ping_delays,
-    parse_offer_url,
     parse_ping_delays,
     ping_delays_from_config,
     render_start_html,
     render_stats_rich_html,
 )
-
-
-def test_parse_offer_url_accepts_absolute_http_urls() -> None:
-    assert parse_offer_url(" https://example.com/form?q=1 ") == "https://example.com/form?q=1"
-    assert parse_offer_url("http://localhost:8080/path") == "http://localhost:8080/path"
-
-
-@pytest.mark.parametrize(
-    "value",
-    [None, "", "example.com", "/relative", "ftp://example.com", "https://", "https://bad port"],
-)
-def test_parse_offer_url_rejects_non_absolute_http_urls(value: str | None) -> None:
-    with pytest.raises(ValueError):
-        parse_offer_url(value)
 
 
 def test_parse_ping_delays_converts_decimal_hours_to_minutes() -> None:
@@ -110,7 +95,7 @@ def test_render_stats_rich_html_has_open_overall_and_14_closed_cohorts() -> None
 def test_render_start_describes_new_admin_actions() -> None:
     html = render_start_html()
 
-    assert "Установить ссылку" in html
+    assert "Установить ссылку" not in html
     assert "Настроить пинги" in html
     assert "Отмена" in html
     assert "пинги" in html

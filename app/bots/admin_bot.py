@@ -33,7 +33,6 @@ from app.monitoring import (
 from app.repositories import AppRepository
 from app.services.admin_views import (
     format_ping_delays,
-    parse_offer_url,
     parse_ping_delays,
     ping_delays_from_config,
     render_start_html,
@@ -53,8 +52,8 @@ HEALTH_COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker")
 MENU = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="CSV"), KeyboardButton(text="Статистика")],
-        [KeyboardButton(text="Диалог"), KeyboardButton(text="Установить ссылку")],
-        [KeyboardButton(text="Настроить пинги"), KeyboardButton(text="Стоп")],
+        [KeyboardButton(text="Диалог"), KeyboardButton(text="Настроить пинги")],
+        [KeyboardButton(text="Стоп")],
         [KeyboardButton(text="Отмена")],
     ],
     resize_keyboard=True,
@@ -63,7 +62,6 @@ MENU = ReplyKeyboardMarkup(
 
 class AdminStates(StatesGroup):
     waiting_dialog_query = State()
-    waiting_offer_url = State()
     waiting_ping_delays = State()
 
 
@@ -220,49 +218,13 @@ async def cancel(message: Message, state: FSMContext) -> None:
     await message.answer("Действие отменено.", reply_markup=MENU)
 
 
-@router.message(Command("offer_url"))
-@router.message(F.text == "Установить ссылку")
-async def offer_url_start(message: Message, state: FSMContext) -> None:
-    if not await _ensure_admin(message):
-        return
-    async with SessionLocal() as session:
-        config = await AppRepository(session).get_app_config(settings.test_drive_url)
-    await state.set_state(AdminStates.waiting_offer_url)
-    await message.answer(
-        "Текущая ссылка:\n"
-        f"{config['offer_url']}\n\n"
-        "Пришли новый абсолютный адрес, начинающийся с http:// или https://.",
-        reply_markup=MENU,
-    )
-
-
-@router.message(AdminStates.waiting_offer_url)
-async def offer_url_receive(message: Message, state: FSMContext) -> None:
-    if not await _ensure_admin(message):
-        return
-    try:
-        url = parse_offer_url(message.text)
-    except ValueError:
-        await message.answer(
-            "Не удалось распознать ссылку. Пришли абсолютный URL с http:// или https:// "
-            "либо нажми «Отмена».",
-            reply_markup=MENU,
-        )
-        return
-
-    async with SessionLocal() as session:
-        await AppRepository(session).set_offer_url(url)
-    await state.clear()
-    await message.answer(f"Ссылка установлена:\n{url}", reply_markup=MENU)
-
-
 @router.message(Command("ping_settings"))
 @router.message(F.text == "Настроить пинги")
 async def ping_settings_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return
     async with SessionLocal() as session:
-        config = await AppRepository(session).get_app_config(settings.test_drive_url)
+        config = await AppRepository(session).get_app_config()
     current = format_ping_delays(ping_delays_from_config(config))
     await state.set_state(AdminStates.waiting_ping_delays)
     await message.answer(

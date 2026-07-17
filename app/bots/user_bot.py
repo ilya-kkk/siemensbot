@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, F, Router
 from aiogram.exceptions import TelegramAPIError
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, User
 
 from app.ai.openrouter import OpenRouterClient, OpenRouterError
 from app.alerts import (
@@ -29,6 +29,8 @@ test_offer_sent: set[int] = set()
 VOICE_TRANSCRIPTION_ERROR = (
     "Не удалось расшифровать голосовое сообщение. Попробуйте записать ещё раз."
 )
+OFFER_CALLBACK_DATA = "register_lead"
+TEST_OFFER_CALLBACK_DATA = "test_register_lead"
 
 
 def _openrouter_status_code(exc: OpenRouterError) -> int | None:
@@ -39,18 +41,13 @@ def _openrouter_status_code(exc: OpenRouterError) -> int | None:
         return None
 
 
-def _offer_markup(url: str) -> InlineKeyboardMarkup:
-    button = InlineKeyboardButton(text="Записаться", url=url)
+def _offer_markup(callback_data: str = OFFER_CALLBACK_DATA) -> InlineKeyboardMarkup:
+    button = InlineKeyboardButton(text="Записаться", callback_data=callback_data)
     return InlineKeyboardMarkup(inline_keyboard=[[button]])
 
 
-async def _build_offer_markup(repo: AppRepository, telegram_user_id: int) -> InlineKeyboardMarkup:
-    config = await repo.get_app_config(settings.test_drive_url)
-    offer_url = str(config["offer_url"] or settings.test_drive_url)
-    if settings.public_base_url:
-        token = await repo.get_or_create_offer_token(telegram_user_id)
-        offer_url = f"{settings.public_base_url.rstrip('/')}/r/{token}"
-    return _offer_markup(offer_url)
+async def _build_offer_markup(_repo: AppRepository, _telegram_user_id: int) -> InlineKeyboardMarkup:
+    return _offer_markup()
 
 
 async def _client_bot_stopped() -> bool:
@@ -103,11 +100,11 @@ async def _ensure_user_analysis(
     telegram_user_id: int,
     source_message_id: int,
     client: OpenRouterClient,
-) -> None:
+) -> bool:
     async with SessionLocal() as session:
         repo = AppRepository(session)
         if not await repo.user_needs_analysis(telegram_user_id):
-            return
+            return True
         transcript = await repo.get_transcript_for_user(telegram_user_id)
         user_snapshot = await repo.get_user_snapshot(telegram_user_id)
 
@@ -136,7 +133,7 @@ async def _ensure_user_analysis(
             status_code=_openrouter_status_code(exc),
             details={"purpose": "dialogue_analysis"},
         )
-        return
+        return False
 
     await record_dependency_success(settings, "user_bot", "openrouter")
 
@@ -154,6 +151,7 @@ async def _ensure_user_analysis(
             analysis.usage,
         )
         await repo.save_user_analysis(telegram_user_id, ai_request_id, analysis.output)
+    return True
 
 
 @router.message(CommandStart())
@@ -212,16 +210,57 @@ async def _handle_test_message(message: Message, user_text: str) -> None:
     test_sessions[message.chat.id].append(f"outgoing: {decision.reply_text}")
 
     offer_already_sent = message.chat.id in test_offer_sent
-    async with SessionLocal() as session:
-        config = await AppRepository(session).get_app_config(settings.test_drive_url)
     reply_markup = (
-        _offer_markup(str(config["offer_url"] or settings.test_drive_url))
+        _offer_markup(TEST_OFFER_CALLBACK_DATA)
         if (decision.should_send_offer or offer_already_sent)
         else None
     )
     if decision.should_send_offer:
         test_offer_sent.add(message.chat.id)
     await message.answer(decision.reply_text, reply_markup=reply_markup)
+
+
+@router.callback_query(F.data == TEST_OFFER_CALLBACK_DATA)
+async def register_test_lead(callback: CallbackQuery) -> None:
+    """Acknowledge the test button without changing production lead data."""
+    await callback.answer("Тестовая заявка принята")
+
+
+@router.callback_query(F.data == OFFER_CALLBACK_DATA)
+async def register_lead(callback: CallbackQuery) -> None:
+    """Turn a button click into a lead and enrich it from the complete dialogue."""
+    await callback.answer()
+    if callback.message is None:
+        return
+
+    chat_id = callback.message.chat.id
+    external_user_id = callback.from_user.id if callback.from_user else None
+    async with SessionLocal() as session:
+        repo = AppRepository(session)
+        lead_user_id = await repo.record_lead_click(chat_id, external_user_id)
+        if lead_user_id is None:
+            return
+        source_message_id = await repo.get_message_id_for_telegram_message(
+            lead_user_id,
+            callback.message.message_id,
+        )
+
+    await callback.message.answer(
+        "Ваша заявка принята, скоро с вами свяжется менеджер."
+    )
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except TelegramAPIError:
+        logger.info("could not remove clicked lead button", exc_info=True)
+
+    if source_message_id is None:
+        logger.warning("lead %s has no source message for analysis", lead_user_id)
+        return
+    await _ensure_user_analysis(
+        lead_user_id,
+        source_message_id,
+        OpenRouterClient(settings),
+    )
 
 
 async def _download_voice_bytes(bot: Bot, message: Message) -> bytes:
@@ -399,10 +438,6 @@ async def _handle_dialogue_message(message: Message, user_text: str) -> None:
         if should_mark_offer_sent:
             await repo.mark_offer_sent(telegram_user_id)
 
-    if reply_markup is not None:
-        await _ensure_user_analysis(telegram_user_id, source_message_id, client)
-
-
 @router.message()
 async def non_text_message(message: Message) -> None:
     """Treat every inbound update as activity even when the dialogue accepts text only."""
@@ -420,10 +455,8 @@ async def errors(event) -> None:
 async def main() -> None:
     if not settings.user_bot_token:
         raise RuntimeError("USER_BOT_TOKEN is required")
-    if settings.app_env.lower() not in {"local", "test"} and not settings.public_base_url:
-        raise RuntimeError("PUBLIC_BASE_URL is required outside local/test environments")
     async with SessionLocal() as session:
-        await AppRepository(session).get_app_config(settings.test_drive_url)
+        await AppRepository(session).get_app_config()
     bot = Bot(settings.user_bot_token)
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
