@@ -58,6 +58,8 @@ triage, and maintenance instructions.
 - Telegram voice messages are transcribed in memory as Russian OGG audio and enter the same dialogue flow as text. The transcription itself is not echoed to the user.
 - `telegram_users` owns funnel stage, structured lead analysis, and aggregate click data.
 - `config` stores the three ping delays managed from the admin bot.
+- A technical or business admin can set one shared, one-shot alert for a future number of new
+  `/start` users. Both admins receive durable Telegram notifications when it is installed and fired.
 - `messages` stores the complete per-user timeline; `ai_requests` links each model call to its source and output messages.
 - Pings are generated from the full dialogue context after 2, 24, and 72 hours of inactivity by default.
 - Funnel stages progress through `started`, `dialogue`, and `lead`; only a tracked button click creates a lead.

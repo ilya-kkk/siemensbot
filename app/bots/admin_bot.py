@@ -33,6 +33,7 @@ from app.monitoring import (
 from app.repositories import AppRepository
 from app.services.admin_views import (
     format_ping_delays,
+    parse_growth_alert_threshold,
     parse_ping_delays,
     ping_delays_from_config,
     render_start_html,
@@ -53,6 +54,7 @@ MENU = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="CSV"), KeyboardButton(text="Статистика")],
         [KeyboardButton(text="Диалог"), KeyboardButton(text="Настроить пинги")],
+        [KeyboardButton(text="Установить алерт")],
         [KeyboardButton(text="Стоп")],
         [KeyboardButton(text="Отмена")],
     ],
@@ -63,6 +65,7 @@ MENU = ReplyKeyboardMarkup(
 class AdminStates(StatesGroup):
     waiting_dialog_query = State()
     waiting_ping_delays = State()
+    waiting_growth_alert_threshold = State()
 
 
 async def _admin_for_identity(username: str | None, chat_id: int) -> tuple[int, str] | None:
@@ -172,6 +175,58 @@ async def tech_status_loop(bot: Bot) -> None:
         await asyncio.sleep(delay)
 
 
+def _notification_retry_seconds(attempt_count: int) -> int:
+    return min(300, 5 * (2 ** min(max(attempt_count - 1, 0), 6)))
+
+
+async def _deliver_admin_notifications(bot: Bot) -> None:
+    async with SessionLocal() as session:
+        deliveries = await AppRepository(session).claim_admin_notification_deliveries()
+    for delivery in deliveries:
+        try:
+            await bot.send_message(delivery["chat_id"], delivery["message_text"])
+        except Exception as exc:
+            logger.warning(
+                "failed to deliver admin notification %s",
+                delivery["id"],
+                exc_info=True,
+            )
+            async with SessionLocal() as session:
+                await AppRepository(session).fail_admin_notification_delivery(
+                    delivery["id"],
+                    delivery["claim_token"],
+                    str(exc),
+                    _notification_retry_seconds(delivery["attempt_count"]),
+                )
+        else:
+            async with SessionLocal() as session:
+                await AppRepository(session).complete_admin_notification_delivery(
+                    delivery["id"], delivery["claim_token"]
+                )
+
+
+async def admin_notification_loop(bot: Bot) -> None:
+    while True:
+        try:
+            await _deliver_admin_notifications(bot)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.warning("admin notification delivery loop failed", exc_info=True)
+        await asyncio.sleep(2)
+
+
+async def _growth_alert_recipients() -> list[dict]:
+    async with SessionLocal() as session:
+        recipients = await AppRepository(session).get_growth_alert_recipients(
+            settings.tech_admin_username_normalized,
+            settings.business_admin_username_normalized,
+        )
+    if {recipient["role"] for recipient in recipients} != {"tech", "business"}:
+        return []
+    return recipients
+
+
 @router.message(CommandStart())
 async def start(message: Message) -> None:
     if not await _ensure_admin(message):
@@ -216,6 +271,64 @@ async def cancel(message: Message, state: FSMContext) -> None:
         return
     await state.clear()
     await message.answer("Действие отменено.", reply_markup=MENU)
+
+
+@router.message(Command("set_alert"))
+@router.message(F.text == "Установить алерт")
+async def growth_alert_start(message: Message, state: FSMContext) -> None:
+    if not await _ensure_admin(message):
+        return
+    if not await _growth_alert_recipients():
+        await message.answer(
+            "Не могу установить алерт: технический и бизнес-администратор должны "
+            "хотя бы один раз нажать Start в админ-боте.",
+            reply_markup=MENU,
+        )
+        return
+    await state.set_state(AdminStates.waiting_growth_alert_threshold)
+    await message.answer(
+        "Через сколько новых пользователей должен сработать алерт? "
+        "Пришли одно положительное целое число, например: 100.",
+        reply_markup=MENU,
+    )
+
+
+@router.message(AdminStates.waiting_growth_alert_threshold)
+async def growth_alert_receive(message: Message, state: FSMContext, bot: Bot) -> None:
+    admin = await _ensure_admin(message)
+    if not admin:
+        return
+    try:
+        threshold = parse_growth_alert_threshold(message.text)
+    except ValueError:
+        await message.answer(
+            "Нужно одно положительное целое число, например: 100. "
+            "Либо нажми «Отмена».",
+            reply_markup=MENU,
+        )
+        return
+
+    recipients = await _growth_alert_recipients()
+    if not recipients:
+        await state.clear()
+        await message.answer(
+            "Алерт не установлен: технический и бизнес-администратор должны "
+            "хотя бы один раз нажать Start в админ-боте.",
+            reply_markup=MENU,
+        )
+        return
+
+    admin_id, _role = admin
+    username = message.from_user.username if message.from_user else None
+    async with SessionLocal() as session:
+        await AppRepository(session).set_user_growth_alert(
+            threshold,
+            admin_id,
+            username or "unknown",
+            recipients,
+        )
+    await state.clear()
+    await _deliver_admin_notifications(bot)
 
 
 @router.message(Command("ping_settings"))
@@ -331,6 +444,7 @@ async def main() -> None:
     dp.include_router(router)
     heartbeat_task = asyncio.create_task(heartbeat_loop("admin_bot", settings))
     tech_status_task = asyncio.create_task(tech_status_loop(bot))
+    notification_task = asyncio.create_task(admin_notification_loop(bot))
     try:
         await dp.start_polling(bot)
     except Exception as exc:
@@ -339,6 +453,7 @@ async def main() -> None:
     finally:
         await stop_background_task(heartbeat_task)
         await stop_background_task(tech_status_task)
+        await stop_background_task(notification_task)
         await bot.session.close()
 
 

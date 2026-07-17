@@ -35,6 +35,14 @@ class _OneRowResult:
         return _MappingRow(self.value)
 
 
+class _OptionalOneRowResult:
+    def __init__(self, value: dict[str, object] | None) -> None:
+        self.value = value
+
+    def one_or_none(self) -> _MappingRow | None:
+        return _MappingRow(self.value) if self.value is not None else None
+
+
 class _RowsResult:
     def __init__(self, values: list[dict[str, object]]) -> None:
         self.values = values
@@ -65,6 +73,104 @@ async def test_ensure_admin_user_commits() -> None:
     admin_id = await AppRepository(session).ensure_admin_user("@AdminUser", "tech", 123)
 
     assert admin_id == 42
+    session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_set_user_growth_alert_replaces_active_and_enqueues_both_admins() -> None:
+    session = AsyncMock()
+    session.execute.side_effect = [
+        _ScalarResult(None),
+        _OptionalScalarResult(9),
+        _OneRowResult({"id": 10, "threshold": 100, "set_at": datetime.now(UTC)}),
+        _ScalarResult(None),
+    ]
+    recipients = [
+        {"admin_user_id": 1, "role": "tech", "chat_id": 101},
+        {"admin_user_id": 2, "role": "business", "chat_id": 202},
+    ]
+
+    alert = await AppRepository(session).set_user_growth_alert(
+        100, 2, "business_admin", recipients
+    )
+
+    assert alert["id"] == 10
+    assert alert["replaced"] is True
+    replace_query = str(session.execute.call_args_list[1].args[0])
+    assert "status = 'replaced'" in replace_query
+    delivery_call = session.execute.call_args_list[3]
+    assert len(delivery_call.args[1]) == 2
+    assert {item["chat_id"] for item in delivery_call.args[1]} == {101, 202}
+    assert all("через 100" in item["message_text"] for item in delivery_call.args[1])
+    session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_set_user_growth_alert_rejects_incomplete_recipient_set() -> None:
+    session = AsyncMock()
+
+    with pytest.raises(ValueError):
+        await AppRepository(session).set_user_growth_alert(
+            100,
+            1,
+            "tech_admin",
+            [{"admin_user_id": 1, "role": "tech", "chat_id": 101}],
+        )
+
+    session.execute.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_trigger_due_user_growth_alert_counts_unique_started_users_and_enqueues_once() -> None:
+    session = AsyncMock()
+    session.execute.side_effect = [
+        _ScalarResult(None),
+        _OptionalOneRowResult(
+            {"id": 10, "threshold": 100, "reached_count": 101, "triggered_at": datetime.now(UTC)}
+        ),
+        _ScalarResult(None),
+    ]
+
+    alert = await AppRepository(session).trigger_due_user_growth_alert()
+
+    assert alert is not None
+    assert alert["reached_count"] == 101
+    trigger_query = str(session.execute.call_args_list[1].args[0])
+    assert "u.started_at > a.set_at" in trigger_query
+    assert "a.status = 'active'" in trigger_query
+    assert "status = 'triggered'" in trigger_query
+    delivery_query = str(session.execute.call_args_list[2].args[0])
+    assert "on conflict" in delivery_query
+    assert "event = 'installed'" in delivery_query
+    session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_trigger_due_user_growth_alert_keeps_active_when_threshold_not_reached() -> None:
+    session = AsyncMock()
+    session.execute.side_effect = [_ScalarResult(None), _OptionalOneRowResult(None)]
+
+    assert await AppRepository(session).trigger_due_user_growth_alert() is None
+
+    assert session.execute.await_count == 2
+    session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_claim_admin_deliveries_uses_lease_and_skip_locked() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult(
+        [{"id": 7, "chat_id": 101, "message_text": "alert", "attempt_count": 1}]
+    )
+
+    deliveries = await AppRepository(session).claim_admin_notification_deliveries()
+
+    assert len(deliveries) == 1
+    assert deliveries[0]["claim_token"] is not None
+    query = str(session.execute.call_args.args[0])
+    assert "for update skip locked" in query
+    assert "claimed_at < now() - make_interval" in query
+    assert "attempt_count = attempt_count + 1" in query
     session.commit.assert_awaited_once()
 
 

@@ -18,6 +18,18 @@ _PING_METRICS = (
     ("Нажали кнопку / лиды", "total_leads"),
 )
 _MAX_POSTGRES_INTEGER = 2_147_483_647
+_MAX_POSTGRES_BIGINT = 9_223_372_036_854_775_807
+
+
+def parse_growth_alert_threshold(text: str | None) -> int:
+    """Parse a positive PostgreSQL bigint without accepting signs or decimals."""
+    value = (text or "").strip()
+    if not value or not value.isascii() or not value.isdigit():
+        raise ValueError("growth alert threshold must be a positive integer")
+    threshold = int(value)
+    if threshold <= 0 or threshold > _MAX_POSTGRES_BIGINT:
+        raise ValueError("growth alert threshold is outside the bigint range")
+    return threshold
 
 
 def _split_ping_delay_values(text: str | None) -> list[str]:
@@ -98,7 +110,8 @@ def render_start_html() -> str:
             "Статистика - посмотреть общую статистику и когорты за 14 дней.",
             "Диалог - выгрузить диалог по username или chat_id.",
             "Настроить пинги - задать три интервала в часах.",
-            "Отмена - выйти из настройки пингов.",
+            "Установить алерт - уведомить обоих админов после заданного числа новых пользователей.",
+            "Отмена - выйти из текущей настройки.",
             "Стоп - аварийно остановить клиентского бота и пинги.",
         ]
     )

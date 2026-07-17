@@ -15,6 +15,8 @@ def _normalize_username(username: str | None) -> str | None:
 
 
 class AppRepository:
+    _GROWTH_ALERT_LOCK_KEY = 7_217_202_607
+
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -64,6 +66,274 @@ class AppRepository:
         )
         value = result.scalar_one_or_none()
         return int(value) if value is not None else None
+
+    async def get_growth_alert_recipients(
+        self,
+        tech_username_normalized: str | None,
+        business_username_normalized: str | None,
+    ) -> list[dict[str, Any]]:
+        if not tech_username_normalized or not business_username_normalized:
+            return []
+        result = await self.session.execute(
+            text(
+                """
+                select id as admin_user_id, role, username_normalized, chat_id
+                from app.admin_users
+                where is_active = true
+                  and chat_id is not null
+                  and (
+                    (role = 'tech' and username_normalized = :tech_username)
+                    or
+                    (role = 'business' and username_normalized = :business_username)
+                  )
+                order by role
+                """
+            ),
+            {
+                "tech_username": tech_username_normalized,
+                "business_username": business_username_normalized,
+            },
+        )
+        return [dict(row._mapping) for row in result.all()]
+
+    async def set_user_growth_alert(
+        self,
+        threshold: int,
+        set_by_admin_user_id: int,
+        set_by_username: str,
+        recipients: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        recipient_roles = {str(recipient.get("role")) for recipient in recipients}
+        recipient_admin_ids = {recipient.get("admin_user_id") for recipient in recipients}
+        recipient_chat_ids = {recipient.get("chat_id") for recipient in recipients}
+        if (
+            recipient_roles != {"tech", "business"}
+            or len(recipients) != 2
+            or len(recipient_admin_ids) != 2
+            or None in recipient_admin_ids
+            or len(recipient_chat_ids) != 2
+            or None in recipient_chat_ids
+        ):
+            raise ValueError("both distinct admin recipients are required")
+        await self.session.execute(
+            text("select pg_advisory_xact_lock(:lock_key)"),
+            {"lock_key": self._GROWTH_ALERT_LOCK_KEY},
+        )
+        replaced_result = await self.session.execute(
+            text(
+                """
+                update app.user_growth_alerts
+                set status = 'replaced', replaced_at = clock_timestamp(), updated_at = now()
+                where status = 'active'
+                returning id
+                """
+            )
+        )
+        replaced = replaced_result.scalar_one_or_none() is not None
+        result = await self.session.execute(
+            text(
+                """
+                insert into app.user_growth_alerts (
+                  threshold, set_by_admin_user_id, set_by_username, status, set_at
+                )
+                values (
+                  :threshold, :set_by_admin_user_id, :set_by_username, 'active', clock_timestamp()
+                )
+                returning id, threshold, set_at
+                """
+            ),
+            {
+                "threshold": threshold,
+                "set_by_admin_user_id": set_by_admin_user_id,
+                "set_by_username": set_by_username,
+            },
+        )
+        alert = dict(result.one()._mapping)
+        message_text = (
+            "🔔 Алерт установлен.\n"
+            f"Сработает через {threshold} новых пользователей.\n"
+            f"Установил: @{set_by_username.lstrip('@')}"
+        )
+        await self.session.execute(
+            text(
+                """
+                insert into app.admin_notification_deliveries (
+                  growth_alert_id, event, admin_user_id, chat_id, message_text
+                )
+                values (
+                  :growth_alert_id, 'installed', :admin_user_id, :chat_id, :message_text
+                )
+                """
+            ),
+            [
+                {
+                    "growth_alert_id": alert["id"],
+                    "admin_user_id": recipient["admin_user_id"],
+                    "chat_id": recipient["chat_id"],
+                    "message_text": message_text,
+                }
+                for recipient in recipients
+            ],
+        )
+        await self.session.commit()
+        return {**alert, "replaced": replaced}
+
+    async def trigger_due_user_growth_alert(self) -> dict[str, Any] | None:
+        await self.session.execute(
+            text("select pg_advisory_xact_lock(:lock_key)"),
+            {"lock_key": self._GROWTH_ALERT_LOCK_KEY},
+        )
+        result = await self.session.execute(
+            text(
+                """
+                with due as (
+                  select a.id, a.threshold, count(u.id)::bigint as reached_count
+                  from app.user_growth_alerts a
+                  left join app.telegram_users u on u.started_at > a.set_at
+                  where a.status = 'active'
+                  group by a.id, a.threshold
+                  having count(u.id) >= a.threshold
+                  order by a.id
+                  limit 1
+                )
+                update app.user_growth_alerts a
+                set status = 'triggered',
+                    triggered_at = clock_timestamp(),
+                    reached_count = due.reached_count,
+                    updated_at = now()
+                from due
+                where a.id = due.id and a.status = 'active'
+                returning a.id, a.threshold, a.reached_count, a.triggered_at
+                """
+            )
+        )
+        row = result.one_or_none()
+        if row is None:
+            await self.session.commit()
+            return None
+        alert = dict(row._mapping)
+        message_text = (
+            "🎯 Алерт сработал.\n"
+            f"Порог: {alert['threshold']} новых пользователей.\n"
+            f"Фактически набрано: {alert['reached_count']}."
+        )
+        await self.session.execute(
+            text(
+                """
+                insert into app.admin_notification_deliveries (
+                  growth_alert_id, event, admin_user_id, chat_id, message_text
+                )
+                select
+                  growth_alert_id, 'triggered', admin_user_id, chat_id, :message_text
+                from app.admin_notification_deliveries
+                where growth_alert_id = :growth_alert_id and event = 'installed'
+                on conflict (growth_alert_id, event, admin_user_id) do nothing
+                """
+            ),
+            {"growth_alert_id": alert["id"], "message_text": message_text},
+        )
+        await self.session.commit()
+        return alert
+
+    async def claim_admin_notification_deliveries(
+        self,
+        limit: int = 20,
+        lease_seconds: int = 120,
+    ) -> list[dict[str, Any]]:
+        claim_token = uuid4()
+        result = await self.session.execute(
+            text(
+                """
+                with due as (
+                  select id
+                  from app.admin_notification_deliveries
+                  where status = 'pending'
+                    and next_attempt_at <= now()
+                    and (
+                      claim_token is null
+                      or claimed_at < now() - make_interval(secs => :lease_seconds)
+                    )
+                  order by next_attempt_at, id
+                  for update skip locked
+                  limit :limit
+                )
+                update app.admin_notification_deliveries d
+                set claim_token = cast(:claim_token as uuid),
+                    claimed_at = now(),
+                    attempt_count = attempt_count + 1,
+                    updated_at = now()
+                from due
+                where d.id = due.id
+                returning d.id, d.chat_id, d.message_text, d.attempt_count
+                """
+            ),
+            {
+                "claim_token": str(claim_token),
+                "lease_seconds": max(1, lease_seconds),
+                "limit": max(1, limit),
+            },
+        )
+        deliveries = [dict(row._mapping) for row in result.all()]
+        for delivery in deliveries:
+            delivery["claim_token"] = claim_token
+        await self.session.commit()
+        return deliveries
+
+    async def complete_admin_notification_delivery(
+        self,
+        delivery_id: int,
+        claim_token: UUID | str,
+    ) -> bool:
+        result = await self.session.execute(
+            text(
+                """
+                update app.admin_notification_deliveries
+                set status = 'sent', delivered_at = now(), claim_token = null,
+                    claimed_at = null, last_error = null, updated_at = now()
+                where id = :delivery_id
+                  and status = 'pending'
+                  and claim_token = cast(:claim_token as uuid)
+                returning id
+                """
+            ),
+            {"delivery_id": delivery_id, "claim_token": str(claim_token)},
+        )
+        completed = result.scalar_one_or_none() is not None
+        await self.session.commit()
+        return completed
+
+    async def fail_admin_notification_delivery(
+        self,
+        delivery_id: int,
+        claim_token: UUID | str,
+        error_message: str,
+        retry_seconds: int,
+    ) -> bool:
+        result = await self.session.execute(
+            text(
+                """
+                update app.admin_notification_deliveries
+                set claim_token = null,
+                    claimed_at = null,
+                    next_attempt_at = now() + make_interval(secs => :retry_seconds),
+                    last_error = :error_message,
+                    updated_at = now()
+                where id = :delivery_id
+                  and status = 'pending'
+                  and claim_token = cast(:claim_token as uuid)
+                returning id
+                """
+            ),
+            {
+                "delivery_id": delivery_id,
+                "claim_token": str(claim_token),
+                "error_message": error_message[:700],
+                "retry_seconds": max(1, retry_seconds),
+            },
+        )
+        failed = result.scalar_one_or_none() is not None
+        await self.session.commit()
+        return failed
 
     async def upsert_service_heartbeat(
         self,

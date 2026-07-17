@@ -4,11 +4,26 @@ import pytest
 
 from app.services.admin_views import (
     format_ping_delays,
+    parse_growth_alert_threshold,
     parse_ping_delays,
     ping_delays_from_config,
     render_start_html,
     render_stats_rich_html,
 )
+
+
+def test_parse_growth_alert_threshold_accepts_positive_bigint() -> None:
+    assert parse_growth_alert_threshold(" 100 ") == 100
+    assert parse_growth_alert_threshold("9223372036854775807") == 9_223_372_036_854_775_807
+
+
+@pytest.mark.parametrize(
+    "value",
+    [None, "", "0", "-1", "+1", "1.5", "1,5", "one", "１２", "9223372036854775808"],
+)
+def test_parse_growth_alert_threshold_rejects_invalid_values(value: str | None) -> None:
+    with pytest.raises(ValueError):
+        parse_growth_alert_threshold(value)
 
 
 def test_parse_ping_delays_converts_decimal_hours_to_minutes() -> None:
@@ -97,6 +112,7 @@ def test_render_start_describes_new_admin_actions() -> None:
 
     assert "Установить ссылку" not in html
     assert "Настроить пинги" in html
+    assert "Установить алерт" in html
     assert "Отмена" in html
     assert "пинги" in html
     assert "follow-up" not in html.lower()

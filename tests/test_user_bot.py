@@ -264,3 +264,44 @@ async def test_register_incoming_voice_stores_transcription_as_text(monkeypatch)
         {"voice": {"file_id": "voice-file"}},
         message_type="text",
     )
+
+
+@pytest.mark.asyncio
+async def test_start_checks_growth_alert_before_sending_welcome(monkeypatch) -> None:
+    message = _message(text="/start")
+    events: list[str] = []
+
+    async def register(*_args, **_kwargs) -> tuple[int, int]:
+        events.append("registered")
+        return 10, 20
+
+    async def check_alert() -> None:
+        events.append("checked")
+
+    async def answer(*_args, **_kwargs):
+        events.append("answered")
+        return SimpleNamespace(
+            message_id=301,
+            model_dump=lambda **kwargs: {},
+        )
+
+    repo = SimpleNamespace(log_message=AsyncMock())
+
+    class SessionContext:
+        async def __aenter__(self):
+            return object()
+
+        async def __aexit__(self, exc_type, exc, tb) -> None:
+            return None
+
+    message.answer = AsyncMock(side_effect=answer)
+    monkeypatch.setattr(user_bot, "_client_bot_stopped", AsyncMock(side_effect=[False, False]))
+    monkeypatch.setattr(user_bot, "_register_incoming_message", register)
+    monkeypatch.setattr(user_bot, "_check_user_growth_alert", check_alert)
+    monkeypatch.setattr(user_bot, "SessionLocal", SessionContext)
+    monkeypatch.setattr(user_bot, "AppRepository", lambda session: repo)
+
+    await user_bot.start(message)
+
+    assert events == ["registered", "checked", "answered"]
+    repo.log_message.assert_awaited_once()

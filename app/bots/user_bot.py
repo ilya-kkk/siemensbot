@@ -55,6 +55,15 @@ async def _client_bot_stopped() -> bool:
         return await AppRepository(session).is_client_bot_stopped()
 
 
+async def _check_user_growth_alert() -> None:
+    try:
+        async with SessionLocal() as session:
+            await AppRepository(session).trigger_due_user_growth_alert()
+    except Exception as exc:
+        logger.exception("failed to check user growth alert")
+        await send_critical_alert(None, settings, "user_growth_alert", str(exc), {})
+
+
 def _is_test_admin(user: User | None) -> bool:
     return bool(user and settings.admin_role_for_username(user.username))
 
@@ -162,6 +171,7 @@ async def start(message: Message) -> None:
         return
 
     telegram_user_id, _source_message_id = await _register_incoming_message(message, "started")
+    await _check_user_growth_alert()
     if await _client_bot_stopped():
         return
 
