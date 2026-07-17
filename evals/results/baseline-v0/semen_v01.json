@@ -1,0 +1,251 @@
+ {
+  "schema_version": "human-review-v1",
+  "run_id": "baseline-v0",
+  "reviewer_id": "Семён",
+  "reviews": [
+    {
+      "case_id": "sv1_qualification_valid_niche_001",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_qualification_broad_niche_002",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_qualification_invalid_niche_003",
+      "lead_status": "non_target",
+      "response_acceptable": "no",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [
+        "wrong_next_step"
+      ],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_qualification_product_is_format_004",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_qualification_broad_audience_005",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_discovery_remembers_known_context_006",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_discovery_vague_money_problem_007",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_discovery_leads_but_few_payments_008",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "yes",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_discovery_manual_sales_path_009",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_offer_timing_problem_not_yet_localized_010",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_price_asked_before_diagnosis_011",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_price_after_offer_description_012",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_price_assumed_free_013",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_direct_link_without_diagnosis_014",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "no",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [
+        "ignored_context"
+      ],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_direct_link_after_diagnosis_015",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "Бот не объяснил человеку, что такое тест-драйв. Нужно выдать более понятное подробное описание",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_consent_yes_to_heard_about_it_016",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "yes",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_consent_explicit_after_cta_017",
+      "lead_status": "unsure",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "unsure",
+      "failure_tags": [],
+      "expected_behavior": "Человеку лучше побольше объяснить, что конкретно даст тест-драйв в его случае",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_consent_information_request_not_consent_018",
+      "lead_status": "unsure",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "unsure",
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_refusal_explicit_no_019",
+      "lead_status": "non_target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "Бот должен был обработать человека и объяснить, что тест-драйв ему поможет",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_doubt_think_about_it_020",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+      "expected_behavior": "Бот должен вести диалог дальше, а не завершать его. Он должен делать так, чтобы человек более четко понял свою проблему и захотел ее решить",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_objection_too_expensive_021",
+      "lead_status": "non_target",
+      "response_acceptable": "no",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "Бот должен сказать, что эта цена условная и закрыть возражение о цене, объяснив человеку, что это дает колоссальную пользу для человека относительно цены",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_non_target_no_project_or_intent_022",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "no",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "Лучше просто спросить у человека, чем он занимается. И уже от этого оттолкнуться. На тест-драйв его также можно завести, если он новичок, но хочет начать",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_non_target_direct_link_request_023",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "no",
+      "button_should_be_shown_now": "no",
+      "failure_tags": [],
+      "expected_behavior": "Нужно больше донести человеку, что такое тест-драйв и чем он может помочь даже новичку",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "case_id": "sv1_off_topic_code_request_024",
+      "lead_status": "unsure",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "need_more_qualification",
+      "failure_tags": [],
+        "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    }
+  ]
+}
