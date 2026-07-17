@@ -20,16 +20,16 @@ def test_render_admin_summary_uses_compact_format_and_moscow_time() -> None:
     )
 
     assert html.splitlines() == [
-        "/start: 12 | lead: 3 | 24h",
-        "/start: 148 | lead: 27 | all",
+        "start: 12 | lead: 3 | 24h",
+        "start: 148 | lead: 27 | all",
         "Обновлено: 17.07.2026 18:40 MSK",
     ]
 
 
 def test_render_admin_summary_marks_unavailable_values() -> None:
     assert render_admin_summary_html(None, None).splitlines() == [
-        "/start: — | lead: — | 24h",
-        "/start: — | lead: — | all",
+        "start: — | lead: — | 24h",
+        "start: — | lead: — | all",
         "Обновлено: недоступно",
     ]
 

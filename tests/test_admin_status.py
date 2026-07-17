@@ -152,8 +152,8 @@ async def test_tech_status_starts_with_summary(monkeypatch) -> None:
 
     text = await admin_bot._render_tech_status_message()
 
-    assert text.startswith("/start: 12 | lead: 3 | 24h\n/start: 148 | lead: 27 | all\n")
-    assert text.index("/start: 12") < text.index("Siemensbot status")
+    assert text.startswith("start: 12 | lead: 3 | 24h\nstart: 148 | lead: 27 | all\n")
+    assert text.index("start: 12") < text.index("Siemensbot status")
 
 
 @pytest.mark.asyncio
@@ -169,6 +169,6 @@ async def test_tech_status_keeps_diagnostics_when_database_is_unavailable(monkey
 
     text = await admin_bot._render_tech_status_message()
 
-    assert text.startswith("/start: — | lead: — | 24h\n/start: — | lead: — | all\n")
+    assert text.startswith("start: — | lead: — | 24h\nstart: — | lead: — | all\n")
     assert "Database/heartbeats: 🚨 unavailable" in text
     assert "VPS/admin bot: ✅ alive" in text

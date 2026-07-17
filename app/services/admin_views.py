@@ -41,8 +41,8 @@ def render_admin_summary_html(
     )
     return "\n".join(
         [
-            f"/start: {metric('start_24h')} | lead: {metric('lead_24h')} | 24h",
-            f"/start: {metric('start_all')} | lead: {metric('lead_all')} | all",
+            f"start: {metric('start_24h')} | lead: {metric('lead_24h')} | 24h",
+            f"start: {metric('start_all')} | lead: {metric('lead_all')} | all",
             f"Обновлено: {updated_text}",
         ]
     )
