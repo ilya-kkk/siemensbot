@@ -1417,6 +1417,51 @@ class AppRepository:
         )
         await self.session.commit()
 
+    async def get_users_by_start_day(self, days: int = 14) -> dict[str, Any]:
+        """Return first-start cohorts for the latest Moscow calendar days."""
+        day_count = max(1, int(days))
+        result = await self.session.execute(
+            text(
+                """
+                with days as (
+                  select generate_series(
+                    (now() at time zone 'Europe/Moscow')::date
+                      - (cast(:days as integer) - 1),
+                    (now() at time zone 'Europe/Moscow')::date,
+                    interval '1 day'
+                  )::date as day
+                )
+                select
+                  d.day as date,
+                  u.id as user_record_id,
+                  u.started_at,
+                  u.username,
+                  u.telegram_user_id
+                from days d
+                left join app.telegram_users u
+                  on (u.started_at at time zone 'Europe/Moscow')::date = d.day
+                order by d.day desc, u.started_at, u.id
+                """
+            ),
+            {"days": day_count},
+        )
+
+        daily: list[dict[str, Any]] = []
+        current: dict[str, Any] | None = None
+        for row in result.all():
+            values = dict(row._mapping)
+            cohort_date = values.pop("date")
+            user_record_id = values.pop("user_record_id")
+            if current is None or current["date"] != cohort_date:
+                current = {"date": cohort_date, "count": 0, "users": []}
+                daily.append(current)
+            if user_record_id is None:
+                continue
+            current["users"].append(values)
+            current["count"] += 1
+
+        return {"daily": daily}
+
     async def get_stats(self) -> dict[str, Any]:
         overall_result = await self.session.execute(
             text(

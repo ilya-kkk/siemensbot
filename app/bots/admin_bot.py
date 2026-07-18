@@ -43,6 +43,7 @@ from app.services.admin_views import (
     render_admin_summary_html,
     render_start_html,
     render_stats_rich_html,
+    render_users_rich_html,
 )
 from app.services.leads import render_leads_xlsx
 from app.services.transcript import render_dialogue_html, split_telegram_html
@@ -57,7 +58,11 @@ HEALTH_COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker")
 
 MENU = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Таблица"), KeyboardButton(text="Статистика")],
+        [
+            KeyboardButton(text="Таблица"),
+            KeyboardButton(text="Статистика"),
+            KeyboardButton(text="Юзеры"),
+        ],
         [KeyboardButton(text="Диалог"), KeyboardButton(text="Настроить пинги")],
         [KeyboardButton(text="Установить алерт")],
         [KeyboardButton(text="Стоп")],
@@ -367,6 +372,20 @@ async def stats(message: Message) -> None:
         InputRichMessage(html=render_stats_rich_html(data)),
         reply_markup=MENU,
     )
+
+
+@router.message(Command("users"))
+@router.message(F.text == "Юзеры")
+async def users(message: Message) -> None:
+    if not await _ensure_admin(message):
+        return
+    async with SessionLocal() as session:
+        data = await AppRepository(session).get_users_by_start_day()
+    for html in render_users_rich_html(data):
+        await message.answer_rich(
+            InputRichMessage(html=html),
+            reply_markup=MENU,
+        )
 
 
 @router.message(Command("cancel"))

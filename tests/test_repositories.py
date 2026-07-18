@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -244,6 +244,7 @@ async def test_upsert_user_advances_funnel_without_dialogue_table() -> None:
     assert "app.dialogues" not in query
     assert "funnel_stage" in query
     assert "dialogue_started_at" in query
+    assert "least(app.telegram_users.started_at, excluded.started_at)" in query
     assert "ping_anchor_at = greatest" in query
     assert "ping_message.telegram_message_id < cast(:activity_message_id as bigint)" in query
     assert "ping_message.raw_payload ->> 'ping_number' = '1'" in query
@@ -252,6 +253,67 @@ async def test_upsert_user_advances_funnel_without_dialogue_table() -> None:
     assert params["event_stage"] == "dialogue"
     assert params["activity_at"] == activity_at
     assert params["activity_message_id"] == 101
+
+
+@pytest.mark.asyncio
+async def test_get_users_by_start_day_returns_ordered_moscow_cohorts() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult(
+        [
+            {
+                "date": date(2026, 7, 18),
+                "user_record_id": 10,
+                "started_at": datetime(2026, 7, 18, 6, 0, tzinfo=UTC),
+                "username": "first",
+                "telegram_user_id": 100,
+            },
+            {
+                "date": date(2026, 7, 18),
+                "user_record_id": 11,
+                "started_at": datetime(2026, 7, 18, 7, 0, tzinfo=UTC),
+                "username": None,
+                "telegram_user_id": 101,
+            },
+            {
+                "date": date(2026, 7, 17),
+                "user_record_id": None,
+                "started_at": None,
+                "username": None,
+                "telegram_user_id": None,
+            },
+        ]
+    )
+
+    result = await AppRepository(session).get_users_by_start_day(days=2)
+
+    assert result == {
+        "daily": [
+            {
+                "date": date(2026, 7, 18),
+                "count": 2,
+                "users": [
+                    {
+                        "started_at": datetime(2026, 7, 18, 6, 0, tzinfo=UTC),
+                        "username": "first",
+                        "telegram_user_id": 100,
+                    },
+                    {
+                        "started_at": datetime(2026, 7, 18, 7, 0, tzinfo=UTC),
+                        "username": None,
+                        "telegram_user_id": 101,
+                    },
+                ],
+            },
+            {"date": date(2026, 7, 17), "count": 0, "users": []},
+        ]
+    }
+    query = str(session.execute.call_args.args[0])
+    params = session.execute.call_args.args[1]
+    assert "generate_series" in query
+    assert "Europe/Moscow" in query
+    assert "(u.started_at at time zone 'Europe/Moscow')::date" in query
+    assert "order by d.day desc, u.started_at, u.id" in query
+    assert params == {"days": 2}
 
 
 @pytest.mark.asyncio

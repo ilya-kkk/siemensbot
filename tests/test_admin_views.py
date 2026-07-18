@@ -10,6 +10,7 @@ from app.services.admin_views import (
     render_admin_summary_html,
     render_start_html,
     render_stats_rich_html,
+    render_users_rich_html,
 )
 
 
@@ -135,6 +136,68 @@ def test_render_start_describes_new_admin_actions() -> None:
     assert "Установить ссылку" not in html
     assert "Настроить пинги" in html
     assert "Установить алерт" in html
+    assert "Юзеры" in html
     assert "Отмена" in html
     assert "пинги" in html
     assert "follow-up" not in html.lower()
+
+
+def test_render_users_rich_html_links_users_and_renders_empty_days() -> None:
+    data = {
+        "daily": [
+            {
+                "date": date(2026, 7, 18),
+                "count": 1,
+                "users": [{"username": "<admin>", "telegram_user_id": 1}],
+            },
+            {
+                "date": date(2026, 7, 17),
+                "count": 2,
+                "users": [
+                    {"username": None, "telegram_user_id": 123456},
+                    {"username": None, "telegram_user_id": None},
+                ],
+            },
+            {
+                "date": date(2026, 7, 16),
+                "count": 5,
+                "users": [{"username": f"user{index}"} for index in range(5)],
+            },
+            {"date": date(2026, 7, 15), "count": 0, "users": []},
+        ]
+    }
+
+    messages = render_users_rich_html(data)
+
+    assert len(messages) == 1
+    html = messages[0]
+    assert html.startswith("<h1>Юзеры</h1>")
+    assert html.count("<details>") == 4
+    assert "<details open>" not in html
+    assert "18.07.2026 — 1 пользователь" in html
+    assert "17.07.2026 — 2 пользователя" in html
+    assert "16.07.2026 — 5 пользователей" in html
+    assert "15.07.2026 — 0 пользователей" in html
+    assert '<a href="https://t.me/%3Cadmin%3E">@&lt;admin&gt;</a>' in html
+    assert '<a href="tg://user?id=123456">ID 123456</a>' in html
+    assert "ID недоступен" in html
+    assert "<p>Нет пользователей</p>" in html
+
+
+def test_render_users_rich_html_splits_large_days_without_losing_users() -> None:
+    users = [{"username": f"user{index:04d}"} for index in range(1000)]
+
+    messages = render_users_rich_html(
+        {"daily": [{"date": date(2026, 7, 18), "count": len(users), "users": users}]}
+    )
+
+    assert len(messages) > 1
+    combined = "\n".join(messages)
+    assert combined.count("<li>") == len(users)
+    assert "часть" in combined
+    for index in range(1000):
+        assert combined.count(f">@user{index:04d}</a>") == 1
+    for html in messages:
+        assert len(html.encode("utf-8")) <= 29_000
+        estimated_blocks = 1 + (2 * html.count("<details>")) + html.count("<li>")
+        assert estimated_blocks <= 440

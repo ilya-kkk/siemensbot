@@ -4,6 +4,7 @@ from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from html import escape
 from typing import Any
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 _PING_METRICS = (
@@ -21,6 +22,9 @@ _PING_METRICS = (
 _MAX_POSTGRES_INTEGER = 2_147_483_647
 _MAX_POSTGRES_BIGINT = 9_223_372_036_854_775_807
 _MOSCOW_TZ = ZoneInfo("Europe/Moscow")
+_RICH_MESSAGE_MAX_BYTES = 29_000
+_RICH_MESSAGE_MAX_BLOCKS = 440
+_USERS_TITLE_PLACEHOLDER = "<h1>Юзеры · часть 9999/9999</h1>"
 
 
 def render_admin_summary_html(
@@ -135,6 +139,7 @@ def render_start_html() -> str:
             "",
             "Таблица - скачать Excel-таблицу лидов.",
             "Статистика - посмотреть общую статистику и когорты за 14 дней.",
+            "Юзеры - посмотреть пользователей по дням за последние 14 дней.",
             "Диалог - выгрузить диалог по username или chat_id.",
             "Настроить пинги - задать три интервала в часах.",
             "Установить алерт - уведомить обоих админов после заданного числа новых пользователей.",
@@ -201,3 +206,165 @@ def render_stats_rich_html(data: Mapping[str, Any]) -> str:
 def render_stats_html(data: Mapping[str, Any]) -> str:
     """Backward-compatible name for callers migrating to rich messages."""
     return render_stats_rich_html(data)
+
+
+def _users_count_text(count: int) -> str:
+    remainder_100 = count % 100
+    remainder_10 = count % 10
+    if 11 <= remainder_100 <= 14:
+        word = "пользователей"
+    elif remainder_10 == 1:
+        word = "пользователь"
+    elif 2 <= remainder_10 <= 4:
+        word = "пользователя"
+    else:
+        word = "пользователей"
+    return f"{count} {word}"
+
+
+def _user_link(user: Mapping[str, Any]) -> str:
+    username = str(user.get("username") or "").strip().lstrip("@")
+    if username:
+        href = f"https://t.me/{quote(username, safe='')}"
+        return f'<a href="{escape(href, quote=True)}">@{escape(username)}</a>'
+
+    telegram_user_id = user.get("telegram_user_id")
+    try:
+        numeric_id = int(telegram_user_id) if telegram_user_id is not None else None
+    except (TypeError, ValueError):
+        numeric_id = None
+    if numeric_id is not None and numeric_id > 0:
+        return f'<a href="tg://user?id={numeric_id}">ID {numeric_id}</a>'
+    return "ID недоступен"
+
+
+def _users_day_block(
+    cohort_date: Any,
+    total_count: int,
+    user_links: Sequence[str],
+    *,
+    part: int | None = None,
+    part_count: int | None = None,
+) -> str:
+    date_label = escape(_format_cohort_date(cohort_date))
+    summary = f"{date_label} — {_users_count_text(total_count)}"
+    if part is not None and part_count is not None:
+        summary += f" (часть {part}/{part_count})"
+    if user_links:
+        body = "<ul>" + "".join(f"<li>{link}</li>" for link in user_links) + "</ul>"
+    else:
+        body = "<p>Нет пользователей</p>"
+    return f"<details><summary>{summary}</summary>{body}</details>"
+
+
+def _users_day_block_count(user_count: int) -> int:
+    # One details block, one list/paragraph block, and one block per list item.
+    return 2 + user_count
+
+
+def _rich_message_fits(html: str, block_count: int) -> bool:
+    return (
+        len(html.encode("utf-8")) <= _RICH_MESSAGE_MAX_BYTES
+        and block_count <= _RICH_MESSAGE_MAX_BLOCKS
+    )
+
+
+def _split_users_day(
+    cohort_date: Any,
+    total_count: int,
+    user_links: Sequence[str],
+) -> list[tuple[str, int]]:
+    full_block = _users_day_block(cohort_date, total_count, user_links)
+    full_block_count = _users_day_block_count(len(user_links))
+    if _rich_message_fits(
+        f"{_USERS_TITLE_PLACEHOLDER}\n{full_block}",
+        1 + full_block_count,
+    ):
+        return [(full_block, full_block_count)]
+
+    groups: list[list[str]] = []
+    current: list[str] = []
+    for link in user_links:
+        candidate = [*current, link]
+        candidate_block = _users_day_block(
+            cohort_date,
+            total_count,
+            candidate,
+            part=9999,
+            part_count=9999,
+        )
+        candidate_count = _users_day_block_count(len(candidate))
+        if current and not _rich_message_fits(
+            f"{_USERS_TITLE_PLACEHOLDER}\n{candidate_block}",
+            1 + candidate_count,
+        ):
+            groups.append(current)
+            current = [link]
+        else:
+            current = candidate
+    if current:
+        groups.append(current)
+
+    part_count = len(groups)
+    return [
+        (
+            _users_day_block(
+                cohort_date,
+                total_count,
+                group,
+                part=index,
+                part_count=part_count,
+            ),
+            _users_day_block_count(len(group)),
+        )
+        for index, group in enumerate(groups, start=1)
+    ]
+
+
+def render_users_rich_html(data: Mapping[str, Any]) -> list[str]:
+    """Render daily first-start cohorts, splitting safely across rich messages."""
+    day_parts: list[tuple[str, int]] = []
+    daily = data.get("daily") or []
+    if isinstance(daily, Sequence) and not isinstance(daily, (str, bytes)):
+        for cohort in daily:
+            if not isinstance(cohort, Mapping):
+                continue
+            users = cohort.get("users") or []
+            if not isinstance(users, Sequence) or isinstance(users, (str, bytes)):
+                users = []
+            user_links = [_user_link(user) for user in users if isinstance(user, Mapping)]
+            try:
+                total_count = int(cohort.get("count", len(user_links)))
+            except (TypeError, ValueError):
+                total_count = len(user_links)
+            total_count = max(total_count, len(user_links), 0)
+            day_parts.extend(
+                _split_users_day(cohort.get("date", ""), total_count, user_links)
+            )
+
+    message_parts: list[list[tuple[str, int]]] = []
+    current: list[tuple[str, int]] = []
+    for day_part in day_parts:
+        candidate = [*current, day_part]
+        candidate_html = "\n".join(
+            [_USERS_TITLE_PLACEHOLDER, *(block for block, _count in candidate)]
+        )
+        candidate_blocks = 1 + sum(count for _block, count in candidate)
+        if current and not _rich_message_fits(candidate_html, candidate_blocks):
+            message_parts.append(current)
+            current = [day_part]
+        else:
+            current = candidate
+    if current or not message_parts:
+        message_parts.append(current)
+
+    message_count = len(message_parts)
+    messages: list[str] = []
+    for index, parts in enumerate(message_parts, start=1):
+        title = (
+            "<h1>Юзеры</h1>"
+            if message_count == 1
+            else f"<h1>Юзеры · часть {index}/{message_count}</h1>"
+        )
+        messages.append("\n".join([title, *(block for block, _count in parts)]))
+    return messages
