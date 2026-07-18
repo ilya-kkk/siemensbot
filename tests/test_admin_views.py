@@ -142,7 +142,7 @@ def test_render_start_describes_new_admin_actions() -> None:
     assert "follow-up" not in html.lower()
 
 
-def test_render_users_rich_html_links_users_and_renders_empty_days() -> None:
+def test_render_users_rich_html_links_users_and_omits_empty_days() -> None:
     data = {
         "daily": [
             {
@@ -189,19 +189,29 @@ def test_render_users_rich_html_links_users_and_renders_empty_days() -> None:
     assert len(messages) == 1
     html = messages[0]
     assert html.startswith("<h1>Юзеры</h1>")
-    assert html.count("<details>") == 4
+    assert html.count("<details>") == 3
     assert "<details open>" not in html
     assert "18.07.2026 — 1 пользователь" in html
     assert "17.07.2026 — 2 пользователя" in html
     assert "16.07.2026 — 5 пользователей" in html
-    assert "15.07.2026 — 0 пользователей" in html
+    assert "15.07.2026" not in html
     assert '<a href="https://t.me/%3Cadmin%3E">@&lt;admin&gt;</a>' in html
     assert '<a href="tg://user?id=123456">ID 123456</a>' in html
     assert "ID недоступен" in html
     assert "@&lt;admin&gt;</a> · /dialog_10" in html
     assert "ID 123456</a> · /dialog_11" in html
     assert "ID недоступен · /dialog_12" in html
-    assert "<p>Нет пользователей</p>" in html
+    assert "<p>Нет пользователей</p>" not in html
+
+
+def test_render_users_rich_html_has_compact_empty_state() -> None:
+    messages = render_users_rich_html(
+        {"daily": [{"date": date(2026, 7, 18), "count": 0, "users": []}]}
+    )
+
+    assert messages == [
+        "<h1>Юзеры</h1>\n<p>За последние 14 дней пользователей нет</p>"
+    ]
 
 
 def test_render_users_rich_html_splits_large_days_without_losing_users() -> None:

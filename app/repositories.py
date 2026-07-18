@@ -1443,24 +1443,21 @@ class AppRepository:
         result = await self.session.execute(
             text(
                 """
-                with days as (
-                  select generate_series(
-                    (now() at time zone 'Europe/Moscow')::date
-                      - (cast(:days as integer) - 1),
-                    (now() at time zone 'Europe/Moscow')::date,
-                    interval '1 day'
-                  )::date as day
-                )
                 select
-                  d.day as date,
+                  (u.started_at at time zone 'Europe/Moscow')::date as date,
                   u.id as user_record_id,
                   u.started_at,
                   u.username,
                   u.telegram_user_id
-                from days d
-                left join app.telegram_users u
-                  on (u.started_at at time zone 'Europe/Moscow')::date = d.day
-                order by d.day desc, u.started_at, u.id
+                from app.telegram_users u
+                where u.started_at >= (
+                    (now() at time zone 'Europe/Moscow')::date
+                      - (cast(:days as integer) - 1)
+                  ) at time zone 'Europe/Moscow'
+                  and u.started_at < (
+                    (now() at time zone 'Europe/Moscow')::date + 1
+                  ) at time zone 'Europe/Moscow'
+                order by 1 desc, u.started_at, u.id
                 """
             ),
             {"days": day_count},
@@ -1475,8 +1472,6 @@ class AppRepository:
             if current is None or current["date"] != cohort_date:
                 current = {"date": cohort_date, "count": 0, "users": []}
                 daily.append(current)
-            if user_record_id is None:
-                continue
             values["user_record_id"] = user_record_id
             current["users"].append(values)
             current["count"] += 1

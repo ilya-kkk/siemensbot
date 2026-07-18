@@ -256,7 +256,7 @@ async def test_upsert_user_advances_funnel_without_dialogue_table() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_users_by_start_day_returns_ordered_moscow_cohorts() -> None:
+async def test_get_users_by_start_day_returns_only_nonempty_moscow_cohorts() -> None:
     session = AsyncMock()
     session.execute.return_value = _RowsResult(
         [
@@ -273,13 +273,6 @@ async def test_get_users_by_start_day_returns_ordered_moscow_cohorts() -> None:
                 "started_at": datetime(2026, 7, 18, 7, 0, tzinfo=UTC),
                 "username": None,
                 "telegram_user_id": 101,
-            },
-            {
-                "date": date(2026, 7, 17),
-                "user_record_id": None,
-                "started_at": None,
-                "username": None,
-                "telegram_user_id": None,
             },
         ]
     )
@@ -305,16 +298,17 @@ async def test_get_users_by_start_day_returns_ordered_moscow_cohorts() -> None:
                         "user_record_id": 11,
                     },
                 ],
-            },
-            {"date": date(2026, 7, 17), "count": 0, "users": []},
+            }
         ]
     }
     query = str(session.execute.call_args.args[0])
     params = session.execute.call_args.args[1]
-    assert "generate_series" in query
+    assert "generate_series" not in query
     assert "Europe/Moscow" in query
     assert "(u.started_at at time zone 'Europe/Moscow')::date" in query
-    assert "order by d.day desc, u.started_at, u.id" in query
+    assert "u.started_at >=" in query
+    assert "u.started_at <" in query
+    assert "order by 1 desc, u.started_at, u.id" in query
     assert params == {"days": 2}
 
 

@@ -345,6 +345,8 @@ def render_users_rich_html(data: Mapping[str, Any]) -> list[str]:
             if not isinstance(users, Sequence) or isinstance(users, (str, bytes)):
                 users = []
             user_links = [_user_row(user) for user in users if isinstance(user, Mapping)]
+            if not user_links:
+                continue
             try:
                 total_count = int(cohort.get("count", len(user_links)))
             except (TypeError, ValueError):
@@ -353,6 +355,9 @@ def render_users_rich_html(data: Mapping[str, Any]) -> list[str]:
             day_parts.extend(
                 _split_users_day(cohort.get("date", ""), total_count, user_links)
             )
+
+    if not day_parts:
+        return ["<h1>Юзеры</h1>\n<p>За последние 14 дней пользователей нет</p>"]
 
     message_parts: list[list[tuple[str, int]]] = []
     current: list[tuple[str, int]] = []
