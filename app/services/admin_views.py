@@ -238,6 +238,18 @@ def _user_link(user: Mapping[str, Any]) -> str:
     return "ID недоступен"
 
 
+def _user_row(user: Mapping[str, Any]) -> str:
+    profile_link = _user_link(user)
+    user_record_id = user.get("user_record_id")
+    try:
+        numeric_id = int(user_record_id) if user_record_id is not None else None
+    except (TypeError, ValueError):
+        numeric_id = None
+    if numeric_id is None or numeric_id <= 0:
+        return profile_link
+    return f"{profile_link} · /dialog_{numeric_id}"
+
+
 def _users_day_block(
     cohort_date: Any,
     total_count: int,
@@ -332,7 +344,7 @@ def render_users_rich_html(data: Mapping[str, Any]) -> list[str]:
             users = cohort.get("users") or []
             if not isinstance(users, Sequence) or isinstance(users, (str, bytes)):
                 users = []
-            user_links = [_user_link(user) for user in users if isinstance(user, Mapping)]
+            user_links = [_user_row(user) for user in users if isinstance(user, Mapping)]
             try:
                 total_count = int(cohort.get("count", len(user_links)))
             except (TypeError, ValueError):

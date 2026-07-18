@@ -711,6 +711,26 @@ class AppRepository:
         else:
             where = "u.username_normalized = :username"
             params = {"username": _normalize_username(query)}
+        return await self._get_user_messages(where, params, limit)
+
+    async def get_user_messages_by_id(
+        self,
+        user_record_id: int,
+        limit: int = 80,
+    ) -> list[dict[str, Any]]:
+        """Return a dialogue by the stable app.telegram_users primary key."""
+        return await self._get_user_messages(
+            "u.id = :user_record_id",
+            {"user_record_id": user_record_id},
+            limit,
+        )
+
+    async def _get_user_messages(
+        self,
+        where: str,
+        params: dict[str, Any],
+        limit: int,
+    ) -> list[dict[str, Any]]:
         result = await self.session.execute(
             text(
                 f"""
@@ -1457,6 +1477,7 @@ class AppRepository:
                 daily.append(current)
             if user_record_id is None:
                 continue
+            values["user_record_id"] = user_record_id
             current["users"].append(values)
             current["count"] += 1
 

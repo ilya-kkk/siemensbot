@@ -296,11 +296,13 @@ async def test_get_users_by_start_day_returns_ordered_moscow_cohorts() -> None:
                         "started_at": datetime(2026, 7, 18, 6, 0, tzinfo=UTC),
                         "username": "first",
                         "telegram_user_id": 100,
+                        "user_record_id": 10,
                     },
                     {
                         "started_at": datetime(2026, 7, 18, 7, 0, tzinfo=UTC),
                         "username": None,
                         "telegram_user_id": 101,
+                        "user_record_id": 11,
                     },
                 ],
             },
@@ -314,6 +316,25 @@ async def test_get_users_by_start_day_returns_ordered_moscow_cohorts() -> None:
     assert "(u.started_at at time zone 'Europe/Moscow')::date" in query
     assert "order by d.day desc, u.started_at, u.id" in query
     assert params == {"days": 2}
+
+
+@pytest.mark.asyncio
+async def test_get_user_messages_by_id_uses_stable_user_record_id() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult(
+        [
+            {"created_at": "later", "direction": "outgoing", "text": "Ответ"},
+            {"created_at": "earlier", "direction": "incoming", "text": "Привет"},
+        ]
+    )
+
+    rows = await AppRepository(session).get_user_messages_by_id(42)
+
+    assert [row["text"] for row in rows] == ["Привет", "Ответ"]
+    query = str(session.execute.call_args.args[0])
+    params = session.execute.call_args.args[1]
+    assert "where u.id = :user_record_id" in query
+    assert params == {"user_record_id": 42, "limit": 80}
 
 
 @pytest.mark.asyncio

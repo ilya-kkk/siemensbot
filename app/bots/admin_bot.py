@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from datetime import UTC, datetime
 from html import escape
 
@@ -54,6 +55,7 @@ configure_logging(settings)
 logger = logging.getLogger(__name__)
 
 HEALTH_COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker")
+DIALOG_SHORTCUT_RE = re.compile(r"^/dialog_([1-9]\d*)(?:@[A-Za-z0-9_]+)?$")
 
 
 MENU = ReplyKeyboardMarkup(
@@ -383,9 +385,25 @@ async def users(message: Message) -> None:
         data = await AppRepository(session).get_users_by_start_day()
     for html in render_users_rich_html(data):
         await message.answer_rich(
-            InputRichMessage(html=html),
+            InputRichMessage(html=html, skip_entity_detection=False),
             reply_markup=MENU,
         )
+
+
+@router.message(F.text.regexp(DIALOG_SHORTCUT_RE))
+async def dialogue_shortcut(message: Message, state: FSMContext) -> None:
+    if not await _ensure_admin(message):
+        return
+    match = DIALOG_SHORTCUT_RE.fullmatch(message.text or "")
+    if match is None:
+        return
+    user_record_id = int(match.group(1))
+    await state.clear()
+    async with SessionLocal() as session:
+        rows = await AppRepository(session).get_user_messages_by_id(user_record_id)
+    html = render_dialogue_html(rows)
+    for chunk in split_telegram_html(html):
+        await message.answer(chunk, parse_mode="HTML")
 
 
 @router.message(Command("cancel"))

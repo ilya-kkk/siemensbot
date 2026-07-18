@@ -148,20 +148,37 @@ def test_render_users_rich_html_links_users_and_renders_empty_days() -> None:
             {
                 "date": date(2026, 7, 18),
                 "count": 1,
-                "users": [{"username": "<admin>", "telegram_user_id": 1}],
+                "users": [
+                    {
+                        "username": "<admin>",
+                        "telegram_user_id": 1,
+                        "user_record_id": 10,
+                    }
+                ],
             },
             {
                 "date": date(2026, 7, 17),
                 "count": 2,
                 "users": [
-                    {"username": None, "telegram_user_id": 123456},
-                    {"username": None, "telegram_user_id": None},
+                    {
+                        "username": None,
+                        "telegram_user_id": 123456,
+                        "user_record_id": 11,
+                    },
+                    {
+                        "username": None,
+                        "telegram_user_id": None,
+                        "user_record_id": 12,
+                    },
                 ],
             },
             {
                 "date": date(2026, 7, 16),
                 "count": 5,
-                "users": [{"username": f"user{index}"} for index in range(5)],
+                "users": [
+                    {"username": f"user{index}", "user_record_id": 20 + index}
+                    for index in range(5)
+                ],
             },
             {"date": date(2026, 7, 15), "count": 0, "users": []},
         ]
@@ -181,11 +198,17 @@ def test_render_users_rich_html_links_users_and_renders_empty_days() -> None:
     assert '<a href="https://t.me/%3Cadmin%3E">@&lt;admin&gt;</a>' in html
     assert '<a href="tg://user?id=123456">ID 123456</a>' in html
     assert "ID недоступен" in html
+    assert "@&lt;admin&gt;</a> · /dialog_10" in html
+    assert "ID 123456</a> · /dialog_11" in html
+    assert "ID недоступен · /dialog_12" in html
     assert "<p>Нет пользователей</p>" in html
 
 
 def test_render_users_rich_html_splits_large_days_without_losing_users() -> None:
-    users = [{"username": f"user{index:04d}"} for index in range(1000)]
+    users = [
+        {"username": f"user{index:04d}", "user_record_id": index + 1}
+        for index in range(1000)
+    ]
 
     messages = render_users_rich_html(
         {"daily": [{"date": date(2026, 7, 18), "count": len(users), "users": users}]}
@@ -197,6 +220,7 @@ def test_render_users_rich_html_splits_large_days_without_losing_users() -> None
     assert "часть" in combined
     for index in range(1000):
         assert combined.count(f">@user{index:04d}</a>") == 1
+        assert combined.count(f"/dialog_{index + 1}<") == 1
     for html in messages:
         assert len(html.encode("utf-8")) <= 29_000
         estimated_blocks = 1 + (2 * html.count("<details>")) + html.count("<li>")
