@@ -43,7 +43,7 @@ class Settings(BaseSettings):
         alias="OPENROUTER_STT_MODEL",
     )
     welcome_text: str = Field(
-        default="Привет! Давай разберём твой проект. В какой нише сейчас работаешь?",
+        default="Привет :) Для начала расскажи, чем ты занимаешься? Какая у тебя ниша?",
         alias="WELCOME_TEXT",
     )
     public_base_url: str | None = Field(default=None, alias="PUBLIC_BASE_URL")
