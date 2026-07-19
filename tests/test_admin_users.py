@@ -71,7 +71,11 @@ async def test_dialogue_shortcut_returns_dialogue_and_clears_state(monkeypatch) 
 
 def test_admin_menu_and_handlers_expose_users() -> None:
     assert admin_bot.MENU.keyboard[0][2].text == "Юзеры"
-    assert admin_bot.MENU.keyboard[2][0].text == "Сгенерировать линк"
+    assert [button.text for button in admin_bot.MENU.keyboard[1]] == [
+        "Диалог",
+        "Линк",
+        "Настроить пинги",
+    ]
     registered_handlers = [
         handler
         for handler in admin_bot.router.message.handlers

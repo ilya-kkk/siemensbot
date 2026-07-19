@@ -66,8 +66,11 @@ MENU = ReplyKeyboardMarkup(
             KeyboardButton(text="Статистика"),
             KeyboardButton(text="Юзеры"),
         ],
-        [KeyboardButton(text="Диалог"), KeyboardButton(text="Настроить пинги")],
-        [KeyboardButton(text="Сгенерировать линк")],
+        [
+            KeyboardButton(text="Диалог"),
+            KeyboardButton(text="Линк"),
+            KeyboardButton(text="Настроить пинги"),
+        ],
         [KeyboardButton(text="Установить алерт")],
         [KeyboardButton(text="Стоп")],
         [KeyboardButton(text="Отмена")],
@@ -408,7 +411,7 @@ async def users(message: Message) -> None:
 
 
 @router.message(Command("generate_link"))
-@router.message(F.text == "Сгенерировать линк")
+@router.message(F.text.in_({"Линк", "Сгенерировать линк"}))
 async def generate_referral_link_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return
