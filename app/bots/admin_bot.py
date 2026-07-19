@@ -40,6 +40,7 @@ from app.services.admin_views import (
     format_ping_delays,
     parse_growth_alert_threshold,
     parse_ping_delays,
+    parse_referral_source_title,
     ping_delays_from_config,
     render_admin_summary_html,
     render_start_html,
@@ -66,6 +67,7 @@ MENU = ReplyKeyboardMarkup(
             KeyboardButton(text="Юзеры"),
         ],
         [KeyboardButton(text="Диалог"), KeyboardButton(text="Настроить пинги")],
+        [KeyboardButton(text="Сгенерировать линк")],
         [KeyboardButton(text="Установить алерт")],
         [KeyboardButton(text="Стоп")],
         [KeyboardButton(text="Отмена")],
@@ -78,6 +80,7 @@ class AdminStates(StatesGroup):
     waiting_dialog_query = State()
     waiting_ping_delays = State()
     waiting_growth_alert_threshold = State()
+    waiting_referral_source_title = State()
 
 
 async def _admin_for_identity(username: str | None, chat_id: int) -> tuple[int, str] | None:
@@ -313,6 +316,20 @@ async def _growth_alert_recipients() -> list[dict]:
     return recipients
 
 
+async def _get_user_bot_username() -> str:
+    if not settings.user_bot_token:
+        raise RuntimeError("USER_BOT_TOKEN is required")
+    bot = Bot(settings.user_bot_token)
+    try:
+        me = await bot.get_me()
+    finally:
+        await bot.session.close()
+    username = (me.username or "").strip().lstrip("@")
+    if not username:
+        raise RuntimeError("user bot username is unavailable")
+    return username
+
+
 @router.message(CommandStart())
 async def start(message: Message, bot: Bot) -> None:
     try:
@@ -388,6 +405,71 @@ async def users(message: Message) -> None:
             InputRichMessage(html=html, skip_entity_detection=False),
             reply_markup=MENU,
         )
+
+
+@router.message(Command("generate_link"))
+@router.message(F.text == "Сгенерировать линк")
+async def generate_referral_link_start(message: Message, state: FSMContext) -> None:
+    if not await _ensure_admin(message):
+        return
+    await state.set_state(AdminStates.waiting_referral_source_title)
+    await message.answer(
+        "Пришли название канала или источника, например: Instagram Reels.",
+        reply_markup=MENU,
+    )
+
+
+@router.message(AdminStates.waiting_referral_source_title)
+async def generate_referral_link_receive(message: Message, state: FSMContext) -> None:
+    admin = await _ensure_admin(message)
+    if not admin:
+        return
+    if message.text == "Отмена":
+        await state.clear()
+        await message.answer("Действие отменено.", reply_markup=MENU)
+        return
+    try:
+        title = parse_referral_source_title(message.text)
+    except ValueError:
+        await message.answer(
+            "Нужно непустое название до 200 символов. Либо нажми «Отмена».",
+            reply_markup=MENU,
+        )
+        return
+
+    try:
+        user_bot_username = await _get_user_bot_username()
+    except Exception:
+        logger.warning("failed to resolve user bot username for referral link", exc_info=True)
+        await message.answer(
+            "Не удалось получить username пользовательского бота. Проверь USER_BOT_TOKEN.",
+            reply_markup=MENU,
+        )
+        return
+
+    admin_id, _role = admin
+    created_by_username = message.from_user.username if message.from_user else None
+    async with SessionLocal() as session:
+        source = await AppRepository(session).create_referral_source(
+            title,
+            admin_id,
+            created_by_username or "unknown",
+        )
+
+    link = f"https://t.me/{user_bot_username}?start={source['source_code']}"
+    await state.clear()
+    await message.answer(
+        "\n".join(
+            [
+                "Ссылка создана.",
+                f"Название: <b>{escape(title)}</b>",
+                f"ID: <code>{escape(str(source['source_code']))}</code>",
+                f"Ссылка: {escape(link)}",
+            ]
+        ),
+        reply_markup=MENU,
+        parse_mode="HTML",
+    )
 
 
 @router.message(F.text.regexp(DIALOG_SHORTCUT_RE))

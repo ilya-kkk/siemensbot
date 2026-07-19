@@ -34,6 +34,13 @@ def test_offer_button_is_a_callback_without_external_url() -> None:
     assert button.callback_data == user_bot.OFFER_CALLBACK_DATA
 
 
+def test_start_payload_parses_deep_link_code() -> None:
+    assert user_bot._start_payload(_message(text="/start link7")) == "link7"
+    assert user_bot._start_payload(_message(text="/start@TestBot link_7-ads")) == "link_7-ads"
+    assert user_bot._start_payload(_message(text="/start")) is None
+    assert user_bot._start_payload(_message(text="/start bad payload")) is None
+
+
 @pytest.mark.asyncio
 async def test_test_offer_callback_does_not_touch_production_data() -> None:
     callback = SimpleNamespace(answer=AsyncMock())
@@ -336,6 +343,7 @@ async def test_register_incoming_voice_stores_transcription_as_text(monkeypatch)
     )
 
     assert result == (10, 20)
+    assert repo.upsert_telegram_user.await_args.kwargs["referral_source_code"] is None
     repo.log_message.assert_awaited_once_with(
         10,
         "incoming",
@@ -348,10 +356,13 @@ async def test_register_incoming_voice_stores_transcription_as_text(monkeypatch)
 
 @pytest.mark.asyncio
 async def test_start_checks_growth_alert_before_sending_welcome(monkeypatch) -> None:
-    message = _message(text="/start")
+    message = _message(text="/start link7")
     events: list[str] = []
+    captured_referral_source_code: str | None = None
 
-    async def register(*_args, **_kwargs) -> tuple[int, int]:
+    async def register(*_args, **kwargs) -> tuple[int, int]:
+        nonlocal captured_referral_source_code
+        captured_referral_source_code = kwargs.get("referral_source_code")
         events.append("registered")
         return 10, 20
 
@@ -385,4 +396,5 @@ async def test_start_checks_growth_alert_before_sending_welcome(monkeypatch) -> 
     await user_bot.start(message)
 
     assert events == ["registered", "checked", "answered"]
+    assert captured_referral_source_code == "link7"
     repo.log_message.assert_awaited_once()

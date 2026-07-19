@@ -140,6 +140,7 @@ def render_start_html() -> str:
             "Таблица - скачать Excel-таблицу лидов.",
             "Статистика - посмотреть общую статистику и когорты за 14 дней.",
             "Юзеры - посмотреть пользователей по дням за последние 14 дней.",
+            "Сгенерировать линк - создать ссылку с источником для канала.",
             "Диалог - выгрузить диалог по username или chat_id.",
             "Настроить пинги - задать три интервала в часах.",
             "Установить алерт - уведомить обоих админов после заданного числа новых пользователей.",
@@ -147,6 +148,15 @@ def render_start_html() -> str:
             "Стоп - аварийно остановить клиентского бота и пинги.",
         ]
     )
+
+
+def parse_referral_source_title(text: str | None) -> str:
+    title = (text or "").strip()
+    if not title:
+        raise ValueError("referral source title is required")
+    if len(title) > 200:
+        raise ValueError("referral source title is too long")
+    return title
 
 
 def _metric_table(metrics: Mapping[str, Any], *, include_ai_cost: bool) -> str:

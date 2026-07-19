@@ -222,6 +222,38 @@ async def test_get_app_config_seeds_ping_config_once() -> None:
 
 
 @pytest.mark.asyncio
+async def test_create_referral_source_generates_link_code() -> None:
+    session = AsyncMock()
+    session.execute.side_effect = [
+        _ScalarResult(7),
+        _OneRowResult({"id": 7, "source_code": "link7", "title": "Telegram Ads"}),
+    ]
+
+    source = await AppRepository(session).create_referral_source(
+        "Telegram Ads",
+        5,
+        "business_admin",
+    )
+
+    assert source == {"id": 7, "source_code": "link7", "title": "Telegram Ads"}
+    insert_query = str(session.execute.call_args_list[0].args[0])
+    insert_params = session.execute.call_args_list[0].args[1]
+    update_query = str(session.execute.call_args_list[1].args[0])
+    update_params = session.execute.call_args_list[1].args[1]
+    assert "insert into app.referral_sources" in insert_query
+    assert "returning id" in insert_query
+    assert "source_code = 'link' || source.id::text" in update_query
+    assert "where source.id = :source_id" in update_query
+    assert update_params == {"source_id": 7}
+    assert insert_params == {
+        "title": "Telegram Ads",
+        "created_by_admin_user_id": 5,
+        "created_by_username": "business_admin",
+    }
+    session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_upsert_user_advances_funnel_without_dialogue_table() -> None:
     session = AsyncMock()
     session.execute.return_value = _ScalarResult()
@@ -236,6 +268,7 @@ async def test_upsert_user_advances_funnel_without_dialogue_table() -> None:
         event_stage="dialogue",
         activity_at=activity_at,
         activity_message_id=101,
+        referral_source_code="link7",
     )
 
     assert user_id == 42
@@ -250,9 +283,12 @@ async def test_upsert_user_advances_funnel_without_dialogue_table() -> None:
     assert "ping_message.raw_payload ->> 'ping_number' = '1'" in query
     assert "ping_1_answered_at" in query
     assert "ping_claim_token = null" in query
+    assert "app.referral_sources" in query
+    assert "referral_source_id = coalesce" in query
     assert params["event_stage"] == "dialogue"
     assert params["activity_at"] == activity_at
     assert params["activity_message_id"] == 101
+    assert params["referral_source_code"] == "link7"
 
 
 @pytest.mark.asyncio

@@ -6,6 +6,7 @@ from app.services.admin_views import (
     format_ping_delays,
     parse_growth_alert_threshold,
     parse_ping_delays,
+    parse_referral_source_title,
     ping_delays_from_config,
     render_admin_summary_html,
     render_start_html,
@@ -47,6 +48,16 @@ def test_parse_growth_alert_threshold_accepts_positive_bigint() -> None:
 def test_parse_growth_alert_threshold_rejects_invalid_values(value: str | None) -> None:
     with pytest.raises(ValueError):
         parse_growth_alert_threshold(value)
+
+
+def test_parse_referral_source_title_strips_text() -> None:
+    assert parse_referral_source_title("  Telegram Ads  ") == "Telegram Ads"
+
+
+@pytest.mark.parametrize("value", [None, "", "   ", "x" * 201])
+def test_parse_referral_source_title_rejects_invalid_values(value: str | None) -> None:
+    with pytest.raises(ValueError):
+        parse_referral_source_title(value)
 
 
 def test_parse_ping_delays_converts_decimal_hours_to_minutes() -> None:

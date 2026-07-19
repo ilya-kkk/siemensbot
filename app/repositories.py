@@ -464,6 +464,46 @@ class AppRepository:
         )
         await self.session.commit()
 
+    async def create_referral_source(
+        self,
+        title: str,
+        created_by_admin_user_id: int,
+        created_by_username: str,
+    ) -> dict[str, Any]:
+        inserted = await self.session.execute(
+            text(
+                """
+                insert into app.referral_sources (
+                  title, created_by_admin_user_id, created_by_username
+                )
+                values (
+                  :title, :created_by_admin_user_id, :created_by_username
+                )
+                returning id
+                """
+            ),
+            {
+                "title": title,
+                "created_by_admin_user_id": created_by_admin_user_id,
+                "created_by_username": created_by_username,
+            },
+        )
+        source_id = int(inserted.scalar_one())
+        result = await self.session.execute(
+            text(
+                """
+                update app.referral_sources source
+                set source_code = 'link' || source.id::text,
+                    updated_at = now()
+                where source.id = :source_id
+                returning source.id, source.source_code, source.title
+                """
+            ),
+            {"source_id": source_id},
+        )
+        await self.session.commit()
+        return dict(result.one()._mapping)
+
     async def upsert_telegram_user(
         self,
         chat_id: int,
@@ -474,6 +514,7 @@ class AppRepository:
         event_stage: str,
         activity_at: datetime | None = None,
         activity_message_id: int | None = None,
+        referral_source_code: str | None = None,
     ) -> int:
         result = await self.session.execute(
             text(
@@ -481,6 +522,7 @@ class AppRepository:
                 insert into app.telegram_users (
                   chat_id, telegram_user_id, username, username_normalized, first_name, last_name,
                   status, funnel_stage, stage_updated_at, started_at, dialogue_started_at,
+                  referral_source_id, referral_source_captured_at,
                   first_seen_at, last_seen_at, ping_anchor_at
                 )
                 values (
@@ -488,6 +530,20 @@ class AppRepository:
                   'active', :event_stage, coalesce(:activity_at, now()),
                   case when :event_stage = 'started' then coalesce(:activity_at, now()) end,
                   case when :event_stage = 'dialogue' then coalesce(:activity_at, now()) end,
+                  (
+                    select id
+                    from app.referral_sources
+                    where source_code = cast(:referral_source_code as text)
+                  ),
+                  case
+                    when cast(:referral_source_code as text) is not null
+                      and exists (
+                        select 1
+                        from app.referral_sources
+                        where source_code = cast(:referral_source_code as text)
+                      )
+                      then coalesce(:activity_at, now())
+                  end,
                   coalesce(:activity_at, now()), coalesce(:activity_at, now()),
                   coalesce(:activity_at, now())
                 )
@@ -527,6 +583,16 @@ class AppRepository:
                       app.telegram_users.dialogue_started_at,
                       excluded.dialogue_started_at
                     )
+                  end,
+                  referral_source_id = coalesce(
+                    app.telegram_users.referral_source_id,
+                    excluded.referral_source_id
+                  ),
+                  referral_source_captured_at = case
+                    when app.telegram_users.referral_source_id is null
+                      and excluded.referral_source_id is not null
+                      then excluded.referral_source_captured_at
+                    else app.telegram_users.referral_source_captured_at
                   end,
                   first_seen_at = least(
                     app.telegram_users.first_seen_at,
@@ -634,6 +700,7 @@ class AppRepository:
                 "event_stage": event_stage,
                 "activity_at": activity_at,
                 "activity_message_id": activity_message_id,
+                "referral_source_code": referral_source_code,
             },
         )
         return int(result.scalar_one())

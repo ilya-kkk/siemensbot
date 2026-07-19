@@ -1,6 +1,7 @@
 import asyncio
 import io
 import logging
+import re
 
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.exceptions import TelegramAPIError
@@ -26,6 +27,7 @@ configure_logging(settings)
 logger = logging.getLogger(__name__)
 test_sessions: dict[int, list[str]] = {}
 test_offer_sent: set[int] = set()
+START_PAYLOAD_RE = re.compile(r"^/start(?:@[A-Za-z0-9_]+)?(?:\s+([A-Za-z0-9_-]{1,64}))?\s*$")
 VOICE_TRANSCRIPTION_ERROR = (
     "Не удалось расшифровать голосовое сообщение. Попробуйте записать ещё раз."
 )
@@ -79,10 +81,18 @@ def _message_text(message: Message) -> str | None:
     return message.text or message.caption
 
 
+def _start_payload(message: Message) -> str | None:
+    match = START_PAYLOAD_RE.fullmatch(message.text or "")
+    if match is None:
+        return None
+    return match.group(1)
+
+
 async def _register_incoming_message(
     message: Message,
     event_stage: str,
     text_value: str | None = None,
+    referral_source_code: str | None = None,
 ) -> tuple[int, int]:
     incoming_text = text_value if text_value is not None else _message_text(message)
     async with SessionLocal() as session:
@@ -96,6 +106,7 @@ async def _register_incoming_message(
             event_stage=event_stage,
             activity_at=message.date,
             activity_message_id=message.message_id,
+            referral_source_code=referral_source_code,
         )
         source_message_id = await repo.log_message(
             telegram_user_id,
@@ -204,7 +215,11 @@ async def start(message: Message) -> None:
     if await _client_bot_stopped():
         return
 
-    telegram_user_id, _source_message_id = await _register_incoming_message(message, "started")
+    telegram_user_id, _source_message_id = await _register_incoming_message(
+        message,
+        "started",
+        referral_source_code=_start_payload(message),
+    )
     await _check_user_growth_alert()
     if await _client_bot_stopped():
         return

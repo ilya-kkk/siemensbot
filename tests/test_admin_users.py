@@ -71,6 +71,7 @@ async def test_dialogue_shortcut_returns_dialogue_and_clears_state(monkeypatch) 
 
 def test_admin_menu_and_handlers_expose_users() -> None:
     assert admin_bot.MENU.keyboard[0][2].text == "Юзеры"
+    assert admin_bot.MENU.keyboard[2][0].text == "Сгенерировать линк"
     registered_handlers = [
         handler
         for handler in admin_bot.router.message.handlers
@@ -83,3 +84,45 @@ def test_admin_menu_and_handlers_expose_users() -> None:
         if handler.callback is admin_bot.dialogue_shortcut
     ]
     assert len(shortcut_handlers) == 1
+    link_handlers = [
+        handler
+        for handler in admin_bot.router.message.handlers
+        if handler.callback is admin_bot.generate_referral_link_start
+    ]
+    assert len(link_handlers) == 2
+
+
+@pytest.mark.asyncio
+async def test_generate_referral_link_creates_source_and_returns_deep_link(monkeypatch) -> None:
+    repository = SimpleNamespace(
+        create_referral_source=AsyncMock(
+            return_value={"id": 7, "source_code": "link7", "title": "Telegram Ads"}
+        )
+    )
+    message = SimpleNamespace(
+        text="Telegram Ads",
+        from_user=SimpleNamespace(username="business_admin"),
+        answer=AsyncMock(),
+    )
+    state = SimpleNamespace(clear=AsyncMock())
+
+    monkeypatch.setattr(admin_bot, "_ensure_admin", AsyncMock(return_value=(5, "business")))
+    monkeypatch.setattr(admin_bot, "_get_user_bot_username", AsyncMock(return_value="siemens_user_bot"))
+    monkeypatch.setattr(admin_bot, "SessionLocal", _SessionContext)
+    monkeypatch.setattr(admin_bot, "AppRepository", lambda _session: repository)
+
+    await admin_bot.generate_referral_link_receive(message, state)
+
+    repository.create_referral_source.assert_awaited_once_with(
+        "Telegram Ads",
+        5,
+        "business_admin",
+    )
+    state.clear.assert_awaited_once_with()
+    message.answer.assert_awaited_once()
+    text = message.answer.await_args.args[0]
+    assert "Название: <b>Telegram Ads</b>" in text
+    assert "ID: <code>link7</code>" in text
+    assert "Ссылка: https://t.me/siemens_user_bot?start=link7" in text
+    assert message.answer.await_args.kwargs["parse_mode"] == "HTML"
+    assert message.answer.await_args.kwargs["reply_markup"] is admin_bot.MENU
