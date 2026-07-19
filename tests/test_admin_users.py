@@ -74,7 +74,12 @@ def test_admin_menu_and_handlers_expose_users() -> None:
     assert [button.text for button in admin_bot.MENU.keyboard[1]] == [
         "Диалог",
         "Линк",
-        "Настроить пинги",
+        "Пинги",
+    ]
+    assert [button.text for button in admin_bot.MENU.keyboard[2]] == [
+        "Алерт",
+        "Стоп",
+        "Отмена",
     ]
     registered_handlers = [
         handler

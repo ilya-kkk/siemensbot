@@ -69,11 +69,13 @@ MENU = ReplyKeyboardMarkup(
         [
             KeyboardButton(text="Диалог"),
             KeyboardButton(text="Линк"),
-            KeyboardButton(text="Настроить пинги"),
+            KeyboardButton(text="Пинги"),
         ],
-        [KeyboardButton(text="Установить алерт")],
-        [KeyboardButton(text="Стоп")],
-        [KeyboardButton(text="Отмена")],
+        [
+            KeyboardButton(text="Алерт"),
+            KeyboardButton(text="Стоп"),
+            KeyboardButton(text="Отмена"),
+        ],
     ],
     resize_keyboard=True,
 )
@@ -501,7 +503,7 @@ async def cancel(message: Message, state: FSMContext) -> None:
 
 
 @router.message(Command("set_alert"))
-@router.message(F.text == "Установить алерт")
+@router.message(F.text.in_({"Алерт", "Установить алерт"}))
 async def growth_alert_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return
@@ -559,7 +561,7 @@ async def growth_alert_receive(message: Message, state: FSMContext, bot: Bot) ->
 
 
 @router.message(Command("ping_settings"))
-@router.message(F.text == "Настроить пинги")
+@router.message(F.text.in_({"Пинги", "Настроить пинги"}))
 async def ping_settings_start(message: Message, state: FSMContext) -> None:
     if not await _ensure_admin(message):
         return

@@ -145,8 +145,8 @@ def test_render_start_describes_new_admin_actions() -> None:
     html = render_start_html()
 
     assert "Установить ссылку" not in html
-    assert "Настроить пинги" in html
-    assert "Установить алерт" in html
+    assert "Пинги" in html
+    assert "Алерт" in html
     assert "Юзеры" in html
     assert "Отмена" in html
     assert "пинги" in html
