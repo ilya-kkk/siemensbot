@@ -666,6 +666,22 @@ class AppRepository:
         )
         return dict(result.scalar_one())
 
+    async def get_lead_user_id_for_chat(self, chat_id: int) -> int | None:
+        """Return the app user id when this Telegram chat already belongs to a lead."""
+        result = await self.session.execute(
+            text(
+                """
+                select id
+                from app.telegram_users
+                where chat_id = :chat_id
+                  and funnel_stage = 'lead'
+                """
+            ),
+            {"chat_id": chat_id},
+        )
+        value = result.scalar_one_or_none()
+        return int(value) if value is not None else None
+
     async def log_message(
         self,
         telegram_user_id: int,

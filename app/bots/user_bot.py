@@ -31,6 +31,9 @@ VOICE_TRANSCRIPTION_ERROR = (
 )
 OFFER_CALLBACK_DATA = "register_lead"
 TEST_OFFER_CALLBACK_DATA = "test_register_lead"
+LEAD_ALREADY_REGISTERED_TEXT = (
+    "Вы уже записаны на тест-драйв, скоро с вами свяжется менеджер."
+)
 
 
 def _openrouter_status_code(exc: OpenRouterError) -> int | None:
@@ -105,6 +108,37 @@ async def _register_incoming_message(
     return telegram_user_id, source_message_id
 
 
+async def _lead_user_id_for_message(message: Message) -> int | None:
+    async with SessionLocal() as session:
+        return await AppRepository(session).get_lead_user_id_for_chat(message.chat.id)
+
+
+async def _send_lead_already_registered(message: Message, telegram_user_id: int) -> None:
+    sent = await message.answer(LEAD_ALREADY_REGISTERED_TEXT)
+    async with SessionLocal() as session:
+        await AppRepository(session).log_message(
+            telegram_user_id,
+            "outgoing",
+            LEAD_ALREADY_REGISTERED_TEXT,
+            sent.message_id,
+            sent.model_dump(mode="json"),
+        )
+
+
+async def _reply_if_user_is_lead(
+    message: Message,
+    telegram_user_id: int,
+    user_snapshot: dict | None = None,
+) -> bool:
+    if user_snapshot is None:
+        async with SessionLocal() as session:
+            user_snapshot = await AppRepository(session).get_user_snapshot(telegram_user_id)
+    if user_snapshot.get("funnel_stage") != "lead":
+        return False
+    await _send_lead_already_registered(message, telegram_user_id)
+    return True
+
+
 async def _ensure_user_analysis(
     telegram_user_id: int,
     source_message_id: int,
@@ -173,6 +207,8 @@ async def start(message: Message) -> None:
     telegram_user_id, _source_message_id = await _register_incoming_message(message, "started")
     await _check_user_growth_alert()
     if await _client_bot_stopped():
+        return
+    if await _reply_if_user_is_lead(message, telegram_user_id):
         return
 
     sent = await message.answer(settings.welcome_text)
@@ -328,6 +364,16 @@ async def voice_message(message: Message, bot: Bot) -> None:
     elif await _client_bot_stopped():
         return
 
+    if not is_test_session:
+        lead_user_id = await _lead_user_id_for_message(message)
+        if lead_user_id is not None:
+            registered_user_id, _source_message_id = await _register_incoming_message(
+                message,
+                "dialogue",
+            )
+            await _send_lead_already_registered(message, registered_user_id)
+            return
+
     transcription = await _transcribe_voice(bot, message)
     if transcription is None:
         return
@@ -353,11 +399,17 @@ async def _handle_dialogue_message(message: Message, user_text: str) -> None:
     )
     async with SessionLocal() as session:
         repo = AppRepository(session)
-        transcript = await repo.get_transcript_for_user(
-            telegram_user_id,
-            exclude_message_id=source_message_id,
-        )
         user_snapshot = await repo.get_user_snapshot(telegram_user_id)
+        if user_snapshot.get("funnel_stage") == "lead":
+            transcript = None
+        else:
+            transcript = await repo.get_transcript_for_user(
+                telegram_user_id,
+                exclude_message_id=source_message_id,
+            )
+
+    if await _reply_if_user_is_lead(message, telegram_user_id, user_snapshot):
+        return
 
     client = OpenRouterClient(settings)
     try:
@@ -453,7 +505,11 @@ async def non_text_message(message: Message) -> None:
     """Treat every inbound update as activity even when the dialogue accepts text only."""
     if await _client_bot_stopped():
         return
-    await _register_incoming_message(message, "dialogue")
+    telegram_user_id, _source_message_id = await _register_incoming_message(
+        message,
+        "dialogue",
+    )
+    await _reply_if_user_is_lead(message, telegram_user_id)
 
 
 @router.errors()

@@ -332,6 +332,21 @@ async def test_get_user_messages_by_id_uses_stable_user_record_id() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_lead_user_id_for_chat_only_matches_leads() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _OptionalScalarResult(42)
+
+    user_id = await AppRepository(session).get_lead_user_id_for_chat(123)
+
+    assert user_id == 42
+    query = str(session.execute.call_args.args[0])
+    params = session.execute.call_args.args[1]
+    assert "chat_id = :chat_id" in query
+    assert "funnel_stage = 'lead'" in query
+    assert params == {"chat_id": 123}
+
+
+@pytest.mark.asyncio
 async def test_log_outgoing_message_links_ai_request() -> None:
     session = AsyncMock()
     session.execute.return_value = _ScalarResult(87)
