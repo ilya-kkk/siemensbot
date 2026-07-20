@@ -1485,20 +1485,30 @@ class AppRepository:
             text(
                 """
                 update app.telegram_users
-                set status = coalesce(:user_status, status),
+                set status = coalesce(cast(:user_status as text), status),
+                    funnel_stage = case
+                      when cast(:user_status as text) = 'blocked' then 'blocked'
+                      else funnel_stage
+                    end,
+                    stage_updated_at = case
+                      when cast(:user_status as text) = 'blocked'
+                        and funnel_stage <> 'blocked' then now()
+                      else stage_updated_at
+                    end,
                     ping_anchor_at = case
-                      when :user_status in ('blocked', 'invalid') then null
+                      when cast(:user_status as text) in ('blocked', 'invalid') then null
                       else ping_anchor_at
                     end,
                     ping_claim_token = null,
                     ping_claim_number = null,
                     ping_claimed_at = null,
                     ping_retry_at = case
-                      when :user_status in ('blocked', 'invalid') then null
-                      else :retry_at
+                      when cast(:user_status as text) in ('blocked', 'invalid') then null
+                      else cast(:retry_at as timestamptz)
                     end,
                     ping_pending_ai_request_id = case
-                      when :preserve_pending and :user_status is null then ping_pending_ai_request_id
+                      when :preserve_pending and cast(:user_status as text) is null
+                        then ping_pending_ai_request_id
                       else null
                     end,
                     updated_at = now()

@@ -71,7 +71,7 @@ triage, and maintenance instructions.
   `/start` users. Both admins receive durable Telegram notifications when it is installed and fired.
 - `messages` stores the complete per-user timeline; `ai_requests` links each model call to its source and output messages.
 - Pings are generated from the full dialogue context after 2, 24, and 72 hours of inactivity by default.
-- Funnel stages progress through `started`, `dialogue`, and `lead`; only a tracked button click creates a lead.
+- Funnel stages progress through `started`, `dialogue`, and `lead`; only a tracked button click creates a lead. A Telegram 403 marks the terminal stage as `blocked`, while `pings_sent_count` retains how many pings were delivered before the block was detected.
 - The Telegram callback button marks the user as a lead and then analyzes the complete saved dialogue. It does not open an external form.
 - Funnel statistics use Moscow-time `/start` cohorts and include the latest 14 calendar days.
 

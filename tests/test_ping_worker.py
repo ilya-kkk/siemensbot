@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError, TelegramRetryAfter
 from aiogram.methods import SendMessage
 
 from app.ai.openrouter import OpenRouterError, PingResult
@@ -202,6 +202,36 @@ async def test_telegram_429_reuses_pending_ai_without_new_llm_call(
     assert failure_kwargs["preserve_pending"] is True
     assert failure_kwargs["user_status"] is None
     assert failure_kwargs["retry_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_telegram_blocked_marks_user_terminal_without_retry(
+    fake_runtime: _FakeRepository,
+) -> None:
+    payload = {
+        "choices": [{"message": {"content": json.dumps({"text": "Продолжим разбор?"})}}]
+    }
+    client = AsyncMock()
+    bot = AsyncMock()
+    bot.send_message.side_effect = TelegramForbiddenError(
+        method=SendMessage(chat_id=700, text="Продолжим разбор?"),
+        message="Forbidden: bot was blocked by the user",
+    )
+
+    sent = await ping_worker._process_claim(
+        bot,
+        client,
+        _settings(),
+        _claim(ping_pending_ai_request_id=90, pending_response_payload=payload),
+    )
+
+    assert sent is False
+    failure_kwargs = fake_runtime.delivery_failures[0][1]
+    assert failure_kwargs == {
+        "user_status": "blocked",
+        "retry_at": None,
+        "preserve_pending": False,
+    }
 
 
 @pytest.mark.asyncio

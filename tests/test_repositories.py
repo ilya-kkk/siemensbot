@@ -657,3 +657,25 @@ async def test_complete_ping_send_updates_counter_and_links_ai_request() -> None
     assert "insert into app.messages" in insert_query
     assert insert_params["ai_request_id"] == 90
     session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_blocked_ping_delivery_marks_funnel_stage_and_clears_retry() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _OptionalScalarResult(7)
+
+    failed = await AppRepository(session).fail_ping_delivery(
+        telegram_user_id=7,
+        claim_token="00000000-0000-0000-0000-000000000007",
+        user_status="blocked",
+    )
+
+    assert failed is True
+    query = str(session.execute.call_args.args[0])
+    params = session.execute.call_args.args[1]
+    assert "then 'blocked'" in query
+    assert "stage_updated_at" in query
+    assert "cast(:retry_at as timestamptz)" in query
+    assert params["user_status"] == "blocked"
+    assert params["retry_at"] is None
+    session.commit.assert_awaited_once()
