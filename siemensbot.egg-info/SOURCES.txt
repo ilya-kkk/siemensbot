@@ -16,11 +16,13 @@ app/core/db.py
 app/core/logging.py
 app/services/__init__.py
 app/services/admin_views.py
+app/services/google_sheets.py
 app/services/leads.py
 app/services/telegram_errors.py
 app/services/tokens.py
 app/services/transcript.py
 app/workers/__init__.py
+app/workers/google_sheets_worker.py
 app/workers/ping_worker.py
 evals/__init__.py
 evals/deepeval_adapter.py
@@ -38,6 +40,9 @@ tests/test_admin_views.py
 tests/test_config.py
 tests/test_eval_reporting.py
 tests/test_eval_runner.py
+tests/test_google_sheet_sync_migration.py
+tests/test_google_sheets.py
+tests/test_google_sheets_worker.py
 tests/test_health.py
 tests/test_host_monitor.py
 tests/test_leads.py

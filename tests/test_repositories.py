@@ -521,6 +521,33 @@ async def test_lead_export_only_selects_leads_and_analysis_fields() -> None:
 
 
 @pytest.mark.asyncio
+async def test_google_sheet_export_only_selects_unsynced_leads() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult([])
+
+    rows = await AppRepository(session).get_unsynced_google_sheet_leads(250)
+
+    assert rows == []
+    query = str(session.execute.call_args.args[0])
+    assert "funnel_stage = 'lead'" in query
+    assert "google_sheet_synced_at is null" in query
+    assert session.execute.call_args.args[1] == {"limit": 250}
+
+
+@pytest.mark.asyncio
+async def test_mark_google_sheet_leads_synced_commits() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult([{"id": 1}, {"id": 2}])
+
+    count = await AppRepository(session).mark_google_sheet_leads_synced([1, 2])
+
+    assert count == 2
+    query = str(session.execute.call_args.args[0])
+    assert "google_sheet_synced_at = coalesce(google_sheet_synced_at, now())" in query
+    session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_get_stats_returns_overall_and_daily_cohorts() -> None:
     session = AsyncMock()
     overall = {

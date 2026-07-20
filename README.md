@@ -5,6 +5,7 @@ Inbound Telegram funnel with:
 - admin Telegram bot;
 - user-facing Telegram bot;
 - context-aware ping worker;
+- Google Sheets lead synchronization worker;
 - FastAPI health API;
 - Supabase Postgres schema in private `app` schema;
 - OpenRouter AI chat, Russian voice-message transcription, and structured dialogue analysis.
@@ -42,6 +43,7 @@ uvicorn app.main:app --reload
 python -m app.bots.admin_bot
 python -m app.bots.user_bot
 python -m app.workers.ping_worker
+python -m app.workers.google_sheets_worker
 ```
 
 Or with Docker:
@@ -72,3 +74,31 @@ triage, and maintenance instructions.
 - Funnel stages progress through `started`, `dialogue`, and `lead`; only a tracked button click creates a lead.
 - The Telegram callback button marks the user as a lead and then analyzes the complete saved dialogue. It does not open an external form.
 - Funnel statistics use Moscow-time `/start` cohorts and include the latest 14 calendar days.
+
+## Google Sheets lead sync
+
+The dedicated worker checks every 10 minutes for rows in `app.telegram_users` where
+`funnel_stage = 'lead'` and `google_sheet_synced_at is null`. When new leads exist, it rebuilds
+the Google workbook from the same data and grouping used by the admin bot's Excel export:
+the same business columns, one `Бот DD.MM.YYYY` worksheet per Moscow calendar day, and newest
+leads first. Rebuilding the affected workbook before recording synchronization timestamps
+makes retries idempotent without adding service columns to the business-facing sheets.
+
+Put the service-account JSON outside Git in:
+
+```text
+secrets/google-service-account.json
+```
+
+Keep these settings in `.env`:
+
+```dotenv
+GOOGLE_SHEET=Exact spreadsheet title
+GOOGLE_SERVICE_ACCOUNT_FILE=secrets/google-service-account.json
+GOOGLE_SHEETS_SYNC_INTERVAL_SECONDS=600
+GOOGLE_SHEETS_SYNC_BATCH_SIZE=500
+```
+
+`GOOGLE_SHEET` may also contain the full Google Sheets URL. Share the spreadsheet with the
+JSON file's `client_email` as an Editor. Opening by title requires both the Google Sheets API
+and Google Drive API to be enabled for the service-account project.

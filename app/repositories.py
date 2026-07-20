@@ -16,6 +16,7 @@ def _normalize_username(username: str | None) -> str | None:
 
 class AppRepository:
     _GROWTH_ALERT_LOCK_KEY = 7_217_202_607
+    _GOOGLE_SHEET_SYNC_LOCK_KEY = 7_217_202_620
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -1041,6 +1042,70 @@ class AppRepository:
             )
         )
         return [dict(row._mapping) for row in result.all()]
+
+    async def try_google_sheet_sync_lock(self) -> bool:
+        result = await self.session.execute(
+            text("select pg_try_advisory_xact_lock(:lock_key)"),
+            {"lock_key": self._GOOGLE_SHEET_SYNC_LOCK_KEY},
+        )
+        return bool(result.scalar_one())
+
+    async def get_unsynced_google_sheet_leads(self, limit: int = 500) -> list[dict[str, Any]]:
+        result = await self.session.execute(
+            text(
+                """
+                select
+                  id,
+                  lead_at as created_at,
+                  telegram_user_id as telegram_id,
+                  chat_id,
+                  username,
+                  coalesce(
+                    nullif(btrim(concat_ws(' ', first_name, last_name)), ''),
+                    nullif(username, ''),
+                    telegram_user_id::text,
+                    chat_id::text,
+                    'Без имени'
+                  ) as name,
+                  nullif(btrim(concat_ws(' ', first_name, last_name)), '') as telegram_name,
+                  niche,
+                  main_problem,
+                  average_check,
+                  revenue_estimate,
+                  sales_volume,
+                  lead_temperature,
+                  confidence,
+                  summary
+                from app.telegram_users
+                where funnel_stage = 'lead'
+                  and google_sheet_synced_at is null
+                order by lead_at nulls last, id
+                limit :limit
+                """
+            ),
+            {"limit": max(1, min(int(limit), 5000))},
+        )
+        return [dict(row._mapping) for row in result.all()]
+
+    async def mark_google_sheet_leads_synced(self, lead_ids: list[int]) -> int:
+        if not lead_ids:
+            return 0
+        result = await self.session.execute(
+            text(
+                """
+                update app.telegram_users
+                set google_sheet_synced_at = coalesce(google_sheet_synced_at, now()),
+                    updated_at = now()
+                where id = any(cast(:lead_ids as bigint[]))
+                  and funnel_stage = 'lead'
+                returning id
+                """
+            ),
+            {"lead_ids": lead_ids},
+        )
+        synced_count = len(result.all())
+        await self.session.commit()
+        return synced_count
 
     async def record_lead_click(
         self,

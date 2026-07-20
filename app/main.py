@@ -16,7 +16,7 @@ settings = get_settings()
 configure_logging(settings)
 logger = logging.getLogger(__name__)
 
-COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker")
+COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker", "google_sheets_worker")
 
 
 @asynccontextmanager

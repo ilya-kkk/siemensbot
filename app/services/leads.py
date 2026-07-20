@@ -92,7 +92,9 @@ def _populate_sheet(
         worksheet.add_table(table)
 
 
-def render_leads_xlsx(rows: Sequence[Mapping[str, Any]]) -> bytes:
+def group_leads_by_sheet(
+    rows: Sequence[Mapping[str, Any]],
+) -> list[tuple[str, list[Mapping[str, Any]]]]:
     dated_rows: dict[date, list[Mapping[str, Any]]] = defaultdict(list)
     undated_rows: list[Mapping[str, Any]] = []
 
@@ -104,28 +106,33 @@ def render_leads_xlsx(rows: Sequence[Mapping[str, Any]]) -> bytes:
         lead_day = lead_datetime.astimezone(_MOSCOW_TZ).date()
         dated_rows[lead_day].append(row)
 
+    grouped: list[tuple[str, list[Mapping[str, Any]]]] = []
+    for lead_day in sorted(dated_rows, reverse=True):
+        daily_rows = sorted(
+            dated_rows[lead_day],
+            key=lambda row: (
+                _lead_datetime(row.get("created_at")) or datetime.min.replace(tzinfo=UTC)
+            ),
+            reverse=True,
+        )
+        grouped.append((lead_day.strftime("%d.%m.%Y"), daily_rows))
+    if undated_rows:
+        grouped.append(("Без даты", undated_rows))
+    return grouped or [("Лиды", [])]
+
+
+def render_leads_xlsx(rows: Sequence[Mapping[str, Any]]) -> bytes:
     workbook = Workbook()
     workbook.remove(workbook.active)
 
-    if not dated_rows and not undated_rows:
-        _populate_sheet(workbook, "Лиды", [], None)
-    else:
-        for lead_day in sorted(dated_rows, reverse=True):
-            daily_rows = sorted(
-                dated_rows[lead_day],
-                key=lambda row: (
-                    _lead_datetime(row.get("created_at")) or datetime.min.replace(tzinfo=UTC)
-                ),
-                reverse=True,
-            )
-            _populate_sheet(
-                workbook,
-                lead_day.strftime("%d.%m.%Y"),
-                daily_rows,
-                f"Leads_{lead_day.strftime('%Y%m%d')}",
-            )
-        if undated_rows:
-            _populate_sheet(workbook, "Без даты", undated_rows, "Leads_undated")
+    for title, sheet_rows in group_leads_by_sheet(rows):
+        if title == "Лиды":
+            table_name = None
+        elif title == "Без даты":
+            table_name = "Leads_undated"
+        else:
+            table_name = f"Leads_{datetime.strptime(title, '%d.%m.%Y').strftime('%Y%m%d')}"
+        _populate_sheet(workbook, title, sheet_rows, table_name)
 
     buffer = io.BytesIO()
     workbook.save(buffer)

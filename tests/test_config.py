@@ -38,6 +38,15 @@ def test_business_status_cache_paths_have_runtime_defaults() -> None:
     assert str(settings.business_status_message_cache_path) == "runtime/business_status_message_id"
 
 
+def test_google_sheet_sync_has_safe_defaults() -> None:
+    settings = _settings(GOOGLE_SHEET="Leads")
+
+    assert settings.google_sheet == "Leads"
+    assert str(settings.google_service_account_file) == "secrets/google-service-account.json"
+    assert settings.google_sheets_sync_interval_seconds == 600
+    assert settings.google_sheets_sync_batch_size == 500
+
+
 @pytest.mark.parametrize(
     ("values", "message"),
     [

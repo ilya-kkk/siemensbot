@@ -56,6 +56,19 @@ class Settings(BaseSettings):
     ping_worker_retry_seconds: int = Field(default=300, alias="PING_WORKER_RETRY_SECONDS")
     heartbeat_interval_seconds: int = Field(default=30, alias="HEARTBEAT_INTERVAL_SECONDS")
     heartbeat_stale_seconds: int = Field(default=120, alias="HEARTBEAT_STALE_SECONDS")
+    google_sheet: str | None = Field(default=None, alias="GOOGLE_SHEET")
+    google_service_account_file: Path = Field(
+        default=Path("secrets/google-service-account.json"),
+        alias="GOOGLE_SERVICE_ACCOUNT_FILE",
+    )
+    google_sheets_sync_interval_seconds: int = Field(
+        default=600,
+        alias="GOOGLE_SHEETS_SYNC_INTERVAL_SECONDS",
+    )
+    google_sheets_sync_batch_size: int = Field(
+        default=500,
+        alias="GOOGLE_SHEETS_SYNC_BATCH_SIZE",
+    )
     tech_admin_chat_cache_path: Path = Field(
         default=Path("runtime/tech_admin_chat_id"),
         alias="TECH_ADMIN_CHAT_CACHE_PATH",

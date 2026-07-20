@@ -55,7 +55,7 @@ settings = get_settings()
 configure_logging(settings)
 logger = logging.getLogger(__name__)
 
-HEALTH_COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker")
+HEALTH_COMPONENTS = ("api", "user_bot", "admin_bot", "ping_worker", "google_sheets_worker")
 DIALOG_SHORTCUT_RE = re.compile(r"^/dialog_([1-9]\d*)(?:@[A-Za-z0-9_]+)?$")
 
 
