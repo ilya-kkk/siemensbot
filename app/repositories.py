@@ -809,6 +809,68 @@ class AppRepository:
             limit,
         )
 
+    async def get_dialogues_for_report(self) -> list[dict[str, Any]]:
+        """Return every started dialogue with all of its messages in chronological order."""
+        result = await self.session.execute(
+            text(
+                """
+                select
+                  u.id as user_record_id,
+                  u.telegram_user_id,
+                  u.chat_id,
+                  u.username,
+                  nullif(btrim(concat_ws(' ', u.first_name, u.last_name)), '') as telegram_name,
+                  u.started_at,
+                  u.dialogue_started_at,
+                  u.funnel_stage,
+                  u.lead_at,
+                  m.id as message_id,
+                  m.created_at as message_created_at,
+                  m.direction,
+                  m.message_type,
+                  m.text
+                from app.telegram_users u
+                left join app.messages m on m.telegram_user_id = u.id
+                where u.dialogue_started_at is not null
+                order by u.dialogue_started_at, u.id, m.created_at, m.id
+                """
+            )
+        )
+
+        dialogues: list[dict[str, Any]] = []
+        current: dict[str, Any] | None = None
+        current_user_id: int | None = None
+        for row in result.all():
+            item = dict(row._mapping)
+            user_record_id = int(item["user_record_id"])
+            if user_record_id != current_user_id:
+                current = {
+                    "user_record_id": user_record_id,
+                    "telegram_user_id": item.get("telegram_user_id"),
+                    "chat_id": item.get("chat_id"),
+                    "username": item.get("username"),
+                    "telegram_name": item.get("telegram_name"),
+                    "started_at": item.get("started_at"),
+                    "dialogue_started_at": item.get("dialogue_started_at"),
+                    "funnel_stage": item.get("funnel_stage"),
+                    "lead_at": item.get("lead_at"),
+                    "messages": [],
+                }
+                dialogues.append(current)
+                current_user_id = user_record_id
+
+            if item.get("message_id") is not None and current is not None:
+                current["messages"].append(
+                    {
+                        "id": item["message_id"],
+                        "created_at": item.get("message_created_at"),
+                        "direction": item.get("direction"),
+                        "message_type": item.get("message_type"),
+                        "text": item.get("text"),
+                    }
+                )
+        return dialogues
+
     async def _get_user_messages(
         self,
         where: str,

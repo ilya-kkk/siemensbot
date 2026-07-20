@@ -368,6 +368,75 @@ async def test_get_user_messages_by_id_uses_stable_user_record_id() -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_dialogues_for_report_groups_all_messages_in_start_order() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult(
+        [
+            {
+                "user_record_id": 10,
+                "telegram_user_id": 100,
+                "chat_id": 100,
+                "username": "first",
+                "telegram_name": "Первый",
+                "started_at": "start-1",
+                "dialogue_started_at": "dialogue-1",
+                "funnel_stage": "dialogue",
+                "lead_at": None,
+                "message_id": 1,
+                "message_created_at": "message-1",
+                "direction": "incoming",
+                "message_type": "text",
+                "text": "Привет",
+            },
+            {
+                "user_record_id": 10,
+                "telegram_user_id": 100,
+                "chat_id": 100,
+                "username": "first",
+                "telegram_name": "Первый",
+                "started_at": "start-1",
+                "dialogue_started_at": "dialogue-1",
+                "funnel_stage": "dialogue",
+                "lead_at": None,
+                "message_id": 2,
+                "message_created_at": "message-2",
+                "direction": "outgoing",
+                "message_type": "text",
+                "text": "Ответ",
+            },
+            {
+                "user_record_id": 11,
+                "telegram_user_id": 101,
+                "chat_id": 101,
+                "username": "second",
+                "telegram_name": None,
+                "started_at": "start-2",
+                "dialogue_started_at": "dialogue-2",
+                "funnel_stage": "lead",
+                "lead_at": "lead-2",
+                "message_id": 3,
+                "message_created_at": "message-3",
+                "direction": "incoming",
+                "message_type": "text",
+                "text": "Второй диалог",
+            },
+        ]
+    )
+
+    dialogues = await AppRepository(session).get_dialogues_for_report()
+
+    assert [dialogue["user_record_id"] for dialogue in dialogues] == [10, 11]
+    assert [message["text"] for message in dialogues[0]["messages"]] == ["Привет", "Ответ"]
+    assert [message["text"] for message in dialogues[1]["messages"]] == [
+        "Второй диалог"
+    ]
+    query = str(session.execute.call_args.args[0])
+    assert "where u.dialogue_started_at is not null" in query
+    assert "left join app.messages" in query
+    assert "order by u.dialogue_started_at, u.id, m.created_at, m.id" in query
+
+
+@pytest.mark.asyncio
 async def test_get_lead_user_id_for_chat_only_matches_leads() -> None:
     session = AsyncMock()
     session.execute.return_value = _OptionalScalarResult(42)

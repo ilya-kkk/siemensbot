@@ -45,9 +45,10 @@ async def test_download_leads_sends_timestamped_xlsx(monkeypatch) -> None:
     }
 
 
-def test_admin_menu_and_help_use_table_label() -> None:
-    assert admin_bot.MENU.keyboard[0][0].text == "Таблица"
-    assert "Таблица - скачать Excel-таблицу лидов." in render_start_html()
+def test_admin_menu_and_help_use_report_label() -> None:
+    assert admin_bot.MENU.keyboard[0][0].text == "Отчёт"
+    assert "Отчёт - скачать HTML со всеми диалогами." in render_start_html()
+    assert "Таблица -" not in render_start_html()
     assert "CSV -" not in render_start_html()
 
 

@@ -47,6 +47,7 @@ from app.services.admin_views import (
     render_stats_rich_html,
     render_users_rich_html,
 )
+from app.services.dialogue_report import render_dialogues_report_html
 from app.services.leads import render_leads_xlsx
 from app.services.transcript import render_dialogue_html, split_telegram_html
 
@@ -62,7 +63,7 @@ DIALOG_SHORTCUT_RE = re.compile(r"^/dialog_([1-9]\d*)(?:@[A-Za-z0-9_]+)?$")
 MENU = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text="Таблица"),
+            KeyboardButton(text="Отчёт"),
             KeyboardButton(text="Статистика"),
             KeyboardButton(text="Юзеры"),
         ],
@@ -381,6 +382,25 @@ async def download_leads(message: Message) -> None:
     await message.answer_document(
         BufferedInputFile(xlsx_bytes, filename=filename),
         caption=f"Лидов: {len(rows)}",
+        reply_markup=MENU,
+    )
+
+
+@router.message(Command("report"))
+@router.message(F.text == "Отчёт")
+async def download_dialogues_report(message: Message) -> None:
+    if not await _ensure_admin(message):
+        return
+    async with SessionLocal() as session:
+        dialogues = await AppRepository(session).get_dialogues_for_report()
+
+    generated_at = datetime.now(UTC)
+    report = render_dialogues_report_html(dialogues, generated_at=generated_at)
+    filename = f"dialogues_{generated_at.strftime('%Y-%m-%d_%H-%M-%S')}.html"
+    message_count = sum(len(dialogue.get("messages") or []) for dialogue in dialogues)
+    await message.answer_document(
+        BufferedInputFile(report, filename=filename),
+        caption=f"Диалогов: {len(dialogues)} · сообщений: {message_count}",
         reply_markup=MENU,
     )
 
