@@ -65,6 +65,59 @@ def _stage_label(value: Any) -> str:
     }.get(str(value or ""), str(value or "Статус неизвестен"))
 
 
+def _username_html(user: Mapping[str, Any]) -> str:
+    username = str(user.get("username") or "").strip().lstrip("@")
+    if not username:
+        return "username отсутствует"
+    return f'<a href="https://t.me/{escape(username, quote=True)}">@{escape(username)}</a>'
+
+
+def _render_unanswered_users(users: Sequence[Mapping[str, Any]]) -> str:
+    if not users:
+        return """
+          <section class="unanswered">
+            <header class="section-title">
+              <h2>Не ответили на первое сообщение</h2>
+              <span>0 пользователей</span>
+            </header>
+            <div class="empty-list">Таких пользователей нет</div>
+          </section>
+        """
+
+    rows = []
+    for index, user in enumerate(users, start=1):
+        rows.append(
+            f"""
+            <tr>
+              <td>{index}</td>
+              <td>
+                <div class="user-main">{escape(_user_label(user))}</div>
+                <div class="meta">{_username_html(user)} · Telegram ID {escape(str(user.get("telegram_user_id") or "—"))} · chat_id {escape(str(user.get("chat_id") or "—"))}</div>
+              </td>
+              <td>{escape(_datetime_label(user.get("started_at")))} MSK</td>
+              <td>{escape(str(user.get("status") or "—"))}</td>
+            </tr>
+            """
+        )
+
+    return f"""
+      <section class="unanswered">
+        <header class="section-title">
+          <h2>Не ответили на первое сообщение</h2>
+          <span>{len(users)} пользователей</span>
+        </header>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Пользователь</th><th>Старт</th><th>Статус</th></tr>
+            </thead>
+            <tbody>{"".join(rows)}</tbody>
+          </table>
+        </div>
+      </section>
+    """
+
+
 def _render_message(message: Mapping[str, Any]) -> str:
     direction = str(message.get("direction") or "system")
     if direction not in {"incoming", "outgoing", "system"}:
@@ -105,22 +158,18 @@ def _render_messages(messages: Sequence[Mapping[str, Any]]) -> str:
 
 def render_dialogues_report_html(
     dialogues: Sequence[Mapping[str, Any]],
+    unanswered_users: Sequence[Mapping[str, Any]] | None = None,
     generated_at: datetime | None = None,
 ) -> bytes:
     """Build a self-contained UTF-8 HTML document with all dialogues."""
     generated_at = generated_at or datetime.now(UTC)
+    unanswered_users = unanswered_users or []
     message_count = sum(len(dialogue.get("messages") or []) for dialogue in dialogues)
     sections: list[str] = []
 
     for index, dialogue in enumerate(dialogues, start=1):
         label = _user_label(dialogue)
         messages = dialogue.get("messages") or []
-        username = str(dialogue.get("username") or "").strip().lstrip("@")
-        username_html = (
-            f'<a href="https://t.me/{escape(username, quote=True)}">@{escape(username)}</a>'
-            if username
-            else "username отсутствует"
-        )
         user_id = escape(str(dialogue.get("telegram_user_id") or "—"))
         chat_id = escape(str(dialogue.get("chat_id") or "—"))
         sections.append(
@@ -131,7 +180,7 @@ def render_dialogues_report_html(
                 <div class="identity">
                   <h2>{escape(label)}</h2>
                   <div class="meta">Диалог #{index} · начат {_datetime_label(dialogue.get("dialogue_started_at"))} MSK</div>
-                  <div class="meta">{username_html} · Telegram ID {user_id} · chat_id {chat_id}</div>
+                  <div class="meta">{_username_html(dialogue)} · Telegram ID {user_id} · chat_id {chat_id}</div>
                 </div>
                 <div class="chat-stats">
                   <span class="stage">{escape(_stage_label(dialogue.get("funnel_stage")))}</span>
@@ -149,6 +198,7 @@ def render_dialogues_report_html(
         <p>В отчёте появятся пользователи, которые начали общение с ботом.</p>
       </section>
     """
+    unanswered_content = _render_unanswered_users(unanswered_users)
     generated_label = escape(_datetime_label(generated_at))
     document = f"""<!doctype html>
 <html lang="ru">
@@ -171,6 +221,16 @@ def render_dialogues_report_html(
     .identity h2 {{ margin: 0 0 3px; overflow-wrap: anywhere; font-size: 17px; }}
     .meta {{ color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }}
     .meta a {{ color: var(--accent); text-decoration: none; }}
+    .section-title {{ display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: #fff; }}
+    .section-title h2 {{ margin: 0; font-size: 18px; }}
+    .section-title span {{ color: var(--muted); font-size: 13px; white-space: nowrap; }}
+    .unanswered {{ margin: 0 0 28px; overflow: hidden; border: 1px solid #cbd7de; border-radius: 14px; background: var(--panel); box-shadow: 0 5px 22px #3449551f; }}
+    .table-wrap {{ overflow-x: auto; }}
+    table {{ width: 100%; border-collapse: collapse; min-width: 760px; }}
+    th, td {{ padding: 11px 14px; border-bottom: 1px solid #edf1f3; text-align: left; vertical-align: top; }}
+    th {{ color: var(--muted); background: #f6f8f9; font-size: 12px; font-weight: 700; }}
+    tr:last-child td {{ border-bottom: 0; }}
+    .user-main {{ margin-bottom: 3px; font-weight: 700; overflow-wrap: anywhere; }}
     .chat-stats {{ display: flex; align-items: flex-end; gap: 6px; flex-direction: column; color: var(--muted); font-size: 12px; white-space: nowrap; }}
     .stage {{ padding: 3px 8px; border-radius: 999px; color: #236132; background: #ddf6df; font-weight: 600; }}
     .chat-body {{ padding: 18px max(14px, 5vw); background-color: #91a5af; background-image: linear-gradient(135deg, #ffffff0d 25%, transparent 25%), linear-gradient(315deg, #ffffff0d 25%, transparent 25%); background-size: 28px 28px; }}
@@ -189,7 +249,7 @@ def render_dialogues_report_html(
     .system time {{ display: none; }}
     .date-separator {{ margin: 14px 0 10px; text-align: center; }}
     .date-separator span {{ display: inline-block; padding: 4px 10px; border-radius: 999px; color: #fff; background: #5b6f79bf; font-size: 12px; font-weight: 600; }}
-    .empty-chat, .no-dialogues {{ padding: 38px; color: var(--muted); background: #fff; text-align: center; }}
+    .empty-chat, .empty-list, .no-dialogues {{ padding: 38px; color: var(--muted); background: #fff; text-align: center; }}
     @media (max-width: 640px) {{
       .report-header {{ padding: 14px 16px; }} main {{ width: 100%; margin-top: 12px; }} .dialogue {{ border-radius: 0; border-left: 0; border-right: 0; }}
       .chat-header {{ align-items: flex-start; padding: 12px; }} .chat-stats {{ display: none; }} .bubble {{ max-width: 88%; }}
@@ -200,9 +260,9 @@ def render_dialogues_report_html(
 <body>
   <header class="report-header">
     <h1>Все диалоги</h1>
-    <p>{len(dialogues)} диалогов · {message_count} сообщений · сформирован {generated_label} MSK · от старых к новым</p>
+    <p>{len(dialogues)} диалогов · {message_count} сообщений · без ответа {len(unanswered_users)} · сформирован {generated_label} MSK · от старых к новым</p>
   </header>
-  <main>{content}</main>
+  <main>{unanswered_content}{content}</main>
 </body>
 </html>
 """

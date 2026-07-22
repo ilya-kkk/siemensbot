@@ -18,7 +18,11 @@ class _SessionContext:
 @pytest.mark.asyncio
 async def test_download_dialogues_report_sends_timestamped_html(monkeypatch) -> None:
     dialogues = [{"messages": [{"text": "Привет"}, {"text": "Ответ"}]}]
-    repository = SimpleNamespace(get_dialogues_for_report=AsyncMock(return_value=dialogues))
+    unanswered_users = [{"username": "silent"}]
+    repository = SimpleNamespace(
+        get_dialogues_for_report=AsyncMock(return_value=dialogues),
+        get_unanswered_start_users_for_report=AsyncMock(return_value=unanswered_users),
+    )
     message = SimpleNamespace(answer_document=AsyncMock())
 
     class FixedDatetime(datetime):
@@ -26,7 +30,7 @@ async def test_download_dialogues_report_sends_timestamped_html(monkeypatch) -> 
         def now(cls, tz=None):
             return cls(2026, 7, 20, 15, 40, 5, tzinfo=UTC)
 
-    def render_report(value, generated_at):
+    def render_report(value, unanswered_users, generated_at):
         return b"html-bytes"
 
     monkeypatch.setattr(admin_bot, "_ensure_admin", AsyncMock(return_value=(1, "business")))
@@ -37,12 +41,13 @@ async def test_download_dialogues_report_sends_timestamped_html(monkeypatch) -> 
 
     await admin_bot.download_dialogues_report(message)
 
+    repository.get_unanswered_start_users_for_report.assert_awaited_once_with()
     repository.get_dialogues_for_report.assert_awaited_once_with()
     document = message.answer_document.await_args.args[0]
     assert document.filename == "dialogues_2026-07-20_15-40-05.html"
     assert document.data == b"html-bytes"
     assert message.answer_document.await_args.kwargs == {
-        "caption": "Диалогов: 1 · сообщений: 2",
+        "caption": "Диалогов: 1 · сообщений: 2 · без ответа: 1",
         "reply_markup": admin_bot.MENU,
     }
 

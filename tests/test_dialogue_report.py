@@ -32,6 +32,17 @@ def test_render_dialogues_report_is_self_contained_chat_html() -> None:
 
     report = render_dialogues_report_html(
         dialogues,
+        unanswered_users=[
+            {
+                "user_record_id": 11,
+                "telegram_user_id": 321,
+                "chat_id": 654,
+                "username": "silent",
+                "telegram_name": "Молчун <script>",
+                "started_at": datetime(2026, 7, 20, 7, 30, tzinfo=UTC),
+                "status": "active",
+            }
+        ],
         generated_at=datetime(2026, 7, 20, 10, 30, tzinfo=UTC),
     )
     html = report.decode("utf-8")
@@ -45,6 +56,9 @@ def test_render_dialogues_report_is_self_contained_chat_html() -> None:
     assert 'class="message-row outgoing"' in html
     assert "начат 20.07.2026 11:00 MSK" in html
     assert "1 диалогов · 2 сообщений" in html
+    assert "без ответа 1" in html
+    assert html.index("Не ответили на первое сообщение") < html.index("Диалог #1")
+    assert "Молчун &lt;script&gt; · @silent" in html
     assert "сформирован 20.07.2026 13:30 MSK" in html
 
 
@@ -53,3 +67,4 @@ def test_render_dialogues_report_has_empty_state() -> None:
 
     assert "Диалогов пока нет" in html
     assert "0 диалогов · 0 сообщений" in html
+    assert "0 пользователей" in html

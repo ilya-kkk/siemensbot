@@ -392,15 +392,24 @@ async def download_dialogues_report(message: Message) -> None:
     if not await _ensure_admin(message):
         return
     async with SessionLocal() as session:
-        dialogues = await AppRepository(session).get_dialogues_for_report()
+        repository = AppRepository(session)
+        unanswered_users = await repository.get_unanswered_start_users_for_report()
+        dialogues = await repository.get_dialogues_for_report()
 
     generated_at = datetime.now(UTC)
-    report = render_dialogues_report_html(dialogues, generated_at=generated_at)
+    report = render_dialogues_report_html(
+        dialogues,
+        unanswered_users=unanswered_users,
+        generated_at=generated_at,
+    )
     filename = f"dialogues_{generated_at.strftime('%Y-%m-%d_%H-%M-%S')}.html"
     message_count = sum(len(dialogue.get("messages") or []) for dialogue in dialogues)
     await message.answer_document(
         BufferedInputFile(report, filename=filename),
-        caption=f"Диалогов: {len(dialogues)} · сообщений: {message_count}",
+        caption=(
+            f"Диалогов: {len(dialogues)} · сообщений: {message_count} · "
+            f"без ответа: {len(unanswered_users)}"
+        ),
         reply_markup=MENU,
     )
 

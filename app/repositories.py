@@ -871,6 +871,30 @@ class AppRepository:
                 )
         return dialogues
 
+    async def get_unanswered_start_users_for_report(self) -> list[dict[str, Any]]:
+        """Return users who started the bot but never replied after the welcome message."""
+        result = await self.session.execute(
+            text(
+                """
+                select
+                  u.id as user_record_id,
+                  u.telegram_user_id,
+                  u.chat_id,
+                  u.username,
+                  nullif(btrim(concat_ws(' ', u.first_name, u.last_name)), '') as telegram_name,
+                  u.started_at,
+                  u.last_seen_at,
+                  u.funnel_stage,
+                  u.status
+                from app.telegram_users u
+                where u.started_at is not null
+                  and u.dialogue_started_at is null
+                order by u.started_at, u.id
+                """
+            )
+        )
+        return [dict(row._mapping) for row in result.all()]
+
     async def _get_user_messages(
         self,
         where: str,

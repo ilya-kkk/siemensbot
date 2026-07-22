@@ -437,6 +437,46 @@ async def test_get_dialogues_for_report_groups_all_messages_in_start_order() -> 
 
 
 @pytest.mark.asyncio
+async def test_get_unanswered_start_users_for_report_returns_started_without_dialogue() -> None:
+    session = AsyncMock()
+    session.execute.return_value = _RowsResult(
+        [
+            {
+                "user_record_id": 10,
+                "telegram_user_id": 100,
+                "chat_id": 100,
+                "username": "silent",
+                "telegram_name": "Молчун",
+                "started_at": "start-1",
+                "last_seen_at": "seen-1",
+                "funnel_stage": "started",
+                "status": "active",
+            }
+        ]
+    )
+
+    users = await AppRepository(session).get_unanswered_start_users_for_report()
+
+    assert users == [
+        {
+            "user_record_id": 10,
+            "telegram_user_id": 100,
+            "chat_id": 100,
+            "username": "silent",
+            "telegram_name": "Молчун",
+            "started_at": "start-1",
+            "last_seen_at": "seen-1",
+            "funnel_stage": "started",
+            "status": "active",
+        }
+    ]
+    query = str(session.execute.call_args.args[0])
+    assert "where u.started_at is not null" in query
+    assert "and u.dialogue_started_at is null" in query
+    assert "order by u.started_at, u.id" in query
+
+
+@pytest.mark.asyncio
 async def test_get_lead_user_id_for_chat_only_matches_leads() -> None:
     session = AsyncMock()
     session.execute.return_value = _OptionalScalarResult(42)
