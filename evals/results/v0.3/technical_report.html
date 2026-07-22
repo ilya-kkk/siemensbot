@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Технический отчёт DeepEval</title>
+  <style>
+    :root { color-scheme:light; --ink:#17211f; --muted:#68736f; --line:#dce2df; --paper:#fff; --wash:#f3f5f4; --good:#147453; --bad:#ad3f38; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--wash); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(1280px,calc(100% - 32px)); margin:30px auto 80px; }
+    h1 { margin:0; font-size:36px; letter-spacing:-.03em; } h2 { margin:0 0 14px; } h3 { margin:22px 0 8px; font-size:14px; color:#47534f; }
+    .subtitle { margin:5px 0 22px; color:var(--muted); } .panel,.case { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 7px 25px rgba(31,45,40,.04); }
+    .panel { padding:22px; margin:16px 0; } .columns { display:grid; grid-template-columns:1fr 1fr; gap:16px; } .columns.compact { align-items:start; }
+    table { width:100%; border-collapse:collapse; } th,td { padding:9px 10px; border-bottom:1px solid #e7ebe9; text-align:left; vertical-align:top; overflow-wrap:break-word; word-break:normal; white-space:normal; } th { color:#53605b; font-size:12px; } .kv th { width:220px; }
+    .case { margin:14px 0; overflow:hidden; } summary { cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:16px 20px; } summary small { display:block; margin-top:2px; color:var(--muted); font-weight:400; }
+    .case-body { padding:0 20px 22px; border-top:1px solid var(--line); } .status,.pill { display:inline-block; padding:4px 9px; border-radius:99px; font-size:12px; font-weight:700; } .status.good,.pill.pass { color:#0b6448; background:#e4f4ed; } .status.bad,.pill.fail { color:#91352f; background:#fae9e7; }
+    .message { margin:0; padding:12px; border:1px solid var(--line); border-radius:9px; background:#fafbfa; white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; } .table-scroll { overflow-x:auto; } .table-scroll table { min-width: 880px; } .empty { color:var(--muted); }
+    @media (max-width:760px) { main { width:min(100% - 16px,1280px); margin-top:14px; } .columns { grid-template-columns:1fr; } .panel { padding:15px; } summary,.case-body { padding-left:14px; padding-right:14px; } .table-scroll table { min-width: 760px; } }
+    @media print { body { background:#fff; } main { width:100%; margin:0; } .panel,.case { box-shadow:none; break-inside:avoid; } details { display:block; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Технический отчёт DeepEval</h1>
+    <p class="subtitle">Полный внутренний отчёт: результаты генерации, точные проверки, оценки judge и человеческая разметка.</p>
+    <section class="panel"><h2>Эксперимент</h2><table class="kv"><tbody><tr><th>Run ID</th><td>v0.3</td></tr><tr><th>Создан</th><td>2026-07-22T12:44:14.468892+00:00</td></tr><tr><th>Dataset</th><td>sales_v2</td></tr><tr><th>Target model</th><td>openai/gpt-4.1-mini</td></tr><tr><th>Judge model</th><td>—</td></tr><tr><th>Prompt path</th><td>/root/siemensbot/prompts/user_chat/v0.3.md</td></tr><tr><th>Prompt SHA-256</th><td>8f745a8fb67df5036d0beed01ba670a7d2e5a424a69ffbf814708757af0b4127</td></tr></tbody></table></section>
+    <section class="panel"><h2>Сводка</h2><table class="kv"><tbody><tr><th>Сценариев</th><td>36</td></tr><tr><th>Сценариев с показанной кнопкой</th><td>2</td></tr><tr><th>Hard checks: ошибок</th><td>4</td></tr><tr><th>Judge metrics: ошибок</th><td>0</td></tr><tr><th>Средний judge score</th><td>—</td></tr><tr><th>run.summary.total_cases</th><td>36</td></tr><tr><th>run.summary.hard_passed_cases</th><td>34</td></tr><tr><th>run.summary.hard_failed_cases</th><td>2</td></tr><tr><th>run.summary.generation_errors</th><td>0</td></tr><tr><th>run.summary.buttons_rendered</th><td>2</td></tr><tr><th>run.summary.non_target_buttons</th><td>0</td></tr><tr><th>run.summary.judge_metrics</th><td>{}</td></tr></tbody></table></section>
+    
+    <section><h2>Сценарии</h2>
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_qualification_valid_niche_001</strong><small>qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Фитнес</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понял, работаешь в фитнесе. Что именно продаешь в рамках этого проекта?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Принять «фитнес» как понятную нишу без шаблонного комплимента и одним коротким вопросом уточнить, что человек продает. Не предлагать тест-драйв и не показывать кнопку.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понял, работаешь в фитнесе. Что именно продаешь в рамках этого проекта?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понял, работаешь в фитнесе. Что именно продаешь в рамках этого проекта?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понял, работаешь в фитнесе. Что именно продаешь в рамках этого проекта?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_qualification_broad_niche_002</strong><small>qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Инфобизнес</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понял, работаешь в инфобизнесе. Что именно ты продаешь в этом проекте?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Принять «инфобизнес» как рабочее описание рынка и одним нейтральным вопросом уточнить продукт, тему или клиентов. Не исправлять терминологию и не оценивать ответ как неправильный или слишком широкий.</td></tr><tr><th>must_not</th><td>• это не ниша
+• это формат
+• слишком широко</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понял, работаешь в инфобизнесе. Что именно ты продаешь в этом проекте?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понял, работаешь в инфобизнесе. Что именно ты продаешь в этом проекте?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понял, работаешь в инфобизнесе. Что именно ты продаешь в этом проекте?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:это не ниша</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;это не ниша&#x27;</td><td>Понял, работаешь в инфобизнесе. Что именно ты продаешь в этом проекте?</td><td></td></tr><tr><td>must_not_contain:это формат</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;это формат&#x27;</td><td>Понял, работаешь в инфобизнесе. Что именно ты продаешь в этом проекте?</td><td></td></tr><tr><td>must_not_contain:слишком широко</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;слишком широко&#x27;</td><td>Понял, работаешь в инфобизнесе. Что именно ты продаешь в этом проекте?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_qualification_invalid_niche_003</strong><small>invalid_input · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">хз</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>local_guard</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Не считать ответ реальной нишей и не обесценивать человека. Спокойно попросить хотя бы примерно назвать, чем он занимается или с кем работает.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Давай проще: напиши хотя бы примерно, чем занимаешься или с кем работаешь?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_qualification_product_is_format_004</strong><small>qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Фитнес
+outgoing: Фитнес. Что сейчас продаешь?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Наставничество</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понял, предлагаешь наставничество. Какой результат получают клиенты после работы с тобой?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Принять «наставничество» как рабочее описание предложения и одним нейтральным вопросом уточнить результат для клиента. Не читать лекцию о форматах и не переходить к чеку, трафику или тест-драйву.</td></tr><tr><th>must_not</th><td>• это формат
+• только формат
+• пока непонятно</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понял, предлагаешь наставничество. Какой результат получают клиенты после работы с тобой?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понял, предлагаешь наставничество. Какой результат получают клиенты после работы с тобой?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понял, предлагаешь наставничество. Какой результат получают клиенты после работы с тобой?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:это формат</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;это формат&#x27;</td><td>Понял, предлагаешь наставничество. Какой результат получают клиенты после работы с тобой?</td><td></td></tr><tr><td>must_not_contain:только формат</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;только формат&#x27;</td><td>Понял, предлагаешь наставничество. Какой результат получают клиенты после работы с тобой?</td><td></td></tr><tr><td>must_not_contain:пока непонятно</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;пока непонятно&#x27;</td><td>Понял, предлагаешь наставничество. Какой результат получают клиенты после работы с тобой?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_qualification_broad_audience_005</strong><small>qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Психология
+outgoing: Что сейчас продаешь?
+incoming: Групповую программу по работе с тревогой
+outgoing: Кому это продаешь?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Женщинам</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">С какой задачей эти женщины чаще приходят на твою групповую программу по тревоге?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Одним нейтральным вопросом уточнить аудиторию через задачу или ситуацию этих женщин. Не оценивать ответ как слишком широкий, не давать советов и не предлагать тест-драйв.</td></tr><tr><th>must_not</th><td>• слишком широко
+• нужно сузить
+• кто быстрее платит</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>С какой задачей эти женщины чаще приходят на твою групповую программу по тревоге?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>С какой задачей эти женщины чаще приходят на твою групповую программу по тревоге?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>С какой задачей эти женщины чаще приходят на твою групповую программу по тревоге?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:слишком широко</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;слишком широко&#x27;</td><td>С какой задачей эти женщины чаще приходят на твою групповую программу по тревоге?</td><td></td></tr><tr><td>must_not_contain:нужно сузить</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;нужно сузить&#x27;</td><td>С какой задачей эти женщины чаще приходят на твою групповую программу по тревоге?</td><td></td></tr><tr><td>must_not_contain:кто быстрее платит</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;кто быстрее платит&#x27;</td><td>С какой задачей эти женщины чаще приходят на твою групповую программу по тревоге?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_discovery_remembers_known_context_006</strong><small>discovery · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Фитнес
+outgoing: Что сейчас продаешь?
+incoming: Онлайн-сопровождение на 8 недель
+outgoing: Кому это продаешь?
+incoming: Женщинам после родов
+outgoing: Какой результат человек покупает по итогу?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Возвращаются в форму и снижают вес без жестких диет</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понимаю, цель клиентов - восстановиться и похудеть без строгих ограничений. Есть ли сейчас какой-то участок процесса, который хочется проверить или улучшить?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Принять результат как понятный и продвинуть диагностику к следующему неизвестному: текущему ограничению, источнику заявок или продажам. Не спрашивать повторно нишу, продукт, аудиторию или результат.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понимаю, цель клиентов - восстановиться и похудеть без строгих ограничений. Есть ли сейчас какой-то участок процесса, который хочется проверить или улучшить?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понимаю, цель клиентов - восстановиться и похудеть без строгих ограничений. Есть ли сейчас какой-то участок процесса, который хочется проверить или улучшить?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понимаю, цель клиентов - восстановиться и похудеть без строгих ограничений. Есть ли сейчас какой-то участок процесса, который хочется проверить или улучшить?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_discovery_vague_money_problem_007</strong><small>discovery · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Английский для взрослых
+outgoing: Что сейчас продаешь?
+incoming: Индивидуальные занятия и разговорный клуб
+outgoing: Кому это продаешь?
+incoming: Специалистам, которым английский нужен для работы
+outgoing: Что сейчас сильнее всего мешает зарабатывать больше?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Да вроде все делаю, но денег мало</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понял, пока деньги не растут, хотя кажется, что все делается правильно. Это больше про количество клиентов, конверсию с заявок в оплату или средний чек?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Не ставить диагноз по расплывчатой жалобе и не продавать сразу. Задать один простой вопрос, который локализует проблему в потоке людей, заявках, оплатах, чеке или пути до покупки.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понял, пока деньги не растут, хотя кажется, что все делается правильно. Это больше про количество клиентов, конверсию с заявок в оплату или средний чек?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понял, пока деньги не растут, хотя кажется, что все делается правильно. Это больше про количество клиентов, конверсию с заявок в оплату или средний чек?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понял, пока деньги не растут, хотя кажется, что все делается правильно. Это больше про количество клиентов, конверсию с заявок в оплату или средний чек?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_discovery_leads_but_few_payments_008</strong><small>discovery · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Обучение дизайнеров
+outgoing: Что сейчас продаешь?
+incoming: Курс по веб-дизайну для новичков
+outgoing: Откуда сейчас приходят заявки?
+incoming: Из телеграм-канала и с вебинаров
+outgoing: Сколько оплат в среднем приходит за месяц?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Заявок около двадцати, а оплачивают один-два человека</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Связать ответ с возможным провалом между заявкой и оплатой, но не объявлять точную причину без данных. Одним вопросом уточнить путь продажи или момент, где люди чаще отваливаются; кнопку не показывать.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_discovery_manual_sales_path_009</strong><small>discovery · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Консалтинг для владельцев салонов красоты
+outgoing: Что продаешь?
+incoming: Трехмесячное сопровождение по росту прибыли
+outgoing: Откуда приходят заявки?
+incoming: Рекомендации и мой телеграм-канал
+outgoing: Есть ли понятный путь человека от первого касания до покупки, или все больше происходит вручную?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Все в личке: сама отвечаю, объясняю и дожимаю до созвона</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Нейтрально отразить, что продажи проходят через личное общение, и одним вопросом уточнить фактический путь до оплаты или участок, который пользователь сам хочет улучшить. Не объявлять ручную переписку проблемой или риском без подтверждения и не показывать кнопку.</td></tr><tr><th>must_not</th><td>• главный затык
+• деньги теряются
+• все держится
+• обязательно автоматизировать</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:главный затык</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;главный затык&#x27;</td><td>Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</td><td></td></tr><tr><td>must_not_contain:деньги теряются</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;деньги теряются&#x27;</td><td>Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</td><td></td></tr><tr><td>must_not_contain:все держится</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;все держится&#x27;</td><td>Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</td><td></td></tr><tr><td>must_not_contain:обязательно автоматизировать</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;обязательно автоматизировать&#x27;</td><td>Понял, путь от первого сообщения до оплаты сейчас полностью ручной через личные переписки. Насколько эта схема устраивает по времени и результатам?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_offer_timing_problem_not_yet_localized_010</strong><small>offer_timing · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Нутрициология
+outgoing: Что сейчас продаешь?
+incoming: Персональное сопровождение по питанию
+outgoing: Кому это продаешь?
+incoming: Женщинам с лишним весом
+outgoing: Что сейчас сильнее всего мешает зарабатывать больше?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Не хватает клиентов</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понял, клиентов не хватает. Это больше про привлечение новых людей или про конверсию в оплату уже заинтересованных?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Не считать общую фразу «не хватает клиентов» достаточной для точного диагноза и немедленной продажи. Одним вопросом различить нехватку входящего потока и потерю людей на пути к заявке или оплате.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понял, клиентов не хватает. Это больше про привлечение новых людей или про конверсию в оплату уже заинтересованных?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понял, клиентов не хватает. Это больше про привлечение новых людей или про конверсию в оплату уже заинтересованных?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понял, клиентов не хватает. Это больше про привлечение новых людей или про конверсию в оплату уже заинтересованных?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_price_asked_before_diagnosis_011</strong><small>price · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Сколько стоит тест-драйв?</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Тест-драйв стоит 1000 рублей. В какой сфере работаешь?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Прямо и коротко назвать цену 1000 рублей, затем вернуться к диагностике проекта одним вопросом о нише. Вопрос о цене сам по себе не является согласием на кнопку.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Тест-драйв стоит 1000 рублей. В какой сфере работаешь?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Тест-драйв стоит 1000 рублей. В какой сфере работаешь?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Тест-драйв стоит 1000 рублей. В какой сфере работаешь?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_mention_any</td><td><span class="pill pass">Да</span></td><td>{&#x27;one_of&#x27;: [&#x27;1000&#x27;, &#x27;1 000&#x27;]}</td><td>Тест-драйв стоит 1000 рублей. В какой сфере работаешь?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_price_after_offer_description_012</strong><small>price · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише работаешь?
+incoming: Продюсирование экспертов
+outgoing: Что сейчас мешает сильнее всего?
+incoming: Есть запуски, но между ними нет стабильных продаж
+outgoing: Это можно разобрать на тест-драйве: за 3 дня посмотреть путь клиента и главный затык. Хочешь, скину условия?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">А сколько это стоит?</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Тест-драйв стоит 1000 рублей.</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Ответить, что тест-драйв стоит 1000 рублей, без уклонения и давления. Не трактовать вопрос о цене как согласие получить ссылку и не показывать кнопку.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Тест-драйв стоит 1000 рублей.</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>0</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Тест-драйв стоит 1000 рублей.</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Тест-драйв стоит 1000 рублей.</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_mention_any</td><td><span class="pill pass">Да</span></td><td>{&#x27;one_of&#x27;: [&#x27;1000&#x27;, &#x27;1 000&#x27;]}</td><td>Тест-драйв стоит 1000 рублей.</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_price_assumed_free_013</strong><small>price · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Онлайн-школа рисования
+outgoing: Что сейчас продаешь?
+incoming: Курс для взрослых с нуля
+outgoing: Что сильнее всего мешает зарабатывать больше?
+incoming: Мало заявок</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Тест-драйв же бесплатный?</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Нет, тест-драйв платный и стоит 1000 рублей. Сколько заявок обычно приходит на курс?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Спокойно исправить ожидание и назвать цену 1000 рублей. Не показывать кнопку и не давить; если продолжать диалог вопросом, он должен помогать уточнить ситуацию, а не подталкивать к оплате.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Нет, тест-драйв платный и стоит 1000 рублей. Сколько заявок обычно приходит на курс?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Нет, тест-драйв платный и стоит 1000 рублей. Сколько заявок обычно приходит на курс?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Нет, тест-драйв платный и стоит 1000 рублей. Сколько заявок обычно приходит на курс?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_mention_any</td><td><span class="pill pass">Да</span></td><td>{&#x27;one_of&#x27;: [&#x27;1000&#x27;, &#x27;1 000&#x27;]}</td><td>Нет, тест-драйв платный и стоит 1000 рублей. Сколько заявок обычно приходит на курс?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="bad">
+              <summary>
+                <span><strong>sv1_direct_link_without_diagnosis_014</strong><small>direct_link · turn</small></span>
+                <span class="status bad">3 ошибок</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет. После бесплатного обучения лучше не гадать, а приложить его к твоей ситуации. В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Не хочу долго переписываться, сразу скинь ссылку на тест-драйв</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Покажу, если формат подходит под твою ситуацию. Какой действующий экспертный проект хочешь разобрать?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>show</td></tr><tr><th>behavior</th><td>Распознать прямую просьбу о ссылке как достаточное основание для кнопки по текущей политике. Дать самостоятельное короткое сообщение под кнопкой без URL, без обещания прислать ссылку позже и без нового вопроса.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Покажу, если формат подходит под твою ситуацию. Какой действующий экспертный проект хочешь разобрать?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill fail">Нет</span></td><td>at most 0 question mark(s)</td><td>1</td><td>reply asks too many questions</td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Покажу, если формат подходит под твою ситуацию. Какой действующий экспертный проект хочешь разобрать?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Покажу, если формат подходит под твою ситуацию. Какой действующий экспертный проект хочешь разобрать?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill fail">Нет</span></td><td>True</td><td>False</td><td>expected button action is show</td></tr><tr><td>button_rendering</td><td><span class="pill fail">Нет</span></td><td>True</td><td>False</td><td>rendered button does not match expected action show</td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_direct_link_after_diagnosis_015</strong><small>direct_link · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Маркетинг для стоматологий
+outgoing: Что продаешь?
+incoming: Настройку потока первичных пациентов
+outgoing: Что сейчас буксует?
+incoming: Лиды есть, но клиники долго думают и не покупают
+outgoing: Тут можно разобрать путь от интереса до оплаты на тест-драйве. Это 3-дневный разбор за 1000 рублей.</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Хорошо, кинь ссылку</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">На тест-драйве разберут путь от интереса до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Да</td></tr><tr><th>button_rendered</th><td>Да</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>show</td></tr><tr><th>behavior</th><td>Показать кнопку, потому что пользователь прямо попросил ссылку. Ответ должен быть финальным текстом под кнопкой, связанным с его ситуацией, без URL, нового вопроса и обещания отправить ссылку следующим сообщением.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>На тест-драйве разберут путь от интереса до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 0 question mark(s)</td><td>0</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>На тест-драйве разберут путь от интереса до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>На тест-драйве разберут путь от интереса до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>True</td><td>True</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>True</td><td>True</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_awareness_known_no_repeat_016</strong><small>consent · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: По ответам похоже, что люди доходят до диалога, но теряются перед оплатой. Это можно разобрать на 3-дневном тест-драйве за 1000 рублей. Слышал о нем?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Да</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Понять «да» как подтверждение знакомства с тест-драйвом, не повторять 3 дня, цену и базовое описание. Коротко сказать, что базу повторять не нужно, и оставить пользователю возможность запросить условия. Кнопку не показывать.</td></tr><tr><th>must_not</th><td>• 3 дня
+• 3-днев
+• 1000
+• 1 000</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:3 дня</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;3 дня&#x27;</td><td>В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</td><td></td></tr><tr><td>must_not_contain:3-днев</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;3-днев&#x27;</td><td>В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</td><td></td></tr><tr><td>must_not_contain:1000</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;1000&#x27;</td><td>В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</td><td></td></tr><tr><td>must_not_contain:1 000</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;1 000&#x27;</td><td>В твоем случае на тест-драйве разберут переход от заявки к оплате и определят участок, который требует внимания первым. Показать условия?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_consent_explicit_after_cta_017</strong><small>consent · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: По ответам видно, что заявки есть, но путь до оплаты проседает. На тест-драйве за 3 дня можно разобрать этот участок. Хочешь, скину условия?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Да, скидывай</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">На тест-драйве разберут путь от заявки до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Да</td></tr><tr><th>button_rendered</th><td>Да</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>show</td></tr><tr><th>behavior</th><td>Распознать явное согласие получить условия и показать кнопку. Ответить коротким самостоятельным сообщением под кнопкой без URL, без повторного запроса согласия и без нового диагностического вопроса.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>На тест-драйве разберут путь от заявки до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 0 question mark(s)</td><td>0</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>На тест-драйве разберут путь от заявки до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>На тест-драйве разберут путь от заявки до оплаты и определят участок, который требует внимания первым. Чтобы записаться, жми кнопку ниже.</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>True</td><td>True</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>True</td><td>True</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_consent_information_request_not_consent_018</strong><small>consent · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Тут тест-драйв уместен: это короткий практический разбор проекта. Хочешь, скину условия?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Интересно, а что там будет?</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Тест-драйв - это 3 дня практической работы с твоим проектом, где разбирают конкретный участок, который сейчас мешает увеличить продажи. Что именно хочешь уточнить по содержанию?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Не считать запрос подробностей явным согласием на ссылку. Коротко объяснить, что это 3 дня практического разбора текущей ситуации и главного ограничения, без обещаний результата; кнопку пока не показывать.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Тест-драйв - это 3 дня практической работы с твоим проектом, где разбирают конкретный участок, который сейчас мешает увеличить продажи. Что именно хочешь уточнить по содержанию?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Тест-драйв - это 3 дня практической работы с твоим проектом, где разбирают конкретный участок, который сейчас мешает увеличить продажи. Что именно хочешь уточнить по содержанию?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Тест-драйв - это 3 дня практической работы с твоим проектом, где разбирают конкретный участок, который сейчас мешает увеличить продажи. Что именно хочешь уточнить по содержанию?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="bad">
+              <summary>
+                <span><strong>sv1_refusal_explicit_no_019</strong><small>refusal · turn</small></span>
+                <span class="status bad">1 ошибок</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Тут можно разобрать, почему заявки не превращаются в оплаты. Хочешь, скину условия тест-драйва?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Нет, не надо</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Принял. Чтобы не дожимать, уточню один момент: не подходит сам формат или пока непонятно, что он даст для перехода от заявок к оплатам?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Принять явный отказ, не показывать кнопку и ответить спокойно без дожима, манипуляции страхом или нового предложения купить. Не спорить с решением пользователя.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Принял. Чтобы не дожимать, уточню один момент: не подходит сам формат или пока непонятно, что он даст для перехода от заявок к оплатам?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill fail">Нет</span></td><td>at most 0 question mark(s)</td><td>1</td><td>reply asks too many questions</td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Принял. Чтобы не дожимать, уточню один момент: не подходит сам формат или пока непонятно, что он даст для перехода от заявок к оплатам?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Принял. Чтобы не дожимать, уточню один момент: не подходит сам формат или пока непонятно, что он даст для перехода от заявок к оплатам?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_doubt_think_about_it_020</strong><small>objection · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: По ответам основной затык похож на ручной путь продажи. На тест-драйве за 3 дня можно разобрать, где теряются люди. Хочешь, скину условия?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Я подумаю</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Конечно. Ты уже видишь зависимость продаж от ручной переписки. Что пока неясно: как этот участок будут разбирать или подходит ли тебе сам формат?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Не трактовать сомнение как согласие и не показывать кнопку. Спокойно принять паузу, без срочности и дожима; допустима короткая нейтральная мысль о ценности ясности, но не план действий.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Конечно. Ты уже видишь зависимость продаж от ручной переписки. Что пока неясно: как этот участок будут разбирать или подходит ли тебе сам формат?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Конечно. Ты уже видишь зависимость продаж от ручной переписки. Что пока неясно: как этот участок будут разбирать или подходит ли тебе сам формат?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Конечно. Ты уже видишь зависимость продаж от ручной переписки. Что пока неясно: как этот участок будут разбирать или подходит ли тебе сам формат?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_objection_too_expensive_021</strong><small>objection · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Это 3-дневный практический разбор за 1000 рублей, где смотрим твою ситуацию и главный затык. Хочешь, скину условия?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Дорого для меня</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понимаю. За 1000 рублей на тест-драйве 3 дня разбирают действующий проект и подтвержденную задачу, чтобы выделить первый участок для внимания. Сомнение больше в формате или в самой стоимости?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Признать ценовое сомнение без спора и не показывать кнопку. Можно одним вопросом уточнить, что именно смущает в цене, но нельзя давить, советовать искать или занимать деньги либо обещать окупаемость.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понимаю. За 1000 рублей на тест-драйве 3 дня разбирают действующий проект и подтвержденную задачу, чтобы выделить первый участок для внимания. Сомнение больше в формате или в самой стоимости?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понимаю. За 1000 рублей на тест-драйве 3 дня разбирают действующий проект и подтвержденную задачу, чтобы выделить первый участок для внимания. Сомнение больше в формате или в самой стоимости?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понимаю. За 1000 рублей на тест-драйве 3 дня разбирают действующий проект и подтвержденную задачу, чтобы выделить первый участок для внимания. Сомнение больше в формате или в самой стоимости?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_non_target_no_project_or_intent_022</strong><small>non_target · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Ни в какой. У меня нет экспертного проекта и заводить его не планирую</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>non_target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Распознать явное отсутствие проекта и намерения как несоответствие этой воронке. Не показывать кнопку, не пытаться дожимать до тест-драйва и спокойно завершить либо коротко пояснить, для кого предназначен разбор.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>0</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>non_target_never_gets_offer</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_non_target_direct_link_request_023</strong><small>non_target · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Ни в какой, я не эксперт и ничего не продаю
+outgoing: Правильно понял, экспертного проекта сейчас нет?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Да, и не планирую. Но ссылку скинь, просто посмотрю</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>non_target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Не позволить прямой просьбе о ссылке отменить уже установленную нецелевость лида. Не показывать кнопку и без давления объяснить, что тест-драйв предназначен для разбора действующего или планируемого экспертного проекта.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 0 question mark(s)</td><td>0</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Тест-драйв разбирает действующий экспертный проект, поэтому без проекта этот формат пока не подойдет.</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>non_target_never_gets_offer</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv1_off_topic_code_request_024</strong><small>off_topic · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас проект?
+incoming: Онлайн-обучение английскому
+outgoing: Что сейчас продаешь?
+incoming: Разговорный клуб для айтишников
+outgoing: Откуда сейчас приходят заявки?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Напиши мне код сортировки на Python</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>local_guard</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Не выполнять запрос на программирование. Коротко вернуть человека к разбору проекта и повторить актуальный вопрос об источнике заявок, не начиная диагностику заново и не показывая кнопку.</td></tr><tr><th>must_not</th><td>—</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Давай вернемся к разбору проекта. Откуда сейчас приходят заявки?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_soft_service_area_025</strong><small>soft_qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Привет! Давай разберём твой проект. В какой нише сейчас работаешь?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Построение отделов продаж</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Понял, строишь отделы продаж. Для каких проектов чаще всего?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Принять построение отделов продаж как понятное рабочее направление. Одним нейтральным вопросом уточнить, для каких проектов человек их строит, без исправления терминологии и без оценки ответа.</td></tr><tr><th>must_not</th><td>• это не ниша
+• тема, не ниша
+• слишком широко
+• это формат</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Понял, строишь отделы продаж. Для каких проектов чаще всего?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Понял, строишь отделы продаж. Для каких проектов чаще всего?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Понял, строишь отделы продаж. Для каких проектов чаще всего?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:это не ниша</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;это не ниша&#x27;</td><td>Понял, строишь отделы продаж. Для каких проектов чаще всего?</td><td></td></tr><tr><td>must_not_contain:тема, не ниша</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;тема, не ниша&#x27;</td><td>Понял, строишь отделы продаж. Для каких проектов чаще всего?</td><td></td></tr><tr><td>must_not_contain:слишком широко</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;слишком широко&#x27;</td><td>Понял, строишь отделы продаж. Для каких проектов чаще всего?</td><td></td></tr><tr><td>must_not_contain:это формат</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;это формат&#x27;</td><td>Понял, строишь отделы продаж. Для каких проектов чаще всего?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_soft_contextual_infobusiness_026</strong><small>soft_qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: В какой нише сейчас работаешь?
+incoming: Построение отделов продаж
+outgoing: Понял, строишь отделы продаж. Для каких проектов чаще всего?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Для инфобизнеса, который продает обучение</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Учесть весь контекст и принять ответ как понятный рынок: проекты, продающие обучение. Уточнить только содержание услуги или следующий действительно неизвестный факт, не объявляя инфобизнес форматом или неправильной нишей.</td></tr><tr><th>must_not</th><td>• это не ниша
+• инфобизнес это формат
+• инфобизнес - формат
+• слишком широко</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:это не ниша</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;это не ниша&#x27;</td><td>То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</td><td></td></tr><tr><td>must_not_contain:инфобизнес это формат</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;инфобизнес это формат&#x27;</td><td>То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</td><td></td></tr><tr><td>must_not_contain:инфобизнес - формат</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;инфобизнес - формат&#x27;</td><td>То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</td><td></td></tr><tr><td>must_not_contain:слишком широко</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;слишком широко&#x27;</td><td>То есть работаешь с проектами, которые продают обучение. Что именно ты для них выстраиваешь?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_soft_multiple_segments_027</strong><small>soft_qualification · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: С какими проектами работаешь?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">С экспертами, фрилансерами и продюсерами. Строю им систему продаж</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Работаешь с несколькими сегментами. Что именно они покупают у тебя?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>unknown</td></tr><tr><th>button_action</th><td>need_more_qualification</td></tr><tr><th>behavior</th><td>Принять несколько сегментов как допустимую модель и перейти к содержанию продукта или результату. Не заставлять выбрать один сегмент и не спрашивать, кто быстрее или чаще платит.</td></tr><tr><th>must_not</th><td>• разный контингент
+• кто платит
+• быстрее готов
+• слишком широко
+• выбери</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:разный контингент</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;разный контингент&#x27;</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr><tr><td>must_not_contain:кто платит</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;кто платит&#x27;</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr><tr><td>must_not_contain:быстрее готов</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;быстрее готов&#x27;</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr><tr><td>must_not_contain:слишком широко</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;слишком широко&#x27;</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr><tr><td>must_not_contain:выбери</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;выбери&#x27;</td><td>Работаешь с несколькими сегментами. Что именно они покупают у тебя?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_no_problem_first_statement_028</strong><small>no_problem · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Что сейчас мешает продажам идти стабильнее?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Да ничего в целом. Позиционирование выстроено, остается собирать заявки и продавать. Все логично</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Принять самооценку пользователя и не искать скрытый затык. Допустим один нейтральный вопрос о том, хочет ли он что-то проверить или усилить. Не ставить диагноз и не предлагать тест-драйв.</td></tr><tr><th>must_not</th><td>• значит проблема
+• главный затык
+• все равно
+• буксует
+• теряются деньги
+• тест-драйв</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:значит проблема</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;значит проблема&#x27;</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>must_not_contain:главный затык</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;главный затык&#x27;</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>must_not_contain:все равно</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;все равно&#x27;</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>must_not_contain:буксует</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;буксует&#x27;</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>must_not_contain:теряются деньги</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;теряются деньги&#x27;</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr><tr><td>must_not_contain:тест-драйв</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;тест-драйв&#x27;</td><td>Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_no_problem_repeated_029</strong><small>no_problem · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Тогда не буду искать проблему там, где ты ее не видишь. Есть что-то, что все же хочется проверить или усилить?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Нет. Я уже сказал, что проблем нет и меня все устраивает</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Признать повторное отсутствие запроса и спокойно завершить диагностику. Не задавать вопросов, не искать новую проблему и не упоминать тест-драйв.</td></tr><tr><th>must_not</th><td>• проблема
+• затык
+• буксует
+• теряются
+• тест-драйв
+• условия</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 0 question mark(s)</td><td>0</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:проблема</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;проблема&#x27;</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>must_not_contain:затык</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;затык&#x27;</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>must_not_contain:буксует</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;буксует&#x27;</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>must_not_contain:теряются</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;теряются&#x27;</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>must_not_contain:тест-драйв</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;тест-драйв&#x27;</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr><tr><td>must_not_contain:условия</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;условия&#x27;</td><td>Принял. Тогда не буду продолжать диагностику и что-то додумывать за тебя.</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_rejected_hypothesis_030</strong><small>disagreement · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Возможно, проблема в упаковке продукта. Похоже ли это на твою ситуацию?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Нет, с упаковкой все нормально. Проблема точно не там</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Снять отвергнутую гипотезу без спора и без попытки доказать ее. Можно одним нейтральным вопросом спросить версию пользователя; тест-драйв не предлагать.</td></tr><tr><th>must_not</th><td>• на самом деле
+• все равно
+• ты просто
+• значит проблема
+• тест-драйв</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:на самом деле</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;на самом деле&#x27;</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr><tr><td>must_not_contain:все равно</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;все равно&#x27;</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr><tr><td>must_not_contain:ты просто</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;ты просто&#x27;</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr><tr><td>must_not_contain:значит проблема</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;значит проблема&#x27;</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr><tr><td>must_not_contain:тест-драйв</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;тест-драйв&#x27;</td><td>Принял, значит эта версия не подходит. Где ты сам видишь участок, который хочется проверить?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_unknown_is_missing_data_031</strong><small>evidence · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Насколько понятно клиентам, почему платить нужно именно тебе?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Не знаю</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Считать ответ отсутствием данных, а не подтверждением проблемы. Сказать, что вывод делать рано, и задать максимум один нейтральный вопрос о наблюдаемом факте.</td></tr><tr><th>must_not</th><td>• клиент не понимает
+• этап убеждения
+• теряются деньги
+• главный затык
+• значит</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:клиент не понимает</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;клиент не понимает&#x27;</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr><tr><td>must_not_contain:этап убеждения</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;этап убеждения&#x27;</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr><tr><td>must_not_contain:теряются деньги</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;теряются деньги&#x27;</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr><tr><td>must_not_contain:главный затык</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;главный затык&#x27;</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr><tr><td>must_not_contain:значит</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;значит&#x27;</td><td>Тогда рано делать вывод. Есть данные, на каком этапе чаще останавливаются сделки?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_user_corrects_invented_fact_032</strong><small>evidence · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Похоже, заявки есть, но до оплаты доходит мало людей.</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Нет, заявок вообще нет. Ты неправильно понял</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Прямо принять исправление и отказаться от прежнего вывода. Не продолжать рассуждение об оплатах или убеждении; допустим один вопрос о фактической ситуации со входящим потоком.</td></tr><tr><th>must_not</th><td>• оплат мало
+• до оплаты
+• убеждени
+• все равно
+• тест-драйв</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:оплат мало</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;оплат мало&#x27;</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr><tr><td>must_not_contain:до оплаты</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;до оплаты&#x27;</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr><tr><td>must_not_contain:убеждени</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;убеждени&#x27;</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr><tr><td>must_not_contain:все равно</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;все равно&#x27;</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr><tr><td>must_not_contain:тест-драйв</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;тест-драйв&#x27;</td><td>Принял, значит заявки пока не приходят. Сколько людей обычно проявляет интерес к твоему продукту?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_explicit_conversion_gap_positive_control_033</strong><small>evidence · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Сколько заявок и оплат приходит в среднем?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Около двадцати заявок, а оплачивают один-два человека</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Осторожно обозначить подтвержденный участок от заявки к оплате и спросить, именно его ли пользователь хочет улучшить. Не придумывать конкретную причину и не предлагать тест-драйв до подтверждения.</td></tr><tr><th>must_not</th><td>• клиенты не понимают
+• плохой оффер
+• этап убеждения
+• тест-драйв</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:клиенты не понимают</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;клиенты не понимают&#x27;</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>must_not_contain:плохой оффер</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;плохой оффер&#x27;</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>must_not_contain:этап убеждения</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;этап убеждения&#x27;</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr><tr><td>must_not_contain:тест-драйв</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;тест-драйв&#x27;</td><td>Подтвержден участок для разбора - переход от заявки к оплате. Какой у тебя средний чек?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_awareness_unknown_034</strong><small>awareness · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Ты уже знаком с тест-драйвом наставничества или рассказать в двух словах?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Нет, вообще не знаю, что это</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Один раз коротко объяснить, что это платный 3-дневный практический разбор проекта за 1000 рублей, и назвать преимущество: возможность попробовать подход на своей ситуации до большой программы. Мягко предложить условия, но кнопку не показывать.</td></tr><tr><th>must_not</th><td>• гарантирован
+• точно заработ
+• обязан</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:гарантирован</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;гарантирован&#x27;</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr><tr><td>must_not_contain:точно заработ</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;точно заработ&#x27;</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr><tr><td>must_not_contain:обязан</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;обязан&#x27;</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr><tr><td>must_contain:1000</td><td><span class="pill pass">Да</span></td><td>reply contains &#x27;1000&#x27;</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr><tr><td>must_mention_any</td><td><span class="pill pass">Да</span></td><td>{&#x27;one_of&#x27;: [&#x27;3 дня&#x27;, &#x27;три дня&#x27;, &#x27;3-днев&#x27;, &#x27;трёхднев&#x27;, &#x27;трехднев&#x27;]}</td><td>Это 3 дня практической работы с твоим текущим проектом за 1000 рублей. Поможет разобраться в участке, который сейчас мешает достигать целей. Показать условия?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_awareness_course_confusion_035</strong><small>awareness · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Ты уже знаком с тест-драйвом наставничества или рассказать в двух словах?</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Слышал, но не понял, чем это отличается от курса</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Главное отличие в том, что тест-драйв - это практика на твоем проекте и конкретной задаче, а не общий курс для всех. Есть что-то конкретное, что хочешь проверить или улучшить?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Объяснить только отличие: не общая теория, а практический разбор на материале проекта пользователя. Не показывать кнопку и не повторять полный оффер.</td></tr><tr><th>must_not</th><td>• жми кнопку
+• записывайся
+• гарантирован</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Главное отличие в том, что тест-драйв - это практика на твоем проекте и конкретной задаче, а не общий курс для всех. Есть что-то конкретное, что хочешь проверить или улучшить?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Главное отличие в том, что тест-драйв - это практика на твоем проекте и конкретной задаче, а не общий курс для всех. Есть что-то конкретное, что хочешь проверить или улучшить?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Главное отличие в том, что тест-драйв - это практика на твоем проекте и конкретной задаче, а не общий курс для всех. Есть что-то конкретное, что хочешь проверить или улучшить?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:жми кнопку</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;жми кнопку&#x27;</td><td>Главное отличие в том, что тест-драйв - это практика на твоем проекте и конкретной задаче, а не общий курс для всех. Есть что-то конкретное, что хочешь проверить или улучшить?</td><td></td></tr><tr><td>must_not_contain:записывайся</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;записывайся&#x27;</td><td>Главное отличие в том, что тест-драйв - это практика на твоем проекте и конкретной задаче, а не общий курс для всех. Есть что-то конкретное, что хочешь проверить или улучшить?</td><td></td></tr><tr><td>must_not_contain:гарантирован</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;гарантирован&#x27;</td><td>Главное отличие в том, что тест-драйв - это практика на твоем проекте и конкретной задаче, а не общий курс для всех. Есть что-то конкретное, что хочешь проверить или улучшить?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            
+            <details class="case" open data-status="good">
+              <summary>
+                <span><strong>sv2_more_details_without_repeat_036</strong><small>awareness · turn</small></span>
+                <span class="status good">Пройден</span>
+              </summary>
+              <div class="case-body">
+                <div class="columns">
+                  <section><h3>Предыдущий диалог</h3><pre class="message">outgoing: Это 3 дня практической работы с твоим проектом за 1000 рублей. Смысл в том, чтобы разобрать свою ситуацию и попробовать подход до входа в большую программу. Если откликается, могу скинуть условия.</pre></section>
+                  <section><h3>Новое сообщение</h3><pre class="message">Расскажи подробнее</pre></section>
+                </div>
+                <section><h3>Ответ ассистента</h3><pre class="message">Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</pre></section>
+                <div class="columns compact">
+                  <section><h3>Фактический результат</h3><table class="kv"><tbody><tr><th>should_send_offer</th><td>Нет</td></tr><tr><th>button_rendered</th><td>Нет</td></tr><tr><th>source</th><td>llm</td></tr></tbody></table></section>
+                  <section><h3>Ожидание сценария</h3><table class="kv"><tbody><tr><th>lead_status</th><td>target</td></tr><tr><th>button_action</th><td>do_not_show</td></tr><tr><th>behavior</th><td>Добавить новую конкретику о том, какие части проекта рассматриваются или как выделяется приоритетный участок. Не повторять длительность, цену и тот же призыв получить условия; кнопку не показывать.</td></tr><tr><th>must_not</th><td>• 3 дня
+• 3-днев
+• 1000
+• 1 000
+• скину условия
+• хочешь условия</td></tr></tbody></table></section>
+                </div>
+                <section><h3>Hard checks</h3><div class="table-scroll"><table><thead><tr><th>Проверка</th><th>Pass</th><th>Expected</th><th>Actual</th><th>Причина</th></tr></thead><tbody><tr><td>generation_succeeded</td><td><span class="pill pass">Да</span></td><td>successful response</td><td>success</td><td></td></tr><tr><td>non_empty_reply</td><td><span class="pill pass">Да</span></td><td>non-empty reply</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>max_one_question</td><td><span class="pill pass">Да</span></td><td>at most 1 question mark(s)</td><td>1</td><td></td></tr><tr><td>no_long_dash</td><td><span class="pill pass">Да</span></td><td>no em/en dash</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>no_url_in_text</td><td><span class="pill pass">Да</span></td><td>no URL in reply text</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>offer_decision</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>button_rendering</td><td><span class="pill pass">Да</span></td><td>False</td><td>False</td><td></td></tr><tr><td>must_not_contain:3 дня</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;3 дня&#x27;</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>must_not_contain:3-днев</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;3-днев&#x27;</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>must_not_contain:1000</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;1000&#x27;</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>must_not_contain:1 000</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;1 000&#x27;</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>must_not_contain:скину условия</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;скину условия&#x27;</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr><tr><td>must_not_contain:хочешь условия</td><td><span class="pill pass">Да</span></td><td>reply does not contain &#x27;хочешь условия&#x27;</td><td>Основное отличие тест-драйва в том, что разбор идет именно на твоем проекте и его текущих задачах, а не общий курс. Что конкретно хочешь узнать о формате?</td><td></td></tr></tbody></table></div></section>
+                <section><h3>Judge metrics</h3><div class="table-scroll"><table><thead><tr><th>Метрика</th><th>Score</th><th>Порог</th><th>Pass</th><th>Причина judge</th><th>Ошибка</th></tr></thead><tbody><tr><td colspan="6" class="empty">Нет judge metrics</td></tr></tbody></table></div></section>
+                <section><h3>Оценка заказчика</h3><p class="empty">Экспертная разметка ещё не добавлена.</p></section>
+              </div>
+            </details>
+            </section>
+  </main>
+</body>
+</html>
