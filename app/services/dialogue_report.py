@@ -23,6 +23,12 @@ _BUTTON_OPTIONS = (
     ("need_more_qualification", "Сначала нужна квалификация"),
     ("unsure", "Не уверен"),
 )
+_CONTINUE_OPTIONS = (
+    ("yes", "Да"),
+    ("probably_yes", "Скорее да"),
+    ("probably_no", "Скорее нет"),
+    ("no", "Нет"),
+)
 _FAILURE_TAGS = (
     ("wrong_next_step", "Неверный следующий шаг или вопрос"),
     ("repeats_known_information", "Повторно спрашивает уже известное"),
@@ -152,7 +158,7 @@ def _render_unanswered_users(users: Sequence[Mapping[str, Any]]) -> str:
     """
 
 
-def _render_message(message: Mapping[str, Any]) -> str:
+def _render_message(message: Mapping[str, Any], message_index: int) -> str:
     direction = str(message.get("direction") or "system")
     if direction not in {"incoming", "outgoing", "system"}:
         direction = "system"
@@ -167,11 +173,23 @@ def _render_message(message: Mapping[str, Any]) -> str:
         rendered_text = f"&lt;{escape(message_type)} без текста&gt;"
     else:
         rendered_text = escape(str(text))
+    message_id = escape(
+        str(message.get("id") or f"message-{message_index}"), quote=True
+    )
+    review_controls = ""
+    if direction == "outgoing":
+        review_controls = """
+          <div class="message-review" aria-label="Оценка реплики бота">
+            <button type="button" data-message-verdict="good" aria-pressed="false">👍 Удачная</button>
+            <button type="button" data-message-verdict="problematic" aria-pressed="false">⚠️ Проблемная</button>
+          </div>
+        """
     return (
-        f'<div class="message-row {direction}">'
+        f'<div class="message-row {direction}" data-message-id="{message_id}">'
         f'<div class="bubble"><div class="sender">{sender}</div>'
         f'<div class="message-text">{rendered_text}</div>'
-        f'<time>{escape(_time_label(message.get("created_at")))}</time></div></div>'
+        f'{review_controls}<time>{escape(_time_label(message.get("created_at")))}</time>'
+        f"</div></div>"
     )
 
 
@@ -181,12 +199,12 @@ def _render_messages(messages: Sequence[Mapping[str, Any]]) -> str:
 
     parts: list[str] = []
     current_date = ""
-    for message in messages:
+    for message_index, message in enumerate(messages, start=1):
         date_label = _date_label(message.get("created_at"))
         if date_label and date_label != current_date:
             parts.append(f'<div class="date-separator"><span>{escape(date_label)}</span></div>')
             current_date = date_label
-        parts.append(_render_message(message))
+        parts.append(_render_message(message, message_index))
     return "".join(parts)
 
 
@@ -226,6 +244,10 @@ def _render_review_form(dialogue_index: int) -> str:
         <fieldset data-required-field="button_should_be_shown_now">
           <legend>Должна ли к концу диалога появиться кнопка тест-драйва?</legend>
           <div class="choices">{_render_choices("button_should_be_shown_now", _BUTTON_OPTIONS, dialogue_index)}</div>
+        </fieldset>
+        <fieldset data-required-field="would_continue_conversation">
+          <legend>Если бы вы были на месте пользователя, стали бы продолжать этот диалог?</legend>
+          <div class="choices">{_render_choices("would_continue_conversation", _CONTINUE_OPTIONS, dialogue_index)}</div>
         </fieldset>
         <fieldset class="failure-section">
           <legend>Если ответы плохие, что именно сломано?</legend>
@@ -357,6 +379,12 @@ def render_dialogues_report_html(
     .system .sender {{ display: none; }}
     .message-text {{ white-space: pre-wrap; overflow-wrap: anywhere; }}
     time {{ position: absolute; right: 8px; bottom: 5px; color: var(--muted); font-size: 11px; }}
+    .outgoing time {{ position: static; display: block; margin-top: 4px; text-align: right; }}
+    .outgoing .bubble {{ padding-right: 10px; }}
+    .message-review {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; padding-top: 8px; border-top: 1px solid #a8c99680; }}
+    .message-review button {{ padding: 5px 8px; border: 1px solid #aabcb0; border-radius: 7px; color: #466052; background: #ffffffb3; font-size: 12px; font-weight: 650; }}
+    .message-review button[data-message-verdict="good"][aria-pressed="true"] {{ border-color: #4d9b68; color: #216536; background: #dff4e4; box-shadow: 0 0 0 2px #4d9b6824; }}
+    .message-review button[data-message-verdict="problematic"][aria-pressed="true"] {{ border-color: #c56d65; color: #8a3029; background: #f9e4e1; box-shadow: 0 0 0 2px #ae3d3524; }}
     .system time {{ display: none; }}
     .date-separator {{ margin: 14px 0 10px; text-align: center; }}
     .date-separator span {{ display: inline-block; padding: 4px 10px; border-radius: 999px; color: #fff; background: #5b6f79bf; font-size: 12px; font-weight: 600; }}
@@ -424,7 +452,7 @@ def render_dialogues_report_html(
   <script>
     (() => {{
       "use strict";
-      const schemaVersion = "dialogue-review-v1";
+      const schemaVersion = "dialogue-review-v2";
       const reportId = document.body.dataset.reportId;
       const generatedAt = document.body.dataset.generatedAt;
       const storageKey = "siemensbot-dialogue-review:" + reportId;
@@ -446,6 +474,11 @@ def render_dialogues_report_html(
           lead_status: selected(dialogue, "lead_status"),
           response_acceptable: selected(dialogue, "response_acceptable"),
           button_should_be_shown_now: selected(dialogue, "button_should_be_shown_now"),
+          would_continue_conversation: selected(dialogue, "would_continue_conversation"),
+          message_ratings: Array.from(dialogue.querySelectorAll('.message-row.outgoing[data-message-id]')).flatMap((row) => {{
+            const button = row.querySelector('[data-message-verdict][aria-pressed="true"]');
+            return button ? [{{ message_id: row.dataset.messageId, verdict: button.dataset.messageVerdict }}] : [];
+          }}),
           failure_tags: Array.from(dialogue.querySelectorAll('input[name="failure_tags"]:checked')).map((node) => node.value),
           expected_behavior: dialogue.querySelector('[name="expected_behavior"]').value.trim(),
           suggested_response: dialogue.querySelector('[name="suggested_response"]').value.trim(),
@@ -454,7 +487,7 @@ def render_dialogues_report_html(
       }}
 
       function isComplete(review) {{
-        return Boolean(review.lead_status && review.response_acceptable && review.button_should_be_shown_now);
+        return Boolean(review.lead_status && review.response_acceptable && review.button_should_be_shown_now && review.would_continue_conversation);
       }}
 
       function snapshot() {{
@@ -494,9 +527,16 @@ def render_dialogues_report_html(
         dialogues.forEach((dialogue) => {{
           const item = byId.get(dialogue.dataset.dialogueId);
           if (!item) return;
-          ["lead_status", "response_acceptable", "button_should_be_shown_now"].forEach((name) => {{
+          ["lead_status", "response_acceptable", "button_should_be_shown_now", "would_continue_conversation"].forEach((name) => {{
             const input = Array.from(dialogue.querySelectorAll(`input[data-field="${{name}}"]`)).find((node) => node.value === item[name]);
             if (input) input.checked = true;
+          }});
+          const ratings = new Map((Array.isArray(item.message_ratings) ? item.message_ratings : []).map((rating) => [rating.message_id, rating.verdict]));
+          dialogue.querySelectorAll('.message-row.outgoing[data-message-id]').forEach((row) => {{
+            const verdict = ratings.get(row.dataset.messageId);
+            row.querySelectorAll('[data-message-verdict]').forEach((button) => {{
+              button.setAttribute("aria-pressed", String(button.dataset.messageVerdict === verdict));
+            }});
           }});
           const tags = new Set(Array.isArray(item.failure_tags) ? item.failure_tags : []);
           dialogue.querySelectorAll('input[name="failure_tags"]').forEach((node) => {{ node.checked = tags.has(node.value); }});
@@ -508,6 +548,15 @@ def render_dialogues_report_html(
 
       document.addEventListener("input", save);
       document.addEventListener("change", save);
+      document.addEventListener("click", (event) => {{
+        const button = event.target.closest('[data-message-verdict]');
+        if (!button) return;
+        const row = button.closest('.message-row.outgoing');
+        const wasPressed = button.getAttribute("aria-pressed") === "true";
+        row.querySelectorAll('[data-message-verdict]').forEach((item) => item.setAttribute("aria-pressed", "false"));
+        if (!wasPressed) button.setAttribute("aria-pressed", "true");
+        save();
+      }});
       document.getElementById("clear").addEventListener("click", () => {{
         if (!window.confirm("Удалить всю разметку этого отчёта из браузера?")) return;
         localStorage.removeItem(storageKey);
@@ -516,6 +565,7 @@ def render_dialogues_report_html(
           if (node.type === "radio" || node.type === "checkbox") node.checked = false;
           else node.value = "";
         }}));
+        dialogues.forEach((dialogue) => dialogue.querySelectorAll('[data-message-verdict]').forEach((button) => button.setAttribute("aria-pressed", "false")));
         status.textContent = "";
         updateUi();
       }});

@@ -21,6 +21,7 @@ def test_render_dialogues_report_is_self_contained_chat_html() -> None:
                     "text": "Привет <b>бот</b>",
                 },
                 {
+                    "id": 502,
                     "created_at": datetime(2026, 7, 20, 8, 2, tzinfo=UTC),
                     "direction": "outgoing",
                     "message_type": "text",
@@ -64,12 +65,20 @@ def test_render_dialogues_report_is_self_contained_chat_html() -> None:
     assert 'name="lead_status-1"' in html
     assert 'name="response_acceptable-1"' in html
     assert 'name="button_should_be_shown_now-1"' in html
+    assert 'name="would_continue_conversation-1"' in html
+    assert "Если бы вы были на месте пользователя, стали бы продолжать этот диалог?" in html
+    assert 'data-message-id="502"' in html
+    assert 'data-message-verdict="good"' in html
+    assert 'data-message-verdict="problematic"' in html
+    assert "👍 Удачная" in html
+    assert "⚠️ Проблемная" in html
+    assert "message_ratings:" in html
     assert 'name="failure_tags" value="wrong_next_step"' in html
     assert '<textarea name="expected_behavior"' in html
     assert '<textarea name="suggested_response"' in html
     assert '<textarea name="expert_note"' in html
     assert "localStorage" in html
-    assert "dialogue-review-v1" in html
+    assert "dialogue-review-v2" in html
     assert "Скачать reviewed.json" in html
     assert 'JSON.stringify(artifact, null, 2) + "\\n"' in html
 
