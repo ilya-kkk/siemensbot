@@ -1,0 +1,450 @@
+{
+  "schema_version": "dialogue-review-v2",
+  "report_id": "dialogues-2026-07-27_14-18-03",
+  "generated_at": "2026-07-27T14:18:03.730954+00:00",
+  "reviewer_id": "Семён",
+  "reviews": [
+    {
+      "dialogue_id": "dialogue-14",
+      "user_record_id": "14",
+      "telegram_user_id": "369307841",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "yes",
+      "would_continue_conversation": "yes",
+      "message_ratings": [
+        {
+          "message_id": "31",
+          "verdict": "good"
+        },
+        {
+          "message_id": "32",
+          "verdict": "good"
+        },
+        {
+          "message_id": "39",
+          "verdict": "good"
+        },
+        {
+          "message_id": "53",
+          "verdict": "good"
+        },
+        {
+          "message_id": "58",
+          "verdict": "good"
+        },
+        {
+          "message_id": "60",
+          "verdict": "good"
+        },
+        {
+          "message_id": "62",
+          "verdict": "good"
+        },
+        {
+          "message_id": "66",
+          "verdict": "good"
+        },
+        {
+          "message_id": "72",
+          "verdict": "good"
+        },
+        {
+          "message_id": "78",
+          "verdict": "good"
+        },
+        {
+          "message_id": "83",
+          "verdict": "good"
+        },
+        {
+          "message_id": "90",
+          "verdict": "good"
+        }
+      ],
+      "failure_tags": [],
+      "expected_behavior": "Бот часто повторяет то, что написал человек. Так лучше не делать",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-17",
+      "user_record_id": "17",
+      "telegram_user_id": "5779800523",
+      "lead_status": "target",
+      "response_acceptable": "yes",
+      "button_should_be_shown_now": "yes",
+      "would_continue_conversation": "probably_yes",
+      "message_ratings": [
+        {
+          "message_id": "34",
+          "verdict": "good"
+        },
+        {
+          "message_id": "40",
+          "verdict": "good"
+        },
+        {
+          "message_id": "42",
+          "verdict": "good"
+        },
+        {
+          "message_id": "50",
+          "verdict": "good"
+        },
+        {
+          "message_id": "118",
+          "verdict": "good"
+        },
+        {
+          "message_id": "120",
+          "verdict": "good"
+        },
+        {
+          "message_id": "122",
+          "verdict": "good"
+        },
+        {
+          "message_id": "124",
+          "verdict": "good"
+        },
+        {
+          "message_id": "126",
+          "verdict": "good"
+        },
+        {
+          "message_id": "128",
+          "verdict": "good"
+        },
+        {
+          "message_id": "130",
+          "verdict": "good"
+        }
+      ],
+      "failure_tags": [],
+      "expected_behavior": "Бот должен был сильнее показать человеку проблему",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-18",
+      "user_record_id": "18",
+      "telegram_user_id": "1425596189",
+      "lead_status": "not_enough_data",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "need_more_qualification",
+      "would_continue_conversation": "probably_no",
+      "message_ratings": [
+        {
+          "message_id": "36",
+          "verdict": "good"
+        },
+        {
+          "message_id": "48",
+          "verdict": "good"
+        },
+        {
+          "message_id": "180",
+          "verdict": "good"
+        },
+        {
+          "message_id": "299",
+          "verdict": "good"
+        },
+        {
+          "message_id": "366",
+          "verdict": "good"
+        }
+      ],
+      "failure_tags": [],
+      "expected_behavior": "Бот должен был по-другому попытаться перевести человека в диалог, если он уже не отвечает",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-22",
+      "user_record_id": "22",
+      "telegram_user_id": "1944542283",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "need_more_qualification",
+      "would_continue_conversation": "probably_no",
+      "message_ratings": [
+        {
+          "message_id": "45",
+          "verdict": "good"
+        },
+        {
+          "message_id": "46",
+          "verdict": "good"
+        },
+        {
+          "message_id": "54",
+          "verdict": "good"
+        },
+        {
+          "message_id": "56",
+          "verdict": "good"
+        }
+      ],
+      "failure_tags": [],
+      "expected_behavior": "Бот должен откапывать проблему человека, задавая прямые вопросы о количестве заявок, среднем чеке, оплатах и конверсиях",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-66",
+      "user_record_id": "66",
+      "telegram_user_id": "5073571312",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "need_more_qualification",
+      "would_continue_conversation": "probably_no",
+      "message_ratings": [],
+      "failure_tags": [],
+      "expected_behavior": "Бот должен откапывать проблему человека и всеми силами возвращать его в диалог",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-68",
+      "user_record_id": "68",
+      "telegram_user_id": "7301784297",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "yes",
+      "would_continue_conversation": "probably_no",
+      "message_ratings": [
+        {
+          "message_id": "136",
+          "verdict": "good"
+        },
+        {
+          "message_id": "138",
+          "verdict": "good"
+        },
+        {
+          "message_id": "140",
+          "verdict": "good"
+        },
+        {
+          "message_id": "142",
+          "verdict": "good"
+        },
+        {
+          "message_id": "144",
+          "verdict": "good"
+        },
+        {
+          "message_id": "146",
+          "verdict": "good"
+        },
+        {
+          "message_id": "148",
+          "verdict": "good"
+        },
+        {
+          "message_id": "150",
+          "verdict": "good"
+        },
+        {
+          "message_id": "152",
+          "verdict": "good"
+        },
+        {
+          "message_id": "154",
+          "verdict": "good"
+        },
+        {
+          "message_id": "156",
+          "verdict": "problematic"
+        },
+        {
+          "message_id": "158",
+          "verdict": "good"
+        },
+        {
+          "message_id": "160",
+          "verdict": "good"
+        },
+        {
+          "message_id": "162",
+          "verdict": "good"
+        },
+        {
+          "message_id": "164",
+          "verdict": "good"
+        },
+        {
+          "message_id": "166",
+          "verdict": "good"
+        },
+        {
+          "message_id": "168",
+          "verdict": "good"
+        },
+        {
+          "message_id": "170",
+          "verdict": "good"
+        }
+      ],
+      "failure_tags": [],
+      "expected_behavior": "Бот слишком долго задает нецелевые вопросы. Нужно быстро оценить, что у человека в проекте и как ему может помочь тест-драйв и предложить его. Диалог затянулся",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-57",
+      "user_record_id": "57",
+      "telegram_user_id": "6602581376",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "yes",
+      "would_continue_conversation": "probably_no",
+      "message_ratings": [],
+      "failure_tags": [],
+      "expected_behavior": "Бот снова затянул диалог",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-106",
+      "user_record_id": "106",
+      "telegram_user_id": "7440720221",
+      "lead_status": "non_target",
+      "response_acceptable": "",
+      "button_should_be_shown_now": "",
+      "would_continue_conversation": "",
+      "message_ratings": [],
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-135",
+      "user_record_id": "135",
+      "telegram_user_id": "1427282768",
+      "lead_status": "target",
+      "response_acceptable": "unsure",
+      "button_should_be_shown_now": "yes",
+      "would_continue_conversation": "probably_yes",
+      "message_ratings": [
+        {
+          "message_id": "318",
+          "verdict": "good"
+        },
+        {
+          "message_id": "330",
+          "verdict": "good"
+        },
+        {
+          "message_id": "332",
+          "verdict": "good"
+        },
+        {
+          "message_id": "334",
+          "verdict": "good"
+        },
+        {
+          "message_id": "336",
+          "verdict": "good"
+        },
+        {
+          "message_id": "338",
+          "verdict": "good"
+        },
+        {
+          "message_id": "340",
+          "verdict": "good"
+        },
+        {
+          "message_id": "342",
+          "verdict": "good"
+        },
+        {
+          "message_id": "344",
+          "verdict": "good"
+        },
+        {
+          "message_id": "346",
+          "verdict": "good"
+        },
+        {
+          "message_id": "348",
+          "verdict": "good"
+        },
+        {
+          "message_id": "350",
+          "verdict": "good"
+        }
+      ],
+      "failure_tags": [],
+      "expected_behavior": "Бот снова повторяет то, что говорит ему человек",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-132",
+      "user_record_id": "132",
+      "telegram_user_id": "8681659909",
+      "lead_status": "target",
+      "response_acceptable": "no",
+      "button_should_be_shown_now": "no",
+      "would_continue_conversation": "probably_no",
+      "message_ratings": [
+        {
+          "message_id": "382",
+          "verdict": "problematic"
+        }
+      ],
+      "failure_tags": [
+        "ignored_context"
+      ],
+      "expected_behavior": "Бот неправильно распознал контекст. Человек пишет, какую проблему он решает для клиентов, а бот воспринимает это как проблему, которую хочет решить сам человек",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-199",
+      "user_record_id": "199",
+      "telegram_user_id": "6243609762",
+      "lead_status": "non_target",
+      "response_acceptable": "",
+      "button_should_be_shown_now": "",
+      "would_continue_conversation": "",
+      "message_ratings": [],
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    },
+    {
+      "dialogue_id": "dialogue-204",
+      "user_record_id": "204",
+      "telegram_user_id": "8728344350",
+      "lead_status": "non_target",
+      "response_acceptable": "",
+      "button_should_be_shown_now": "",
+      "would_continue_conversation": "",
+      "message_ratings": [
+        {
+          "message_id": "500",
+          "verdict": "good"
+        },
+        {
+          "message_id": "502",
+          "verdict": "good"
+        },
+        {
+          "message_id": "504",
+          "verdict": "good"
+        }
+      ],
+      "failure_tags": [],
+      "expected_behavior": "",
+      "suggested_response": "",
+      "expert_note": ""
+    }
+  ]
+}
