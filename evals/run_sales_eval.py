@@ -32,6 +32,15 @@ DEFAULT_FOLLOWUP_TEXT = (
     "ситуации. В какой нише сейчас проект?"
 )
 URL_RE = re.compile(r"https?://|www\.", re.IGNORECASE)
+ADJACENT_DUPLICATE_WORD_RE = re.compile(
+    r"\b([A-Za-zА-Яа-яЁё]+)\b(?:[\s,;:!?-]+)\1\b",
+    re.IGNORECASE,
+)
+AWKWARD_PARALLEL_GOAL_RE = re.compile(
+    r"увелич\w*\s+заяв\w*\s+с\s+\d+\s+до\s+\d+.*"
+    r"оплат\w*\s+с\s+\d+\s+до\s+\d+",
+    re.IGNORECASE,
+)
 
 
 class ScenarioValidationError(ValueError):
@@ -123,6 +132,25 @@ def load_scenarios(path: Path) -> list[dict[str, Any]]:
             raise ScenarioValidationError(
                 f"{path}:{line_number}: hard_constraints must be an object"
             )
+        ordered_mentions = hard_constraints.get("ordered_mentions", [])
+        if not isinstance(ordered_mentions, list):
+            raise ScenarioValidationError(
+                f"{path}:{line_number}: hard_constraints.ordered_mentions must be a list"
+            )
+        for rule_index, rule in enumerate(ordered_mentions):
+            if not isinstance(rule, dict):
+                raise ScenarioValidationError(
+                    f"{path}:{line_number}: ordered_mentions[{rule_index}] must be an object"
+                )
+            for field in ("before_any", "after_any"):
+                phrases = rule.get(field)
+                if not isinstance(phrases, list) or not phrases or not all(
+                    isinstance(phrase, str) and phrase.strip() for phrase in phrases
+                ):
+                    raise ScenarioValidationError(
+                        f"{path}:{line_number}: ordered_mentions[{rule_index}].{field} "
+                        "must be a non-empty list of strings"
+                    )
         declared_offer = hard_constraints.get("should_send_offer")
         expected_offer = item["expected_button_action"] == "show"
         if declared_offer is not None and bool(declared_offer) is not expected_offer:
@@ -210,6 +238,20 @@ def build_hard_checks(
             reason="the application must render the URL as a button",
         ),
         _check(
+            "no_adjacent_duplicate_words",
+            ADJACENT_DUPLICATE_WORD_RE.search(reply_text) is None,
+            expected="no accidental adjacent word duplication",
+            actual=reply_text,
+            reason="reply contains an adjacent duplicated word",
+        ),
+        _check(
+            "no_awkward_parallel_numeric_goal",
+            AWKWARD_PARALLEL_GOAL_RE.search(reply_text) is None,
+            expected="no repetitive 'increase X from A to B and Y from C to D' wording",
+            actual=reply_text,
+            reason="reply uses an awkward repetitive numeric-goal construction",
+        ),
+        _check(
             "offer_decision",
             should_send_offer is expected_offer,
             expected=expected_offer,
@@ -268,6 +310,36 @@ def build_hard_checks(
                 expected={"one_of": required_options},
                 actual=reply_text,
                 reason=f"reply must mention one of: {', '.join(required_options)}",
+            )
+        )
+    for index, rule in enumerate(constraints.get("ordered_mentions", [])):
+        before_options = [str(value) for value in rule["before_any"]]
+        after_options = [str(value) for value in rule["after_any"]]
+        before_positions = [
+            lowered.find(value.casefold())
+            for value in before_options
+            if value.casefold() in lowered
+        ]
+        after_positions = [
+            lowered.find(value.casefold())
+            for value in after_options
+            if value.casefold() in lowered
+        ]
+        ordered = (
+            bool(before_positions)
+            and bool(after_positions)
+            and min(before_positions) < min(after_positions)
+        )
+        checks.append(
+            _check(
+                f"ordered_mentions:{index}",
+                ordered,
+                expected={"before_any": before_options, "after_any": after_options},
+                actual=reply_text,
+                reason=(
+                    "reply must explain personalized value before mentioning duration "
+                    "or price"
+                ),
             )
         )
     return checks

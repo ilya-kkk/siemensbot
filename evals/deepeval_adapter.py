@@ -19,6 +19,8 @@ from deepeval.test_case import LLMTestCase, SingleTurnParams
 
 SALES_METRIC_NAME = "Sales Next-Step Quality"
 PROMPT_ALIGNMENT_METRIC_NAME = "Prompt Alignment"
+LANGUAGE_METRIC_NAME = "Russian Language Quality"
+VALUE_ORDER_METRIC_NAME = "Personalized Value Before Price"
 
 SALES_CRITERIA = """
 Оцени, является ли ACTUAL_OUTPUT правильным следующим ответом в текущем
@@ -44,6 +46,45 @@ PROMPT_INSTRUCTIONS = [
     "Ответ не давит на пользователя и не обещает результат, доход или гарантированный эффект.",
     "Ответ не выдумывает факты о пользователе, его проекте или результатах.",
     "Ответ не содержит URL или ссылку текстом.",
+    "Ответ грамматически корректен и не содержит случайных повторов слов или оборотов.",
+]
+
+LANGUAGE_CRITERIA = """
+Оцени качество русского языка в ACTUAL_OUTPUT. Ответ должен звучать как естественная,
+грамматически законченная Telegram-реплика: без ошибок согласования, обрывков фраз,
+случайных повторов слов, навязчивого параллелизма и неуклюжих конструкций с числами.
+Не штрафуй за уместную разговорность и короткие предложения. Не копируй ошибки из INPUT
+в оценку ответа бота. Конструкции вроде «увеличить заявки с 10 до 30 и оплаты с 5 до
+10» или «что мешает увеличить число оплат с трёх» считай неестественными и снижай
+оценку, даже если общий смысл понятен.
+""".strip()
+
+LANGUAGE_EVALUATION_STEPS = [
+    "Прочитай ACTUAL_OUTPUT как самостоятельную русскую реплику.",
+    "Проверь грамматику, согласование, законченность и естественный порядок слов.",
+    "Найди случайные повторы слов, корней или одинаковых оборотов в соседних частях.",
+    "Оцени, легко ли пользователь поймет сообщение с первого чтения.",
+]
+
+VALUE_ORDER_CRITERIA = """
+Оцени порядок аргументации в ACTUAL_OUTPUT с учетом INPUT и EXPECTED_OUTPUT. Если
+пользователь прямо не спрашивал цену, бот до первого упоминания цены во всем показанном
+диалоге обязан объяснить конкретную персональную пользу тест-драйва: какой подтвержденный
+участок его проекта будут разбирать и какую практическую ясность это даст. Если такая
+польза уже объяснена в предыдущей реплике из INPUT, цена может стоять первой в следующем
+ответе. Общая фраза о пользе не считается персонализацией. Польза означает разбор и
+определение приоритета, а не обещание увеличить заявки, оплаты или доход. Если
+пользователь прямо спросил цену, немедленный ответ о 1000 рублях правилен. Если текущий
+шаг вообще не относится к тест-драйву и цена не упомянута, этот критерий считается
+выполненным: не требуй преждевременного оффера.
+""".strip()
+
+VALUE_ORDER_EVALUATION_STEPS = [
+    "Определи из INPUT, спрашивал ли пользователь цену прямо.",
+    "Если нет, найди первое упоминание цены во всем INPUT и ACTUAL_OUTPUT и проверь порядок.",
+    "Если тест-драйв и цена не обсуждаются, не требуй от бота оффера и засчитай порядок.",
+    "Проверь, что польза основана на фактах проекта и описывает результат разбора.",
+    "Снизь оценку за price-first, общую пользу или обещанный бизнес-результат.",
 ]
 
 
@@ -173,6 +214,28 @@ def evaluate_cases(
             include_reason=True,
             async_mode=True,
         ),
+        GEval(
+            name=LANGUAGE_METRIC_NAME,
+            evaluation_params=[SingleTurnParams.ACTUAL_OUTPUT],
+            criteria=LANGUAGE_CRITERIA,
+            evaluation_steps=LANGUAGE_EVALUATION_STEPS,
+            model=judge,
+            threshold=0.8,
+            async_mode=True,
+        ),
+        GEval(
+            name=VALUE_ORDER_METRIC_NAME,
+            evaluation_params=[
+                SingleTurnParams.INPUT,
+                SingleTurnParams.ACTUAL_OUTPUT,
+                SingleTurnParams.EXPECTED_OUTPUT,
+            ],
+            criteria=VALUE_ORDER_CRITERIA,
+            evaluation_steps=VALUE_ORDER_EVALUATION_STEPS,
+            model=judge,
+            threshold=0.8,
+            async_mode=True,
+        ),
     ]
 
     evaluation = evaluate(
@@ -181,7 +244,7 @@ def evaluate_cases(
         identifier="siemensbot-sales-eval",
         hyperparameters={
             "judge_model": judge.get_model_name(),
-            "sales_metric_version": "v1",
+            "sales_metric_version": "v2-business-20260729",
         },
         async_config=AsyncConfig(run_async=True, max_concurrent=5),
         display_config=DisplayConfig(

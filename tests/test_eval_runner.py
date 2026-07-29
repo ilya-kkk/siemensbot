@@ -70,6 +70,77 @@ def test_hard_checks_accept_expected_button_and_clean_reply() -> None:
     assert all(check["passed"] for check in checks)
 
 
+def test_hard_checks_reject_adjacent_duplicate_words() -> None:
+    checks = build_hard_checks(
+        _scenario(),
+        reply_text="Сначала сначала посмотрим путь от заявки до оплаты.",
+        should_send_offer=False,
+        button_rendered=False,
+    )
+
+    duplicate_check = next(
+        check for check in checks if check["name"] == "no_adjacent_duplicate_words"
+    )
+    assert duplicate_check["passed"] is False
+
+
+def test_hard_checks_reject_awkward_parallel_numeric_goal() -> None:
+    checks = build_hard_checks(
+        _scenario(),
+        reply_text=(
+            "Нужно увеличить заявки с 10 до 30 и оплаты с 5 до 10 в месяц. "
+            "Показать условия?"
+        ),
+        should_send_offer=False,
+        button_rendered=False,
+    )
+
+    parallel_check = next(
+        check
+        for check in checks
+        if check["name"] == "no_awkward_parallel_numeric_goal"
+    )
+    assert parallel_check["passed"] is False
+
+
+def test_hard_checks_enforce_personalized_value_before_price() -> None:
+    scenario = _scenario(
+        hard_constraints={
+            "ordered_mentions": [
+                {
+                    "before_any": ["разберут", "определить"],
+                    "after_any": ["1000", "1 000"],
+                }
+            ]
+        }
+    )
+
+    passing = build_hard_checks(
+        scenario,
+        reply_text=(
+            "На тест-драйве разберут путь от заявки до оплаты. "
+            "Формат стоит 1000 рублей."
+        ),
+        should_send_offer=False,
+        button_rendered=False,
+    )
+    failing = build_hard_checks(
+        scenario,
+        reply_text=(
+            "Тест-драйв стоит 1000 рублей. Затем разберут путь от заявки до оплаты."
+        ),
+        should_send_offer=False,
+        button_rendered=False,
+    )
+
+    assert next(
+        check for check in passing if check["name"] == "ordered_mentions:0"
+    )["passed"]
+    assert not next(
+        check for check in failing if check["name"] == "ordered_mentions:0"
+    )["passed"]
+
+
 def test_build_summary_aggregates_hard_and_judge_results() -> None:
     case = {
         "expected": {"lead_status": "target"},
